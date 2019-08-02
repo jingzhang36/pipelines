@@ -31,7 +31,7 @@ steps:
                 python3 -c "import kfp; client=kfp.Client(namespace=\"$_NAMESPACE\"); exp = client.create_experiment(name=\"$_EXPERIMENT_NAME\"); client.run_pipeline(exp.id, \"$COMMIT_SHA\", \"/workspace/pipeline.zip\")"']
   env:
   - 'CLOUDSDK_COMPUTE_REGION=us-central1-a'
-  - 'CLOUDSDK_CONTAINER_CLUSTER=kfci'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=standard-cluster-3'
   id:   'RunPipeline'
 
 images:
