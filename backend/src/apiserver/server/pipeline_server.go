@@ -16,6 +16,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -117,4 +118,40 @@ func ValidateCreatePipelineRequest(request *api.CreatePipelineRequest) error {
 
 func NewPipelineServer(resourceManager *resource.ResourceManager) *PipelineServer {
 	return &PipelineServer{resourceManager: resourceManager, httpClient: http.DefaultClient}
+}
+
+func (s *PipelineServer) CreatePipelineVersion(ctx context.Context, request *api.CreatePipelineVersionRequest) (*api.PipelineVersion, error) {
+	pipelineUrl := request.Version.PackageUrl.PipelineUrl
+	resp, err := s.httpClient.Get(pipelineUrl)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		return nil, util.NewInternalServerError(err, "Failed to download the pipeline from %v "+
+			"Please double check the URL is valid and can be accessed by the pipeline system.", pipelineUrl)
+	}
+	pipelineFileName := path.Base(pipelineUrl)
+	pipelineFile, err := ReadPipelineFile(pipelineFileName, resp.Body, MaxFileLength)
+	if err != nil {
+		return nil, util.Wrap(err, "The URL is valid but pipeline system failed to read the file.")
+	}
+
+	var pipelineId string
+	for _, resourceReference := range request.Version.ResourceReferences {
+		if resourceReference.Key.Type == api.ResourceType_PIPELINE {
+			pipelineId = resourceReference.Key.Id
+		}
+	}
+
+	version, err := s.resourceManager.CreatePipelineVersion(request.Version, pipelineId, pipelineFile)
+	if err != nil {
+		return nil, util.Wrap(err, "Failed to create a version.")
+	}
+	return ToApiPipelineVersion(version)
+}
+
+func (s *PipelineServer) GetPipelineVersion(ctx context.Context, request *api.GetPipelineVersionRequest) (*api.PipelineVersion, error) {
+	fmt.Printf("JING p-s: %+v\n", request)
+	version, err := s.resourceManager.GetPipelineVersion(request.VersionId)
+	if err != nil {
+		return nil, util.Wrap(err, "Get pipeline version failed.")
+	}
+	return ToApiPipelineVersion(version)
 }

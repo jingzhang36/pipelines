@@ -814,3 +814,44 @@ func (r *ResourceManager) MarkSampleLoaded() error {
 func (r *ResourceManager) getDefaultSA() string {
 	return common.GetStringConfigWithDefault(defaultPipelineRunnerServiceAccountEnvVar, defaultPipelineRunnerServiceAccount)
 }
+
+func (r *ResourceManager) CreatePipelineVersion(apiVersion *api.PipelineVersion, pipelineId string, pipelineFile []byte) (*model.PipelineVersion, error) {
+	version, _ := r.ToModelPipelineVersion(apiVersion)
+	// Extract the parameter from the pipeline
+	params, err := util.GetParameters(pipelineFile)
+	if err != nil {
+		return nil, util.Wrap(err, "Create pipeline version failed")
+	}
+
+	// Create an entry with status of creating the pipeline version
+	version.Status = model.PipelineVersionCreating
+	version.PipelineId = pipelineId
+	version.Parameters = params
+	version, err = r.pipelineStore.CreatePipelineVersion(version)
+	if err != nil {
+		return nil, util.Wrap(err, "Create pipeline version failed")
+	}
+
+	// Store the pipeline file
+	err = r.objectStore.AddFile(pipelineFile, storage.CreatePipelinePath(fmt.Sprint(version.UUID)))
+	if err != nil {
+		return nil, util.Wrap(err, "Create pipeline version failed")
+	}
+
+	version.Status = model.PipelineVersionReady
+	err = r.pipelineStore.UpdatePipelineVersionStatus(version.UUID, version.Status)
+	if err != nil {
+		return nil, util.Wrap(err, "Create pipeline failed")
+	}
+	err = r.pipelineStore.UpdatePipelineDefaultVersion(pipelineId, version.UUID)
+	if err != nil {
+		return nil, util.Wrap(err, "Failed to update pipeline default version.")
+	}
+
+	return version, nil
+}
+
+func (r *ResourceManager) GetPipelineVersion(versionId string) (*model.PipelineVersion, error) {
+	fmt.Printf("JING r-m %+v\n", versionId)
+	return r.pipelineStore.GetPipelineVersion(versionId)
+}
