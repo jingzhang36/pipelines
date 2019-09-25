@@ -40,7 +40,7 @@ var pipelineColumns = []string{
 	"pipeline_versions.Parameters",
 	"pipeline_versions.PipelineId",
 	"pipeline_versions.Status",
-	"pipeline_versions.CodeSourceUrls",
+	"pipeline_versions.CodeSourceUrl",
 }
 
 var pipelineVersionColumns = []string{
@@ -159,7 +159,7 @@ func (s *PipelineStore) scanRows(rows *sql.Rows) ([]*model.Pipeline, error) {
 		var defaultVersionId sql.NullString
 		var createdAtInSec int64
 		var status model.PipelineStatus
-		var versionUUID, versionName, versionParameters, versionPipelineId, versionCodeSourceUrls, versionStatus sql.NullString
+		var versionUUID, versionName, versionParameters, versionPipelineId, versionCodeSourceUrl, versionStatus sql.NullString
 		var versionCreatedAtInSec sql.NullInt64
 		if err := rows.Scan(
 			&uuid,
@@ -175,7 +175,7 @@ func (s *PipelineStore) scanRows(rows *sql.Rows) ([]*model.Pipeline, error) {
 			&versionParameters,
 			&versionPipelineId,
 			&versionStatus,
-			&versionCodeSourceUrls); err != nil {
+			&versionCodeSourceUrl); err != nil {
 			return nil, err
 		}
 		if defaultVersionId.Valid {
@@ -194,7 +194,7 @@ func (s *PipelineStore) scanRows(rows *sql.Rows) ([]*model.Pipeline, error) {
 					Parameters:     versionParameters.String,
 					PipelineId:     versionPipelineId.String,
 					Status:         model.PipelineVersionStatus(versionStatus.String),
-					CodeSourceUrls: versionCodeSourceUrls.String,
+					CodeSourceUrl:  versionCodeSourceUrl.String,
 				}})
 		} else {
 			pipelines = append(pipelines, &model.Pipeline{
@@ -293,10 +293,10 @@ func (s *PipelineStore) CreatePipeline(p *model.Pipeline) (*model.Pipeline, erro
 	// retrieve pipeline package.
 	if newPipeline.DefaultVersion == nil {
 		newPipeline.DefaultVersion = &model.PipelineVersion{
-			Name:           newPipeline.Name,
-			Parameters:     newPipeline.Parameters,
-			Status:         model.PipelineVersionCreating,
-			CodeSourceUrls: ""}
+			Name:          newPipeline.Name,
+			Parameters:    newPipeline.Parameters,
+			Status:        model.PipelineVersionCreating,
+			CodeSourceUrl: ""}
 	}
 	newPipeline.DefaultVersion.CreatedAtInSec = now
 	newPipeline.DefaultVersion.PipelineId = id.String()
@@ -311,7 +311,7 @@ func (s *PipelineStore) CreatePipeline(p *model.Pipeline) (*model.Pipeline, erro
 				"Parameters":     newPipeline.DefaultVersion.Parameters,
 				"Status":         string(newPipeline.DefaultVersion.Status),
 				"PipelineId":     newPipeline.UUID,
-				"CodeSourceUrls": newPipeline.DefaultVersion.CodeSourceUrls}).
+				"CodeSourceUrl":  newPipeline.DefaultVersion.CodeSourceUrl}).
 		ToSql()
 	if err != nil {
 		return nil, util.NewInternalServerError(err,
