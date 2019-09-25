@@ -50,7 +50,7 @@ var pipelineVersionColumns = []string{
 	"pipeline_versions.Parameters",
 	"pipeline_versions.PipelineId",
 	"pipeline_versions.Status",
-	"pipeline_versions.CodeSourceUrls",
+	"pipeline_versions.CodeSourceUrl",
 }
 
 type PipelineStoreInterface interface {
@@ -458,7 +458,7 @@ func (s *PipelineStore) CreatePipelineVersion(v *model.PipelineVersion) (*model.
 				"Parameters":     newPipelineVersion.Parameters,
 				"PipelineId":     newPipelineVersion.PipelineId,
 				"Status":         string(newPipelineVersion.Status),
-				"CodeSourceUrls": ""}).
+				"CodeSourceUrl":  ""}).
 		ToSql()
 	if err != nil {
 		return nil, util.NewInternalServerError(err, "Failed to create query to insert version to pipeline version table: %v",
@@ -529,7 +529,7 @@ func (s *PipelineStore) GetPipelineVersionWithStatus(versionId string, status mo
 func (s *PipelineStore) scanPipelineVersionRows(rows *sql.Rows) ([]*model.PipelineVersion, error) {
 	var pipelineVersions []*model.PipelineVersion
 	for rows.Next() {
-		var uuid, name, parameters, pipelineId, codeSourceUrls, status string
+		var uuid, name, parameters, pipelineId, codeSourceUrl, status string
 		var createdAtInSec int64
 		if err := rows.Scan(
 			&uuid,
@@ -538,7 +538,7 @@ func (s *PipelineStore) scanPipelineVersionRows(rows *sql.Rows) ([]*model.Pipeli
 			&parameters,
 			&pipelineId,
 			&status,
-			&codeSourceUrls,
+			&codeSourceUrl,
 		); err != nil {
 			return nil, err
 		}
@@ -548,7 +548,7 @@ func (s *PipelineStore) scanPipelineVersionRows(rows *sql.Rows) ([]*model.Pipeli
 			Name:           name,
 			Parameters:     parameters,
 			PipelineId:     pipelineId,
-			CodeSourceUrls: codeSourceUrls,
+			CodeSourceUrl:  codeSourceUrl,
 			Status:         model.PipelineVersionStatus(status)})
 	}
 	return pipelineVersions, nil
