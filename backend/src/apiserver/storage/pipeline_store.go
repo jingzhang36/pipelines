@@ -529,8 +529,8 @@ func (s *PipelineStore) GetPipelineVersionWithStatus(versionId string, status mo
 func (s *PipelineStore) scanPipelineVersionRows(rows *sql.Rows) ([]*model.PipelineVersion, error) {
 	var pipelineVersions []*model.PipelineVersion
 	for rows.Next() {
-		var uuid, name, parameters, pipelineId, codeSourceUrl, status string
-		var createdAtInSec int64
+		var uuid, name, parameters, pipelineId, codeSourceUrl, status sql.NullString
+		var createdAtInSec sql.NullInt64
 		if err := rows.Scan(
 			&uuid,
 			&createdAtInSec,
@@ -542,14 +542,16 @@ func (s *PipelineStore) scanPipelineVersionRows(rows *sql.Rows) ([]*model.Pipeli
 		); err != nil {
 			return nil, err
 		}
-		pipelineVersions = append(pipelineVersions, &model.PipelineVersion{
-			UUID:           uuid,
-			CreatedAtInSec: createdAtInSec,
-			Name:           name,
-			Parameters:     parameters,
-			PipelineId:     pipelineId,
-			CodeSourceUrl:  codeSourceUrl,
-			Status:         model.PipelineVersionStatus(status)})
+		if uuid.Valid {
+			pipelineVersions = append(pipelineVersions, &model.PipelineVersion{
+				UUID:           uuid.String,
+				CreatedAtInSec: createdAtInSec.Int64,
+				Name:           name.String,
+				Parameters:     parameters.String,
+				PipelineId:     pipelineId.String,
+				CodeSourceUrl:  codeSourceUrl.String,
+				Status:         model.PipelineVersionStatus(status.String)})
+		}
 	}
 	return pipelineVersions, nil
 }
