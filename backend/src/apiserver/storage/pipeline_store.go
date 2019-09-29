@@ -397,6 +397,12 @@ func (s *PipelineStore) UpdatePipelineVersionStatus(id string, status model.Pipe
 
 func (s *PipelineStore) UpdatePipelineAndVersionsStatus(id string, status model.PipelineStatus, pipelineVersionId string, pipelineVersionStatus model.PipelineVersionStatus) error {
 	tx, err := s.db.Begin()
+	if err != nil {
+		return util.NewInternalServerError(
+			err,
+			"Failed to start a transaction: %s",
+			err.Error())
+	}
 
 	sql, args, err := sq.
 		Update("pipelines").
@@ -482,6 +488,13 @@ func (s *PipelineStore) CreatePipelineVersion(v *model.PipelineVersion) (*model.
 	}
 
 	tx, err := s.db.Begin()
+	if err != nil {
+		return nil, util.NewInternalServerError(
+			err,
+			"Failed to start a transaction: %v",
+			err.Error())
+	}
+
 	_, err = tx.Exec(versionSql, versionArgs...)
 	if err != nil {
 		tx.Rollback()

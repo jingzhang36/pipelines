@@ -815,21 +815,36 @@ func (r *ResourceManager) getDefaultSA() string {
 	return common.GetStringConfigWithDefault(defaultPipelineRunnerServiceAccountEnvVar, defaultPipelineRunnerServiceAccount)
 }
 
-func (r *ResourceManager) CreatePipelineVersion(apiVersion *api.PipelineVersion, pipelineId string, pipelineFile []byte) (*model.PipelineVersion, error) {
-	version, _ := r.ToModelPipelineVersion(apiVersion)
-	fmt.Printf("JING resource manager create version: %+v\n", version)
-	fmt.Printf("JING resource manager version pipeline: %+v\n", pipelineFile)
+func (r *ResourceManager) CreatePipelineVersion(apiVersion *api.PipelineVersion, pipelineFile []byte) (*model.PipelineVersion, error) {
 	// Extract the parameter from the pipeline
 	params, err := util.GetParameters(pipelineFile)
 	if err != nil {
 		return nil, util.Wrap(err, "Create pipeline version failed")
 	}
 
-	// Create an entry with status of creating the pipeline version
-	version.Status = model.PipelineVersionCreating
-	version.PipelineId = pipelineId
-	version.Parameters = params
+	// Extract pipeline id
+	var pipelineId = ""
+	for _, resourceReference := range apiVersion.ResourceReferences {
+		if resourceReference.Key.Type == api.ResourceType_PIPELINE &&
+			resourceReference.Relationship == api.Relationship_OWNER {
+			pipelineId = resourceReference.Key.Id
+		}
+	}
+	if len(pipelineId) == 0 {
+		return nil, util.Wrap(
+			err, "Create pipeline version failed due to missing pipeline id")
+	}
+
+	// Construct model.PipelineVersion
+	version := &model.PipelineVersion{
+		Name:          apiVersion.Name,
+		PipelineId:    pipelineId,
+		Status:        model.PipelineVersionCreating,
+		Parameters:    params,
+		CodeSourceUrl: apiVersion.CodeSourceUrl,
+	}
 	version, err = r.pipelineStore.CreatePipelineVersion(version)
+	fmt.Printf("JING resource manager create version: %+v\n", version)
 	if err != nil {
 		return nil, util.Wrap(err, "Create pipeline version failed")
 	}
@@ -841,14 +856,12 @@ func (r *ResourceManager) CreatePipelineVersion(apiVersion *api.PipelineVersion,
 		return nil, util.Wrap(err, "Create pipeline version failed")
 	}
 
-	version.Status = model.PipelineVersionReady
-	err = r.pipelineStore.UpdatePipelineVersionStatus(version.UUID, version.Status)
+	// After pipeline version being created in DB and pipeline file being
+	// saved in minio server, set this pieline version to status ready.
+	err = r.pipelineStore.UpdatePipelineVersionStatus(
+		version.UUID, model.PipelineVersionReady)
 	if err != nil {
-		return nil, util.Wrap(err, "Create pipeline failed")
-	}
-	err = r.pipelineStore.UpdatePipelineDefaultVersion(pipelineId, version.UUID)
-	if err != nil {
-		return nil, util.Wrap(err, "Failed to update pipeline default version.")
+		return nil, util.Wrap(err, "Create pipeline version failed")
 	}
 
 	return version, nil

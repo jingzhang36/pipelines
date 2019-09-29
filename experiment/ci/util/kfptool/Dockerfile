@@ -4,7 +4,7 @@ RUN apt update && \
     apt-get install -y python3 python-dev python3-dev build-essential \
     libssl-dev libffi-dev libxml2-dev libxslt1-dev zlib1g-dev python-pip && \
     apt install -y python3-pip && \
-    pip3 install https://storage.googleapis.com/jingzhangjz-kfp/kfpci.tar.gz
+    pip3 install https://storage.googleapis.com/jingzhangjz-kfp/kfp-server-api-0.1.33.tar.gz
 
 
 
