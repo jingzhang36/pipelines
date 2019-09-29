@@ -694,3 +694,45 @@ func TestDeletePipelineVersionError(t *testing.T) {
 	err := pipelineStore.DeletePipelineVersion(fakeUUIDTwo)
 	assert.Equal(t, codes.Internal, err.(*util.UserError).ExternalStatusCode())
 }
+
+func TestGetPipelineVersion(t *testing.T) {
+	db := NewFakeDbOrFatal()
+	defer db.Close()
+	pipelineStore := NewPipelineStore(
+		db,
+		util.NewFakeTimeForEpoch(),
+		util.NewFakeUUIDGeneratorOrFatal(fakeUUID, nil))
+
+	// Version must be belong to an existing pipeline.
+	pipelineStore.CreatePipeline(
+		&model.Pipeline{
+			Name:       "pipeline_1",
+			Parameters: `[{"Name": "param1"}]`,
+			Status:     model.PipelineReady,
+		})
+
+	// Create a new version.
+	pipelineStore.uuid = util.NewFakeUUIDGeneratorOrFatal(fakeUUIDTwo, nil)
+	pipelineStore.CreatePipelineVersion(
+		&model.PipelineVersion{
+			Name:       "pipeline_version_1",
+			Parameters: `[{"Name": "param1"}]`,
+			PipelineId: fakeUUID,
+			Status:     model.PipelineVersionReady,
+		})
+
+	// Get pipeline version.
+	pipelineVersion, err := pipelineStore.GetPipeline(fakeUUIDTwo)
+	assert.Nil(t, err)
+	assert.Equal(
+		t,
+		model.PipelineVersion{
+			UUID:           fakeUUIDTwo,
+			Name:           "pipeline_version_1",
+			CreatedAtInSec: 2,
+			Parameters:     `[{"Name": "param1"}]`,
+			PipelineId:     fakeUUID,
+			Status:         model.PipelineVersionReady,
+		},
+		*pipelineVersion, "Got unexpected pipeline version.")
+}
