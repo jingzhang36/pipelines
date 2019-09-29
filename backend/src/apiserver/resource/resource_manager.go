@@ -817,6 +817,8 @@ func (r *ResourceManager) getDefaultSA() string {
 
 func (r *ResourceManager) CreatePipelineVersion(apiVersion *api.PipelineVersion, pipelineId string, pipelineFile []byte) (*model.PipelineVersion, error) {
 	version, _ := r.ToModelPipelineVersion(apiVersion)
+	fmt.Printf("JING resource manager create version: %+v\n", version)
+	fmt.Printf("JING resource manager version pipeline: %+v\n", pipelineFile)
 	// Extract the parameter from the pipeline
 	params, err := util.GetParameters(pipelineFile)
 	if err != nil {
@@ -833,7 +835,8 @@ func (r *ResourceManager) CreatePipelineVersion(apiVersion *api.PipelineVersion,
 	}
 
 	// Store the pipeline file
-	err = r.objectStore.AddFile(pipelineFile, storage.CreatePipelinePath(fmt.Sprint(version.UUID)))
+	err = r.objectStore.AddFile(
+		pipelineFile, storage.CreatePipelinePath(fmt.Sprint(version.UUID)))
 	if err != nil {
 		return nil, util.Wrap(err, "Create pipeline version failed")
 	}
@@ -852,6 +855,37 @@ func (r *ResourceManager) CreatePipelineVersion(apiVersion *api.PipelineVersion,
 }
 
 func (r *ResourceManager) GetPipelineVersion(versionId string) (*model.PipelineVersion, error) {
-	fmt.Printf("JING r-m %+v\n", versionId)
 	return r.pipelineStore.GetPipelineVersion(versionId)
+}
+
+func (r *ResourceManager) ListPipelineVersions(pipelineId string, opts *list.Options) (pipelines []*model.PipelineVersion, total_size int, nextPageToken string, err error) {
+	return r.pipelineStore.ListPipelineVersions(pipelineId, opts)
+}
+
+func (r *ResourceManager) DeletePipelineVersion(pipelineVersionId string) error {
+	_, err := r.pipelineStore.GetPipelineVersion(pipelineVersionId)
+	if err != nil {
+		return util.Wrap(err, "Delete pipeline version failed")
+	}
+
+	// Mark pipeline as deleting so it's not visible to user.
+	err = r.pipelineStore.UpdatePipelineVersionStatus(pipelineVersionId, model.PipelineVersionDeleting)
+	if err != nil {
+		return util.Wrap(err, "Delete pipeline version failed")
+	}
+
+	err = r.objectStore.DeleteFile(storage.CreatePipelinePath(fmt.Sprint(pipelineVersionId)))
+	if err != nil {
+		glog.Errorf(
+			"%v",
+			errors.Wrapf(err, "Failed to delete pipeline file for pipeline version %v", pipelineVersionId))
+		return nil
+	}
+	err = r.pipelineStore.DeletePipelineVersion(pipelineVersionId)
+	if err != nil {
+		glog.Errorf("%v", errors.Wrapf(err, "Failed to delete pipeline DB entry for pipeline %v", pipelineVersionId))
+	}
+
+	// Change the default version if needed
+	return nil
 }

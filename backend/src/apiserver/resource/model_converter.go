@@ -125,12 +125,11 @@ func (r *ResourceManager) ToModelPipelineVersion(version *api.PipelineVersion) (
 	}
 
 	return &model.PipelineVersion{
-		UUID:           string(version.Id),
-		Name:           version.Name,
-		CreatedAtInSec: version.CreatedAt.Seconds,
-		Parameters:     paramStr,
-		PipelineId:     pipelineId,
-		CodeSourceUrl:  version.CodeSourceUrl,
+		UUID:          string(version.Id),
+		Name:          version.Name,
+		Parameters:    paramStr,
+		PipelineId:    pipelineId,
+		CodeSourceUrl: version.CodeSourceUrl,
 	}, nil
 }
 

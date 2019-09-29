@@ -505,3 +505,192 @@ func TestUpdatePipelineStatusError(t *testing.T) {
 	err := pipelineStore.UpdatePipelineStatus(fakeUUID, model.PipelineDeleting)
 	assert.Equal(t, codes.Internal, err.(*util.UserError).ExternalStatusCode())
 }
+
+func TestCreatePipelineVersion(t *testing.T) {
+	db := NewFakeDbOrFatal()
+	defer db.Close()
+	pipelineStore := NewPipelineStore(
+		db,
+		util.NewFakeTimeForEpoch(),
+		util.NewFakeUUIDGeneratorOrFatal(fakeUUID, nil))
+
+	// Version must be belong to an existing pipeline.
+	pipelineStore.CreatePipeline(
+		&model.Pipeline{
+			Name:       "pipeline_1",
+			Parameters: `[{"Name": "param1"}]`,
+			Status:     model.PipelineReady,
+		})
+
+	// Create a new version.
+	pipelineStore.uuid = util.NewFakeUUIDGeneratorOrFatal(fakeUUIDTwo, nil)
+	pipelineVersion := &model.PipelineVersion{
+		Name:       "pipeline_version_1",
+		Parameters: `[{"Name": "param1"}]`,
+		PipelineId: fakeUUID,
+		Status:     model.PipelineVersionCreating,
+	}
+	pipelineVersionCreated, err := pipelineStore.CreatePipelineVersion(
+		pipelineVersion)
+
+	// Check whether created pipeline version is as expected.
+	pipelineVersionExpected := model.PipelineVersion{
+		UUID:           fakeUUIDTwo,
+		CreatedAtInSec: 2,
+		Name:           "pipeline_version_1",
+		Parameters:     `[{"Name": "param1"}]`,
+		Status:         model.PipelineVersionCreating,
+		PipelineId:     fakeUUID,
+	}
+	assert.Nil(t, err)
+	assert.Equal(
+		t,
+		pipelineVersionExpected,
+		*pipelineVersionCreated,
+		"Got unexpected pipeline.")
+
+	// Check whether pipeline has updated default version id.
+	pipeline, err := pipelineStore.GetPipeline(fakeUUID)
+	assert.Nil(t, err)
+	assert.Equal(t, pipeline.DefaultVersionId, fakeUUIDTwo, "Got unexpected default version id.")
+}
+
+func TestCreatePipelineVersion_DuplicateKey(t *testing.T) {
+	db := NewFakeDbOrFatal()
+	defer db.Close()
+	pipelineStore := NewPipelineStore(
+		db,
+		util.NewFakeTimeForEpoch(),
+		util.NewFakeUUIDGeneratorOrFatal(fakeUUID, nil))
+
+	// Version must be belong to an existing pipeline.
+	pipelineStore.CreatePipeline(
+		&model.Pipeline{
+			Name:       "pipeline_1",
+			Parameters: `[{"Name": "param1"}]`,
+			Status:     model.PipelineReady,
+		})
+
+	// Create a new version.
+	pipelineStore.uuid = util.NewFakeUUIDGeneratorOrFatal(fakeUUIDTwo, nil)
+	pipelineStore.CreatePipelineVersion(
+		&model.PipelineVersion{
+			Name:       "pipeline_version_1",
+			Parameters: `[{"Name": "param1"}]`,
+			PipelineId: fakeUUID,
+			Status:     model.PipelineVersionCreating,
+		})
+
+	// Create another new version with same name.
+	_, err := pipelineStore.CreatePipelineVersion(
+		&model.PipelineVersion{
+			Name:       "pipeline_version_1",
+			Parameters: `[{"Name": "param2"}]`,
+			PipelineId: fakeUUID,
+			Status:     model.PipelineVersionCreating,
+		})
+	assert.NotNil(t, err)
+	assert.Contains(t, err.Error(), "The name pipeline_version_1 already exist")
+}
+
+func TestCreatePipelineVersion_InternalServerError_DBClosed(t *testing.T) {
+	db := NewFakeDbOrFatal()
+	defer db.Close()
+	pipelineStore := NewPipelineStore(
+		db,
+		util.NewFakeTimeForEpoch(),
+		util.NewFakeUUIDGeneratorOrFatal(fakeUUID, nil))
+	db.Close()
+
+	// Try to create a new version but db is closed.
+	_, err := pipelineStore.CreatePipelineVersion(
+		&model.PipelineVersion{
+			Name:       "pipeline_version_1",
+			Parameters: `[{"Name": "param1"}]`,
+			PipelineId: fakeUUID,
+		})
+	assert.Equal(t, codes.Internal, err.(*util.UserError).ExternalStatusCode(),
+		"Expected create pipeline version to return error")
+}
+
+func TestDeletePipelineVersion(t *testing.T) {
+	db := NewFakeDbOrFatal()
+	defer db.Close()
+	pipelineStore := NewPipelineStore(
+		db,
+		util.NewFakeTimeForEpoch(),
+		util.NewFakeUUIDGeneratorOrFatal(fakeUUID, nil))
+
+	// Version must be belong to an existing pipeline.
+	pipelineStore.CreatePipeline(
+		&model.Pipeline{
+			Name:       "pipeline_1",
+			Parameters: `[{"Name": "param1"}]`,
+			Status:     model.PipelineReady,
+		})
+
+	// Create a new version.
+	pipelineStore.uuid = util.NewFakeUUIDGeneratorOrFatal(fakeUUIDTwo, nil)
+	pipelineStore.CreatePipelineVersion(
+		&model.PipelineVersion{
+			Name:       "pipeline_version_1",
+			Parameters: `[{"Name": "param1"}]`,
+			PipelineId: fakeUUID,
+			Status:     model.PipelineVersionReady,
+		})
+
+	// Create a second version, which will become the default version.
+	pipelineStore.uuid = util.NewFakeUUIDGeneratorOrFatal(fakeUUIDThree, nil)
+	pipelineStore.CreatePipelineVersion(
+		&model.PipelineVersion{
+			Name:       "pipeline_version_2",
+			Parameters: `[{"Name": "param1"}]`,
+			PipelineId: fakeUUID,
+			Status:     model.PipelineVersionReady,
+		})
+
+	// Delete version with id being fakeUUIDThree.
+	err := pipelineStore.DeletePipelineVersion(fakeUUIDThree)
+	assert.Nil(t, err)
+
+	// Check version removed.
+	_, err = pipelineStore.GetPipelineVersion(fakeUUIDThree)
+	assert.Equal(t, codes.NotFound, err.(*util.UserError).ExternalStatusCode())
+
+	// Check new default version is version with id being fakeUUIDTwo.
+	pipeline, err := pipelineStore.GetPipeline(fakeUUID)
+	assert.Nil(t, err)
+	assert.Equal(t, pipeline.DefaultVersionId, fakeUUIDTwo)
+}
+
+func TestDeletePipelineVersionError(t *testing.T) {
+	db := NewFakeDbOrFatal()
+	defer db.Close()
+	pipelineStore := NewPipelineStore(
+		db,
+		util.NewFakeTimeForEpoch(),
+		util.NewFakeUUIDGeneratorOrFatal(fakeUUID, nil))
+
+	// Version must be belong to an existing pipeline.
+	pipelineStore.CreatePipeline(
+		&model.Pipeline{
+			Name:       "pipeline_1",
+			Parameters: `[{"Name": "param1"}]`,
+			Status:     model.PipelineReady,
+		})
+
+	// Create a new version.
+	pipelineStore.uuid = util.NewFakeUUIDGeneratorOrFatal(fakeUUIDTwo, nil)
+	pipelineStore.CreatePipelineVersion(
+		&model.PipelineVersion{
+			Name:       "pipeline_version_1",
+			Parameters: `[{"Name": "param1"}]`,
+			PipelineId: fakeUUID,
+			Status:     model.PipelineVersionReady,
+		})
+
+	db.Close()
+	// On closed db, create pipeline version ends in internal error.
+	err := pipelineStore.DeletePipelineVersion(fakeUUIDTwo)
+	assert.Equal(t, codes.Internal, err.(*util.UserError).ExternalStatusCode())
+}

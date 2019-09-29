@@ -16,7 +16,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -135,7 +134,8 @@ func (s *PipelineServer) CreatePipelineVersion(ctx context.Context, request *api
 
 	var pipelineId string
 	for _, resourceReference := range request.Version.ResourceReferences {
-		if resourceReference.Key.Type == api.ResourceType_PIPELINE {
+		if resourceReference.Key.Type == api.ResourceType_PIPELINE &&
+			resourceReference.Relationship == api.Relationship_OWNER {
 			pipelineId = resourceReference.Key.Id
 		}
 	}
@@ -148,10 +148,34 @@ func (s *PipelineServer) CreatePipelineVersion(ctx context.Context, request *api
 }
 
 func (s *PipelineServer) GetPipelineVersion(ctx context.Context, request *api.GetPipelineVersionRequest) (*api.PipelineVersion, error) {
-	fmt.Printf("JING p-s: %+v\n", request)
 	version, err := s.resourceManager.GetPipelineVersion(request.VersionId)
 	if err != nil {
 		return nil, util.Wrap(err, "Get pipeline version failed.")
 	}
 	return ToApiPipelineVersion(version)
+}
+
+func (s *PipelineServer) ListPipelineVersions(ctx context.Context, request *api.ListPipelineVersionsRequest) (*api.ListPipelineVersionsResponse, error) {
+	opts, err := validatedListOptions(&model.PipelineVersion{}, request.PageToken, int(request.PageSize), request.SortBy, request.Filter)
+
+	if err != nil {
+		return nil, util.Wrap(err, "Failed to create list options")
+	}
+
+	pipelineVersions, total_size, nextPageToken, err := s.resourceManager.ListPipelineVersions(request.ResourceKey.Id, opts)
+	if err != nil {
+		return nil, util.Wrap(err, "List pipeline versions failed.")
+	}
+	apiPipelineVersions, _ := ToApiPipelineVersions(pipelineVersions)
+
+	return &api.ListPipelineVersionsResponse{Versions: apiPipelineVersions, NextPageToken: nextPageToken, TotalSize: int32(total_size)}, nil
+}
+
+func (s *PipelineServer) DeletePipelineVersion(ctx context.Context, request *api.DeletePipelineVersionRequest) (*empty.Empty, error) {
+	err := s.resourceManager.DeletePipelineVersion(request.VersionId)
+	if err != nil {
+		return nil, util.Wrap(err, "Delete pipeline versions failed.")
+	}
+
+	return &empty.Empty{}, nil
 }
