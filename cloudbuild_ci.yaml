@@ -36,7 +36,7 @@ steps:
     args: [
         "-c",
         '/builder/kubectl.bash;
-        python3 -c "import kfp; client=kfp.Client(namespace=\"$_NAMESPACE\"); client.pipelines.create_pipeline(name=\"helloworld\", url=\"https://storage.googleapis.com/$REPO_NAME/$COMMIT_SHA/pipeline.zip\")"',
+        python3 -c "import kfp; client=kfp.Client(namespace=\"$_NAMESPACE\"); client.pipelines.create_pipeline(name=\"helloworld\", description=\"description of helloworld\", url=\"https://storage.googleapis.com/$REPO_NAME/$COMMIT_SHA/pipeline.zip\")"',
       ]
     env:
       - "CLOUDSDK_COMPUTE_REGION=us-central1-a"
@@ -47,7 +47,7 @@ steps:
   #   args: [
   #       "-c",
   #       '/builder/kubectl.bash;
-  #       python3 -c "import kfp; client=kfp.Client(namespace=\"$_NAMESPACE\"); client.create_pipeline_version(name=\"$COMMIT_SHA\", resource_references=[{key: {id: \"$_PIPELINE_ID\", type: 3}}], url=\"https://storage.googleapis.com/$REPO_NAME/$COMMIT_SHA/pipeline.zip\")"',
+  #       python3 -c "import kfp; client=kfp.Client(namespace=\"$_NAMESPACE\"); client.pipelines.create_pipeline_version(name=\"$COMMIT_SHA\", resource_references=[{key: {id: \"$_PIPELINE_ID\", type: 3}}], url=\"https://storage.googleapis.com/$REPO_NAME/$COMMIT_SHA/pipeline.zip\")"',
   #     ]
   #   env:
   #     - "CLOUDSDK_COMPUTE_REGION=us-central1-a"
