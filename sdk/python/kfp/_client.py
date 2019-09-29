@@ -473,3 +473,18 @@ class Client(object):
 
     response = self._pipelines_api.create_pipeline(body=apiPipeline)
     return response
+
+  def create_pipeline_version(self, name, pipeline_id, pipeline_package_path):
+    apiURL = kfp_server_api.models.ApiUrl(
+        pipeline_url=pipeline_package_path)
+    key = kfp_server_api.models.ApiResourceKey(
+      id=pipeline_id,
+      type=kfp_server_api.models.ApiResourceType.PIPELINE)
+    reference = kfp_server_api.models.ApiResourceReference(
+      key, kfp_server_api.models.ApiRelationship.OWNER)
+    apiPipelineVersion = kfp_server_api.models.ApiPipelineVersion(
+        name=name,
+        package_url=apiURL,
+        resource_references=[reference])
+    response = self._pipelines_api.create_pipeline_version(body=apiPipelineVersion)
+    return response
