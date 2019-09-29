@@ -31,7 +31,7 @@ steps:
       ]
     id: "UploadPipeline"
     waitFor: ["PackagePipeline"]
-  - name: gcr.io/ml-pipeline-dogfood/kfptool
+  - name: gcr.io/jingzhangjz-experiment/kfpcitool
     entrypoint: "/bin/sh"
     args: [
         "-c",
@@ -42,7 +42,7 @@ steps:
       - "CLOUDSDK_COMPUTE_REGION=us-central1-a"
       - "CLOUDSDK_CONTAINER_CLUSTER=standard-cluster-3"
     id: "CreatePipelineVersion"
-  - name: gcr.io/ml-pipeline-dogfood/kfptool
+  - name: gcr.io/jingzhangjz-experiment/kfpcitool
     entrypoint: "/bin/sh"
     args: [
         "-c",
