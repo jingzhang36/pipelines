@@ -51,9 +51,8 @@ steps:
       ]
     env:
       - "CLOUDSDK_COMPUTE_REGION=us-central1-a"
-      - "CLOUDSDK_CONTAINER_CLUSTER=standard-cluster-3""
+      - "CLOUDSDK_CONTAINER_CLUSTER=standard-cluster-3"
     id: "RunPipeline"
-
 images:
   - "gcr.io/ml-pipeline-dogfood/helloworld-ci:$COMMIT_SHA"
   - "gcr.io/ml-pipeline-dogfood/helloworld-ci:latest"
