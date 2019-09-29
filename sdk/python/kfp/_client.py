@@ -444,3 +444,32 @@ class Client(object):
       html = 'Pipeline link <a href=%s/#/pipelines/details/%s>here</a>' % (self._get_url_prefix(), response.id)
       IPython.display.display(IPython.display.HTML(html))
     return response
+
+  # def create_pipeline(self, name, pipeline_package_path):
+  #   pipeline_json_string = None
+  #   if pipeline_package_path:
+  #     pipeline_obj = self._extract_pipeline_yaml(pipeline_package_path)
+  #     pipeline_json_string = json.dumps(pipeline_obj)
+  #   api_params = [kfp_server_api.ApiParameter(name=_k8s_helper.K8sHelper.sanitize_k8s_name(k), value=str(v))
+  #                 for k,v in params.items()]
+  #   key = kfp_server_api.models.ApiResourceKey(id=experiment_id,
+  #                                       type=kfp_server_api.models.ApiResourceType.EXPERIMENT)
+  #   reference = kfp_server_api.models.ApiResourceReference(key, kfp_server_api.models.ApiRelationship.OWNER)
+  #   spec = kfp_server_api.models.ApiPipelineSpec(
+  #       pipeline_id=pipeline_id,
+  #       workflow_manifest=pipeline_json_string,
+  #       parameters=api_params)
+
+  #   response = self._pipelines_api.create_pipeline(body=pipeline_body)
+  #   return response.pipeline
+
+  def create_pipeline(self, name, pipeline_package_path):
+    apiURL = kfp_server_api.models.ApiUrl(
+        pipeline_url=pipeline_package_path)
+    apiPipeline = kfp_server_api.models.ApiPipeline(
+        description="",
+        name=name,
+        url=apiURL)
+
+    response = self._pipelines_api.create_pipeline(body=apiPipeline)
+    return response
