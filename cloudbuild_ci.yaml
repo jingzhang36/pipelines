@@ -4,7 +4,7 @@ steps:
       [
         "build",
         "-t",
-        "gcr.io/jingzhangjz-experiment/sequential-:$COMMIT_SHA",
+        "gcr.io/jingzhangjz-experiment/sequential-ci:$COMMIT_SHA",
         "-t",
         "gcr.io/jingzhangjz-experiment/sequential-ci:latest",
         "--cache-from",
