@@ -59,7 +59,7 @@ images:
   - "gcr.io/ml-pipeline-dogfood/sequential-ci:latest"
 
 substitutions:
-  _CODE_PATH: /workspace/samples/core/sequential
+  _CODE_PATH: /workspace/samples/core
   _NAMESPACE: kubeflow
   _PIPELINE_ID: 3326a026-6037-4aeb-b800-644f997049b6
   _EXPERIMENT_NAME: helloworldcd
