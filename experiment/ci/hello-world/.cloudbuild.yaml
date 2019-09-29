@@ -1,6 +1,7 @@
 steps:
   - name: "echo"
     args: ["$REPO_NAME"]
+    id: "Echo"
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
