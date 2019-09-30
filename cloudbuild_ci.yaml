@@ -1,36 +1,36 @@
 steps:
-  - name: "gcr.io/cloud-builders/docker"
-    args:
-      [
-        "build",
-        "-t",
-        "gcr.io/ml-pipeline-dogfood/helloworld-ci:$COMMIT_SHA",
-        "-t",
-        "gcr.io/ml-pipeline-dogfood/helloworld-ci:latest",
-        "--cache-from",
-        "gcr.io/ml-pipeline-dogfood/helloworld-ci:latest",
-        "${_CODE_PATH}/helloworld",
-      ]
-    id: "BuildImages"
-  - name: "python:3.7-slim"
-    entrypoint: "/bin/sh"
-    args: [
-        "-c",
-        "cd ${_CODE_PATH};
-        pip3 install https://storage.googleapis.com/jingzhangjz-kfp/kfp-0.1.31.tar.gz;
-        python pipeline.py --commit_id $COMMIT_SHA;
-        cp pipeline.py.zip /workspace/pipeline.zip",
-      ]
-    id: "PackagePipeline"
-  - name: "gcr.io/cloud-builders/gsutil"
-    args:
-      [
-        "cp",
-        "/workspace/pipeline.zip",
-        "gs://$REPO_NAME/$COMMIT_SHA/pipeline.zip",
-      ]
-    id: "UploadPipeline"
-    waitFor: ["PackagePipeline"]
+  # - name: "gcr.io/cloud-builders/docker"
+  #   args:
+  #     [
+  #       "build",
+  #       "-t",
+  #       "gcr.io/ml-pipeline-dogfood/helloworld-ci:$COMMIT_SHA",
+  #       "-t",
+  #       "gcr.io/ml-pipeline-dogfood/helloworld-ci:latest",
+  #       "--cache-from",
+  #       "gcr.io/ml-pipeline-dogfood/helloworld-ci:latest",
+  #       "${_CODE_PATH}/helloworld",
+  #     ]
+  #   id: "BuildImages"
+  # - name: "python:3.7-slim"
+  #   entrypoint: "/bin/sh"
+  #   args: [
+  #       "-c",
+  #       "cd ${_CODE_PATH};
+  #       pip3 install https://storage.googleapis.com/jingzhangjz-kfp/kfp-0.1.31.tar.gz;
+  #       python pipeline.py --commit_id $COMMIT_SHA;
+  #       cp pipeline.py.zip /workspace/pipeline.zip",
+  #     ]
+  #   id: "PackagePipeline"
+  # - name: "gcr.io/cloud-builders/gsutil"
+  #   args:
+  #     [
+  #       "cp",
+  #       "/workspace/pipeline.zip",
+  #       "gs://github_jingzhang36_pipelines/d3c16b5a508f37ac85950747af097fea9a87c20b/pipeline.zip",
+  #     ]
+  #   id: "UploadPipeline"
+  #  waitFor: ["PackagePipeline"]
   # - name: gcr.io/jingzhangjz-experiment/kfpcitool
   #   entrypoint: "/bin/sh"
   #   args: [
