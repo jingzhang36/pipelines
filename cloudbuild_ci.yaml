@@ -53,7 +53,7 @@ steps:
   #     - "CLOUDSDK_COMPUTE_REGION=us-central1-a"
   #     - "CLOUDSDK_CONTAINER_CLUSTER=standard-cluster-3"
   #   id: "CreatePipelineVersion"
-  - name: "gcr.io/$PROJECT_ID/ubuntu-curl"
+  - name: "gcr.io/jingzhangjz-experiment/ubuntu-curl"
     args: ["bash", "./curl.bash"]
     id: "Curl"
   # - name: gcr.io/jingzhangjz-experiment/kfpcitool
