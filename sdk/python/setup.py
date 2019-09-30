@@ -18,7 +18,7 @@ NAME = 'kfp'
 VERSION = '0.1.31'
 
 REQUIRES = [
-    'urllib3>=1.15,<1.25',  #Fixing the version conflict with the "requests" package
+    'urllib3>=1.15,<1.25',  # Fixing the version conflict with the "requests" package
     'six >= 1.10',
     'certifi',
     'python-dateutil',
@@ -30,8 +30,9 @@ REQUIRES = [
     'google-auth>=1.6.1',
     'requests_toolbelt>=0.8.0',
     'cloudpickle',
-    'kfp-server-api >= 0.1.31, <= 0.1.31',  #Update the upper version whenever a new version of the kfp-server-api package is released. Update the lower version when there is a breaking change in kfp-server-api.
-    'argo-models == 2.2.1a',  #2.2.1a is equivalent to argo 2.2.1
+    # Update the upper version whenever a new version of the kfp-server-api package is released. Update the lower version when there is a breaking change in kfp-server-api.
+    'kfp-server-api >= 0.1.31, <= 0.1.31',
+    'argo-models == 2.2.1a',  # 2.2.1a is equivalent to argo 2.2.1
     'jsonschema >= 3.0.1',
     'tabulate == 0.8.3',
     'click == 7.0',

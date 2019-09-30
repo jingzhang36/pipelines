@@ -12,12 +12,12 @@ steps:
         "${_CODE_PATH}/helloworld",
       ]
     id: "BuildImages"
-  - name: "python:3.6-slim"
+  - name: "python:3.7-slim"
     entrypoint: "/bin/sh"
     args: [
         "-c",
         "cd ${_CODE_PATH};
-        pip3 install https://storage.googleapis.com/jingzhangjz-kfp/kfpci.tar.gz;
+        pip3 install https://storage.googleapis.com/jingzhangjz-kfp/kfp-0.1.31.tar.gz;
         python pipeline.py --commit_id $COMMIT_SHA;
         cp pipeline.py.zip /workspace/pipeline.zip",
       ]
