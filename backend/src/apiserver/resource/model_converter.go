@@ -133,6 +133,29 @@ func (r *ResourceManager) ToModelJob(job *api.Job, swf *util.ScheduledWorkflow, 
 
 // }
 
+func (r *ResourceManager) ToModelPipelineVersion(version *api.PipelineVersion) (*model.PipelineVersion, error) {
+	paramStr, err := toModelParameters(version.Parameters)
+	if err != nil {
+		return nil, err
+	}
+
+	var pipelineId string
+	for _, resourceReference := range version.ResourceReferences {
+		if resourceReference.Key.Type == api.ResourceType_PIPELINE {
+			pipelineId = resourceReference.Key.Id
+		}
+	}
+
+	return &model.PipelineVersion{
+		UUID:           string(version.Id),
+		Name:           version.Name,
+		CreatedAtInSec: version.CreatedAt.Seconds,
+		Parameters:     paramStr,
+		PipelineId:     pipelineId,
+		CodeSourceUrl:  version.CodeSourceUrl,
+	}, nil
+}
+
 func toModelTrigger(trigger *api.Trigger) model.Trigger {
 	modelTrigger := model.Trigger{}
 	if trigger == nil {
