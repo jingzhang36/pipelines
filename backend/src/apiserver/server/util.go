@@ -159,16 +159,17 @@ func ReadPipelineFile(fileName string, fileReader io.Reader, maxFileLength int) 
 	}
 
 	var processedFile []byte
-	switch {
-	case isYamlFile(fileName):
-		processedFile = pipelineFileBytes
-	case isZipFile(pipelineFileBytes):
-		processedFile, err = DecompressPipelineZip(pipelineFileBytes)
-	case isCompressedTarballFile(pipelineFileBytes):
-		processedFile, err = DecompressPipelineTarball(pipelineFileBytes)
-	default:
-		return nil, util.NewInvalidInputError("Unexpected pipeline file format. Support .zip, .tar.gz or YAML.")
-	}
+	// switch {
+	// case isYamlFile(fileName):
+	// 	processedFile = pipelineFileBytes
+	// case isZipFile(pipelineFileBytes):
+	// 	processedFile, err = DecompressPipelineZip(pipelineFileBytes)
+	// case isCompressedTarballFile(pipelineFileBytes):
+	// 	processedFile, err = DecompressPipelineTarball(pipelineFileBytes)
+	// default:
+	// 	return nil, util.NewInvalidInputError("Unexpected pipeline file format. Support .zip, .tar.gz or YAML.")
+	// }
+	processedFile, err = DecompressPipelineZip(pipelineFileBytes)
 	if err != nil {
 		return nil, util.Wrap(err, "Error decompress the pipeline file")
 	}
