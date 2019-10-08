@@ -17,7 +17,7 @@ steps:
   #   args: [
   #       "-c",
   #       "cd ${_CODE_PATH};
-  #       pip3 install https://storage.googleapis.com/jingzhangjz-kfp/kfp-0.1.31.tar.gz;
+  #       pip3 install https://storage.googleapis.com/jingzhangjz-kfp/kfp-0.1.23.tar.gz;
   #       python pipeline.py --commit_id $COMMIT_SHA;
   #       cp pipeline.py.zip /workspace/pipeline.zip",
   #     ]
@@ -27,10 +27,10 @@ steps:
   #     [
   #       "cp",
   #       "/workspace/pipeline.zip",
-  #       "gs://github_jingzhang36_pipelines/d3c16b5a508f37ac85950747af097fea9a87c20b/pipeline.zip",
+  #       "gs://jingzhangjz-kfp/$COMMIT_SHA/pipeline.zip",
   #     ]
   #   id: "UploadPipeline"
-  #  waitFor: ["PackagePipeline"]
+  #   waitFor: ["PackagePipeline"]
   # - name: gcr.io/jingzhangjz-experiment/kfpcitool
   #   entrypoint: "/bin/sh"
   #   args: [
