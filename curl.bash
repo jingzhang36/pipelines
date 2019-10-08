@@ -1,3 +1,3 @@
 #!/bin/bash
 # curl -H "Content-Type: application/json" -X GET http://35.192.214.113:8888/apis/v1beta1/pipeline_versions/7d37c72a-9e5f-4c59-9afc-7ca203552fb8
-curl -H "Content-Type: application/json" -X POST -d '{"name":"helloworld-version-1", "package_url": {"pipeline_url": "https://storage.cloud.google.com/jingzhangjz-kfp/pipeline.zip"}, "resource_references": [{"key": {"id": "16613f3b-411f-41ac-a082-ae66ff7f71ea", "type":3}, "relationship":1}]}' http://35.192.214.113:8888/apis/v1beta1/pipeline_versions
+curl -H "Content-Type: application/json" -X POST -d '{"name":"helloworld-version-1", "package_url": {"pipeline_url": "https://storage.cloud.google.com/jingzhangjz-kfp/sequ.yaml"}, "resource_references": [{"key": {"id": "16613f3b-411f-41ac-a082-ae66ff7f71ea", "type":3}, "relationship":1}]}' http://35.192.214.113:8888/apis/v1beta1/pipeline_versions
