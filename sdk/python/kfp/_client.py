@@ -25,6 +25,7 @@ import yaml
 from datetime import datetime
 from typing import Mapping, Callable
 
+import kfp
 import kfp_server_api
 
 from kfp.compiler import compiler
@@ -69,86 +70,61 @@ class Client(object):
     """ API Client for KubeFlow Pipeline.
     """
 
-    # in-cluster DNS name of the pipeline service
-    IN_CLUSTER_DNS_NAME = 'ml-pipeline.{}.svc.cluster.local:8888'
-    KUBE_PROXY_PATH = 'api/v1/namespaces/{}/services/ml-pipeline:http/proxy/'
+    pipeline_json_string = None
+    if pipeline_package_path:
+      pipeline_obj = self._extract_pipeline_yaml(pipeline_package_path)
+      pipeline_json_string = json.dumps(pipeline_obj)
+    api_params = [kfp_server_api.ApiParameter(name=_k8s_helper.K8sHelper.sanitize_k8s_name(k), value=str(v))
+                  for k,v in params.items()]
+    key = kfp_server_api.models.ApiResourceKey(id=experiment_id,
+                                        type=kfp_server_api.models.ApiResourceType.EXPERIMENT)
+    reference = kfp_server_api.models.ApiResourceReference(key, kfp_server_api.models.ApiRelationship.OWNER)
+    spec = kfp_server_api.models.ApiPipelineSpec(
+        pipeline_id=pipeline_id,
+        workflow_manifest=pipeline_json_string,
+        parameters=api_params)
+    run_body = kfp_server_api.models.ApiRun(
+        pipeline_spec=spec, resource_references=[reference], name=job_name)
 
-    def __init__(self, host=None, client_id=None, namespace='kubeflow'):
-        """Create a new instance of kfp client.
+    response = self._run_api.create_run(body=run_body)
 
-        Args:
-          host: the host name to use to talk to Kubeflow Pipelines. If not set, the in-cluster
-              service DNS name will be used, which only works if the current environment is a pod
-              in the same cluster (such as a Jupyter instance spawned by Kubeflow's
-              JupyterHub). If you have a different connection to cluster, such as a kubectl
-              proxy connection, then set it to something like "127.0.0.1:8080/pipeline.
-              If you connect to an IAP enabled cluster, set it to
-              https://<your-deployment>.endpoints.<your-project>.cloud.goog/pipeline".
-          client_id: The client ID used by Identity-Aware Proxy.
-        """
-        host = host or os.environ.get(KF_PIPELINES_ENDPOINT_ENV)
-        self._uihost = os.environ.get(KF_PIPELINES_UI_ENDPOINT_ENV, host)
-        config = self._load_config(host, client_id, namespace)
-        api_client = kfp_server_api.api_client.ApiClient(config)
-        _add_generated_apis(self, kfp_server_api.api, api_client)
-        self._run_api = kfp_server_api.api.run_service_api.RunServiceApi(
-            api_client)
-        self._experiment_api = kfp_server_api.api.experiment_service_api.ExperimentServiceApi(
-            api_client)
-        self._pipelines_api = kfp_server_api.api.pipeline_service_api.PipelineServiceApi(
-            api_client)
-        self._upload_api = kfp_server_api.api.PipelineUploadServiceApi(
-            api_client)
+    if self._is_ipython():
+      import IPython
+      html = ('Run link <a href="%s/#/runs/details/%s" target="_blank" >here</a>'
+              % (self._get_url_prefix(), response.run.id))
+      IPython.display.display(IPython.display.HTML(html))
+    return response.run
 
-    def _load_config(self, host, client_id, namespace):
-        config = kfp_server_api.configuration.Configuration()
-        if host:
-            config.host = host
+  def create_run_from_pipeline_func(self, pipeline_func: Callable, arguments: Mapping[str, str], run_name=None, experiment_name=None, pipeline_conf: kfp.dsl.PipelineConf = None):
+    '''Runs pipeline on KFP-enabled Kubernetes cluster.
+    This command compiles the pipeline function, creates or gets an experiment and submits the pipeline for execution.
 
-        token = None
+    Args:
+      pipeline_func: A function that describes a pipeline by calling components and composing them into execution graph.
+      arguments: Arguments to the pipeline function provided as a dict.
+      run_name: Optional. Name of the run to be shown in the UI.
+      experiment_name: Optional. Name of the experiment to add the run to.
+    '''
+    #TODO: Check arguments against the pipeline function
+    pipeline_name = pipeline_func.__name__
+    run_name = run_name or pipeline_name + ' ' + datetime.now().strftime('%Y-%m-%d %H-%M-%S')
+    try:
+      (_, pipeline_package_path) = tempfile.mkstemp(suffix='.zip')
+      compiler.Compiler().compile(pipeline_func, pipeline_package_path, pipeline_conf=pipeline_conf)
+      return self.create_run_from_pipeline_package(pipeline_package_path, arguments, run_name, experiment_name)
+    finally:
+      os.remove(pipeline_package_path)
 
-        if self._is_inverse_proxy_host(host):
-            token = get_gcp_access_token()
-        if self._is_iap_host(host, client_id):
-            # fetch IAP auth token
-            token = get_auth_token(client_id)
+  def create_run_from_pipeline_package(self, pipeline_file: str, arguments: Mapping[str, str], run_name=None, experiment_name=None):
+    '''Runs pipeline on KFP-enabled Kubernetes cluster.
+    This command compiles the pipeline function, creates or gets an experiment and submits the pipeline for execution.
 
-        if token:
-            config.api_key['authorization'] = token
-            config.api_key_prefix['authorization'] = 'Bearer'
-            return config
-
-        if host:
-            # if host is explicitly set with auth token, it's probably a port forward address.
-            return config
-
-        import kubernetes as k8s
-        in_cluster = True
-        try:
-            k8s.config.load_incluster_config()
-        except:
-            in_cluster = False
-            pass
-
-        if in_cluster:
-            config.host = Client.IN_CLUSTER_DNS_NAME.format(namespace)
-            return config
-
-        try:
-            k8s.config.load_kube_config(client_configuration=config)
-        except:
-            print('Failed to load kube config.')
-            return config
-
-        if config.host:
-            config.host = os.path.join(
-                config.host, Client.KUBE_PROXY_PATH.format(namespace))
-        return config
-
-    def _is_iap_host(self, host, client_id):
-        if host and client_id:
-            return re.match(r'\S+.endpoints.\S+.cloud.goog', host)
-        return False
+    Args:
+      pipeline_file: A compiled pipeline package file.
+      arguments: Arguments to the pipeline function provided as a dict.
+      run_name: Optional. Name of the run to be shown in the UI.
+      experiment_name: Optional. Name of the experiment to add the run to.
+    '''
 
     def _is_inverse_proxy_host(self, host):
         if host:
