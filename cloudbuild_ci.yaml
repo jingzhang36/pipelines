@@ -1,36 +1,36 @@
 steps:
-  # - name: "gcr.io/cloud-builders/docker"
-  #   args:
-  #     [
-  #       "build",
-  #       "-t",
-  #       "gcr.io/ml-pipeline-dogfood/helloworld-ci:$COMMIT_SHA",
-  #       "-t",
-  #       "gcr.io/ml-pipeline-dogfood/helloworld-ci:latest",
-  #       "--cache-from",
-  #       "gcr.io/ml-pipeline-dogfood/helloworld-ci:latest",
-  #       "${_CODE_PATH}/helloworld",
-  #     ]
-  #   id: "BuildImages"
-  # - name: "python:3.7-slim"
-  #   entrypoint: "/bin/sh"
-  #   args: [
-  #       "-c",
-  #       "cd ${_CODE_PATH};
-  #       pip3 install https://storage.googleapis.com/jingzhangjz-kfp/kfp-0.1.23.tar.gz;
-  #       python pipeline.py --commit_id $COMMIT_SHA;
-  #       cp pipeline.py.zip /workspace/pipeline.zip",
-  #     ]
-  #   id: "PackagePipeline"
-  # - name: "gcr.io/cloud-builders/gsutil"
-  #   args:
-  #     [
-  #       "cp",
-  #       "/workspace/pipeline.zip",
-  #       "gs://jingzhangjz-kfp/$COMMIT_SHA/pipeline.zip",
-  #     ]
-  #   id: "UploadPipeline"
-  #   waitFor: ["PackagePipeline"]
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "gcr.io/ml-pipeline-dogfood/helloworld-ci:$COMMIT_SHA",
+        "-t",
+        "gcr.io/ml-pipeline-dogfood/helloworld-ci:latest",
+        "--cache-from",
+        "gcr.io/ml-pipeline-dogfood/helloworld-ci:latest",
+        "${_CODE_PATH}/helloworld",
+      ]
+    id: "BuildImages"
+  - name: "python:3.7-slim"
+    entrypoint: "/bin/sh"
+    args: [
+        "-c",
+        "cd ${_CODE_PATH};
+        pip3 install https://storage.googleapis.com/jingzhangjz-kfp/kfp-0.1.23.tar.gz;
+        python pipeline.py --commit_id $COMMIT_SHA;
+        cp pipeline.py.zip /workspace/pipeline.zip",
+      ]
+    id: "PackagePipeline"
+  - name: "gcr.io/cloud-builders/gsutil"
+    args:
+      [
+        "cp",
+        "/workspace/pipeline.zip",
+        "gs://jingzhangjz-kfp/$COMMIT_SHA/pipeline.zip",
+      ]
+    id: "UploadPipeline"
+    waitFor: ["PackagePipeline"]
   # - name: gcr.io/jingzhangjz-experiment/kfpcitool
   #   entrypoint: "/bin/sh"
   #   args: [
@@ -54,8 +54,8 @@ steps:
   #     - "CLOUDSDK_CONTAINER_CLUSTER=standard-cluster-3"
   #   id: "CreatePipelineVersion"
   - name: "gcr.io/jingzhangjz-experiment/ubuntu-curl"
-    args: ["bash", "./curl.bash"]
-    id: "Curl"
+    args: ["bash", "./curl.bash", "$COMMIT_SHA", "$_PIPELINE_ID"]
+    id: "CreatePipelineVersion"
   # - name: gcr.io/jingzhangjz-experiment/kfpcitool
   #   entrypoint: "/bin/sh"
   #   args: [
@@ -74,5 +74,5 @@ images:
 substitutions:
   _CODE_PATH: /workspace/experiment/ci/hello-world
   _NAMESPACE: kubeflow
-  _PIPELINE_ID: 3326a026-6037-4aeb-b800-644f997049b6
+  _PIPELINE_ID: 0149f95c-d065-4357-b73b-0e721a716ac6
   _EXPERIMENT_NAME: helloworldcd
