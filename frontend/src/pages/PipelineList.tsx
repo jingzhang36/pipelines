@@ -16,7 +16,8 @@
 
 import * as React from 'react';
 import Buttons, { ButtonKeys } from '../lib/Buttons';
-import CustomTable, { Column, Row, CustomRendererProps } from '../components/CustomTable';
+import CustomTable, { Column, Row, CustomRendererProps, ExpandState } from '../components/CustomTable';
+import PipelineVersionList from './PipelineVersionList';
 import UploadPipelineDialog, { ImportMethod } from '../components/UploadPipelineDialog';
 import { ApiPipeline, ApiListPipelinesResponse } from '../apis/pipeline';
 import { Apis, PipelineSortKeys, ListRequest } from '../lib/Apis';
@@ -27,9 +28,14 @@ import { ToolbarProps } from '../components/Toolbar';
 import { classes } from 'typestyle';
 import { commonCss, padding } from '../Css';
 import { formatDateString, errorToMessage } from '../lib/Utils';
+import produce from 'immer';
+
+interface DisplayPipeline extends ApiPipeline {
+  expandState?: ExpandState;
+}
 
 interface PipelineListState {
-  pipelines: ApiPipeline[];
+  displayPipelines: DisplayPipeline[];
   selectedIds: string[];
   uploadDialogOpen: boolean;
 }
@@ -41,7 +47,7 @@ class PipelineList extends Page<{}, PipelineListState> {
     super(props);
 
     this.state = {
-      pipelines: [],
+      displayPipelines: [],
       selectedIds: [],
       uploadDialogOpen: false,
     };
@@ -73,12 +79,14 @@ class PipelineList extends Page<{}, PipelineListState> {
         label: 'Pipeline name',
         sortKey: PipelineSortKeys.NAME,
       },
-      { label: 'Description', flex: 3 },
+      { label: 'Description', flex: 2 },
       { label: 'Uploaded on', sortKey: PipelineSortKeys.CREATED_AT, flex: 1 },
     ];
 
-    const rows: Row[] = this.state.pipelines.map((p) => {
+
+    const rows: Row[] = this.state.displayPipelines.map((p) => {
       return {
+        expandState: p.expandState,
         id: p.id!,
         otherFields: [p.name!, p.description!, formatDateString(p.created_at!)],
       };
@@ -88,7 +96,8 @@ class PipelineList extends Page<{}, PipelineListState> {
       <div className={classes(commonCss.page, padding(20, 'lr'))}>
         <CustomTable ref={this._tableRef} columns={columns} rows={rows} initialSortColumn={PipelineSortKeys.CREATED_AT}
           updateSelection={this._selectionChanged.bind(this)} selectedIds={this.state.selectedIds}
-          reload={this._reload.bind(this)} filterLabel='Filter pipelines'
+          reload={this._reload.bind(this)} toggleExpansion={this._toggleRowExpand.bind(this)}
+          getExpandComponent={this._getExpandedPipelineComponent.bind(this)} filterLabel='Filter pipelines'
           emptyMessage='No pipelines found. Click "Upload pipeline" to start.' />
 
         <UploadPipelineDialog open={this.state.uploadDialogOpen}
@@ -103,17 +112,42 @@ class PipelineList extends Page<{}, PipelineListState> {
     }
   }
 
+  private _toggleRowExpand(rowIndex: number): void {
+    const displayPipelines = produce(this.state.displayPipelines, draft => {
+      draft[rowIndex].expandState =
+        draft[rowIndex].expandState === ExpandState.COLLAPSED ?
+          ExpandState.EXPANDED :
+          ExpandState.COLLAPSED;
+    });
+
+    this.setState({ displayPipelines });
+  }
+
+  private _getExpandedPipelineComponent(rowIndex: number): JSX.Element {
+    const pipeline = this.state.displayPipelines[rowIndex];
+    return (
+      <PipelineVersionList pipelineId={pipeline.id} onError={() => null}
+        {...this.props} selectedIds={this.state.selectedIds} noFilterBox={true}
+        onSelectionChange={this._selectionChanged.bind(this)} disableSorting={true}
+        disablePaging={true}
+      />
+    );
+  }
+
   private async _reload(request: ListRequest): Promise<string> {
+    let displayPipelines: DisplayPipeline[];
     let response: ApiListPipelinesResponse | null = null;
     try {
       response = await Apis.pipelineServiceApi.listPipelines(
         request.pageToken, request.pageSize, request.sortBy, request.filter);
+      displayPipelines = response.pipelines || [];
+      displayPipelines.forEach((exp) => exp.expandState = ExpandState.COLLAPSED);
       this.clearBanner();
     } catch (err) {
       await this.showPageError('Error: failed to retrieve list of pipelines.', err);
     }
 
-    this.setStateSafe({ pipelines: (response && response.pipelines) || [] });
+    this.setStateSafe({ displayPipelines: (response && response.pipelines) || [] });
 
     return response ? response.next_page_token || '' : '';
   }
@@ -122,8 +156,9 @@ class PipelineList extends Page<{}, PipelineListState> {
     return (
       <Link onClick={(e) => e.stopPropagation()}
         className={commonCss.link}
-        to={RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId, props.id)}>{props.value}
-      </Link>
+        to={RoutePage.PIPELINE_DETAILS_NO_VERSION.replace(':' + RouteParams.pipelineId, props.id)} >
+        {props.value}
+      </Link >
     );
   }
 

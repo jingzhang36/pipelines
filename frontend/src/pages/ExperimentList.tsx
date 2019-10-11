@@ -21,7 +21,7 @@ import RunList from './RunList';
 import produce from 'immer';
 import { ApiFilter, PredicateOp } from '../apis/filter';
 import { ApiListExperimentsResponse, ApiExperiment } from '../apis/experiment';
-import { ApiResourceType, ApiRun, RunStorageState } from '../apis/run';
+import { /*ApiResourceType, */ ApiRun, RunStorageState } from '../apis/run';
 import { Apis, ExperimentSortKeys, ListRequest, RunSortKeys } from '../lib/Apis';
 import { Link } from 'react-router-dom';
 import { NodePhase } from '../lib/StatusUtils';
@@ -163,7 +163,7 @@ class ExperimentList extends Page<{}, ExperimentListState> {
           undefined /* pageToken */,
           5 /* pageSize */,
           RunSortKeys.CREATED_AT + ' desc',
-          ApiResourceType.EXPERIMENT.toString(),
+          'EXPERIMENT', // ApiResourceType.EXPERIMENT.toString(),
           experiment.id,
           encodeURIComponent(JSON.stringify({
             predicates: [{
@@ -195,7 +195,7 @@ class ExperimentList extends Page<{}, ExperimentListState> {
     this.setState({ selectedIds });
   }
 
-  private _toggleRowExpand(rowIndex: number): void {
+  public _toggleRowExpand(rowIndex: number): void {
     const displayExperiments = produce(this.state.displayExperiments, draft => {
       draft[rowIndex].expandState =
         draft[rowIndex].expandState === ExpandState.COLLAPSED ?

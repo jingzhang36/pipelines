@@ -27,7 +27,7 @@ import RunList from '../pages/RunList';
 import Toolbar, { ToolbarProps } from '../components/Toolbar';
 import Tooltip from '@material-ui/core/Tooltip';
 import { ApiExperiment } from '../apis/experiment';
-import { ApiResourceType } from '../apis/job';
+// import { ApiResourceType } from '../apis/job';
 import { Apis } from '../lib/Apis';
 import { Page } from './Page';
 import { RoutePage, RouteParams } from '../components/Router';
@@ -258,7 +258,7 @@ class ExperimentDetails extends Page<{}, ExperimentDetailsState> {
           undefined,
           100,
           '',
-          ApiResourceType.EXPERIMENT.toString(),
+          'EXPERIMENT', // ApiResourceType.EXPERIMENT.toString(),
           experimentId,
         );
         activeRecurringRunsCount =

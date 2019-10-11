@@ -25,6 +25,10 @@ import { StoragePath } from './WorkflowParser';
 
 const v1beta1Prefix = 'apis/v1beta1';
 
+export interface ListPipelineVersionRequest {
+  pipelineId: string;
+}
+
 /** Known Artifact properties */
 export enum ArtifactProperties {
   ALL_META = '__ALL_META__',
