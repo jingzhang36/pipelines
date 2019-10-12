@@ -230,10 +230,18 @@ func (r *ResourceManager) GetPipelineTemplate(pipelineId string) ([]byte, error)
 }
 
 func (r *ResourceManager) CreateRun(apiRun *api.Run) (*model.RunDetail, error) {
-	// Get workflow from pipeline spec, which might be pipeline ID or an argo workflow
-	workflowSpecManifestBytes, err := r.getWorkflowSpecBytes(apiRun.GetPipelineSpec())
+	// Get workflow from either of the two places:
+	// (1) pipeline spec, which might be pipeline ID or an argo workflow
+	// (2) resource references, which contains the pipeline version ID
+	var workflowSpecManifestBytes byte[]
+	workflowSpecManifestBytes, err :=
+		r.getWorkflowSpecBytes(apiRun.GetPipelineSpec())
 	if err != nil {
-		return nil, util.Wrap(err, "Failed to fetch workflow spec.")
+		workflowSpecManifestBytes, err =
+		r.getWorkflowSpecBytes(apiRun.ResourceReferences)
+		if err != nil {
+			return nil, util.Wrap(err, "Failed to fetch workflow spec.")
+		}
 	}
 	uuid, err := r.uuid.NewRandom()
 	if err != nil {
@@ -699,6 +707,23 @@ func (r *ResourceManager) getWorkflowSpecBytes(spec *api.PipelineSpec) ([]byte, 
 	} else if spec.GetWorkflowManifest() != "" {
 		return []byte(spec.GetWorkflowManifest()), nil
 	}
+	return nil, util.NewInvalidInputError("Please provide a valid pipeline spec")
+}
+
+func (r *ResourceManager) getWorkflowSpecBytes(references []*api.ResourceReferences) ([]byte, error) {
+	pipelineVersionId, err := ValidatePipelineVersionReference(references)
+	if err != nil {
+		return nil, util.Wrap(err, "Get pipeline YAML failed.")
+	}
+	var workflow util.Workflow
+	err = r.objectStore.GetFromYamlFile(
+		&workflow, storage.CreatePipelinePath(pipelineVersionId))
+	if err != nil {
+		return nil, util.Wrap(err, "Get pipeline YAML failed.")
+	}
+
+	return []byte(workflow.ToStringForStore()), nil
+
 	return nil, util.NewInvalidInputError("Please provide a valid pipeline spec")
 }
 

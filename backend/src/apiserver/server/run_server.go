@@ -18,6 +18,7 @@ import (
 	"context"
 	"github.com/golang/protobuf/ptypes/empty"
 	api "github.com/kubeflow/pipelines/backend/api/go_client"
+	"github.com/kubeflow/pipelines/backend/src/apiserver/common"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/model"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/resource"
 	"github.com/kubeflow/pipelines/backend/src/common/util"
@@ -127,8 +128,13 @@ func (s *RunServer) validateCreateRunRequest(request *api.CreateRunRequest) erro
 		return util.NewInvalidInputError("The run name is empty. Please specify a valid name.")
 	}
 
-	if err := ValidatePipelineSpec(s.resourceManager, run.PipelineSpec); err != nil {
-		return util.Wrap(err, "The pipeline spec is invalid.")
+	errPipelineSpec := ValidatePipelineSpec(s.resourceManager, run.PipelineSpec)
+	_, errResourceReference := VerifyPipelineVersionReferenceAsCreator(
+		s.resourceManager, run.ResourceReferences)
+
+	if errPipelineSpec != nil && errResourceReference != nil {
+		return util.Wrap(
+			err, "Both pipeline spec and resource references are invalid.")
 	}
 	return nil
 }
