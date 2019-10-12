@@ -8,7 +8,6 @@ go_library(
         "filter_context.go",
         "pagination_context.go",
         "paths.go",
-        "resource_references.go",
     ],
     importpath = "github.com/kubeflow/pipelines/backend/src/apiserver/common",
     visibility = ["//visibility:public"],

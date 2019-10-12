@@ -233,12 +233,12 @@ func (r *ResourceManager) CreateRun(apiRun *api.Run) (*model.RunDetail, error) {
 	// Get workflow from either of the two places:
 	// (1) pipeline spec, which might be pipeline ID or an argo workflow
 	// (2) resource references, which contains the pipeline version ID
-	var workflowSpecManifestBytes byte[]
+	var workflowSpecManifestBytes []byte 
 	workflowSpecManifestBytes, err :=
 		r.getWorkflowSpecBytes(apiRun.GetPipelineSpec())
 	if err != nil {
 		workflowSpecManifestBytes, err =
-		r.getWorkflowSpecBytes(apiRun.ResourceReferences)
+		r.getWorkflowSpecBytesFromPipelineVersion(apiRun.ResourceReferences)
 		if err != nil {
 			return nil, util.Wrap(err, "Failed to fetch workflow spec.")
 		}
@@ -710,21 +710,25 @@ func (r *ResourceManager) getWorkflowSpecBytes(spec *api.PipelineSpec) ([]byte, 
 	return nil, util.NewInvalidInputError("Please provide a valid pipeline spec")
 }
 
-func (r *ResourceManager) getWorkflowSpecBytes(references []*api.ResourceReferences) ([]byte, error) {
-	pipelineVersionId, err := ValidatePipelineVersionReference(references)
-	if err != nil {
-		return nil, util.Wrap(err, "Get pipeline YAML failed.")
+func (r *ResourceManager) getWorkflowSpecBytesFromPipelineVersion(references []*api.ResourceReference) ([]byte, error) {
+	var pipelineVersionId = ""
+	for _, reference := range references {
+		if reference.Key.Type == api.ResourceType_PIPELINE_VERSION &&
+			reference.Relationship == api.Relationship_CREATOR {
+			pipelineVersionId = reference.Key.Id
+		}
+	}
+	if len(pipelineVersionId) == 0 {
+		return nil, util.NewInvalidInputError("No pipeline version.")
 	}
 	var workflow util.Workflow
-	err = r.objectStore.GetFromYamlFile(
+	err := r.objectStore.GetFromYamlFile(
 		&workflow, storage.CreatePipelinePath(pipelineVersionId))
 	if err != nil {
 		return nil, util.Wrap(err, "Get pipeline YAML failed.")
 	}
 
 	return []byte(workflow.ToStringForStore()), nil
-
-	return nil, util.NewInvalidInputError("Please provide a valid pipeline spec")
 }
 
 // Used to initialize the Experiment database with a default to be used for runs
