@@ -55,7 +55,7 @@ steps:
                       #   id: "CreatePipelineVersion"
   # - name: "gcr.io/jingzhangjz-experiment/ubuntu-curl"
   #   args: ["bash", "./curl.bash", "$COMMIT_SHA", "$_PIPELINE_ID"]
-  #   id: "CreatePipelineVersion"
+  #   id: "CreatePipelineVersionAndRun"
                       # - name: gcr.io/jingzhangjz-experiment/kfpcitool
                       #   entrypoint: "/bin/sh"
                       #   args: [

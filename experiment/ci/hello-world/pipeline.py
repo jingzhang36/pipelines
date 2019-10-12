@@ -21,17 +21,18 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--commit_id', help='Commit Id', type=str)
 args = parser.parse_args()
 
+
 @dsl.pipeline(
     name='Hello World CI pipeline',
     description='Basic sample to show how to build docker image as part of KFP CI'
 )
 def helloworld_ci_pipeline():
-  dsl.ContainerOp(
-      name='Print Hello World',
-      image='gcr.io/ml-pipeline-dogfood/helloworld-ci:' + args.commit_id,
-  )
+    dsl.ContainerOp(
+        name='Print Hello World',
+        image='gcr.io/jingzhangjz-experiment/helloworld-ci:' + args.commit_id,
+    )
 
 
 if __name__ == '__main__':
-  import kfp.compiler as compiler
-  compiler.Compiler().compile(helloworld_ci_pipeline, __file__ + '.zip')
+    import kfp.compiler as compiler
+    compiler.Compiler().compile(helloworld_ci_pipeline, __file__ + '.zip')
