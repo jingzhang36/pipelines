@@ -27,7 +27,7 @@ steps:
       [
         "cp",
         "/workspace/pipeline.zip",
-        "gs://jingzhangjz-kfp/pipeline.zip", # "gs://jingzhangjz-kfp/$COMMIT_SHA/pipeline.zip",
+        "gs://jingzhangjz-kfp/$COMMIT_SHA/pipeline.zip",
       ]
     id: "UploadPipeline"
     waitFor: ["PackagePipeline"]
@@ -53,9 +53,9 @@ steps:
                       #     - "CLOUDSDK_COMPUTE_REGION=us-central1-a"
                       #     - "CLOUDSDK_CONTAINER_CLUSTER=standard-cluster-3"
                       #   id: "CreatePipelineVersion"
-  # - name: "gcr.io/jingzhangjz-experiment/ubuntu-curl"
-  #   args: ["bash", "./curl.bash", "$COMMIT_SHA", "$_PIPELINE_ID"]
-  #   id: "CreatePipelineVersionAndRun"
+  - name: "gcr.io/jingzhangjz-experiment/ubuntu-curl"
+    args: ["bash", "./curl.bash", "$COMMIT_SHA", "$_PIPELINE_ID"]
+    id: "CreatePipelineVersionAndRun"
                       # - name: gcr.io/jingzhangjz-experiment/kfpcitool
                       #   entrypoint: "/bin/sh"
                       #   args: [
