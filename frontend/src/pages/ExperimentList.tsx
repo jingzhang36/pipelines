@@ -195,7 +195,7 @@ class ExperimentList extends Page<{}, ExperimentListState> {
     this.setState({ selectedIds });
   }
 
-  public _toggleRowExpand(rowIndex: number): void {
+  private _toggleRowExpand(rowIndex: number): void {
     const displayExperiments = produce(this.state.displayExperiments, draft => {
       draft[rowIndex].expandState =
         draft[rowIndex].expandState === ExpandState.COLLAPSED ?
