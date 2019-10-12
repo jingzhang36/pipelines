@@ -74,5 +74,5 @@ images:
 substitutions:
   _CODE_PATH: /workspace/experiment/ci/hello-world
   _NAMESPACE: kubeflow
-  _PIPELINE_ID: 0149f95c-d065-4357-b73b-0e721a716ac6
+  _PIPELINE_ID: 16613f3b-411f-41ac-a082-ae66ff7f71ea
   _EXPERIMENT_NAME: helloworldcd
