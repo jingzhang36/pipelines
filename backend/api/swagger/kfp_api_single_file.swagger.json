@@ -63,7 +63,9 @@
             "enum": [
               "UNKNOWN_RESOURCE_TYPE",
               "EXPERIMENT",
-              "JOB"
+              "JOB",
+              "PIPELINE",
+              "PIPELINE_VERSION"
             ],
             "default": "UNKNOWN_RESOURCE_TYPE"
           },
@@ -429,7 +431,9 @@
             "enum": [
               "UNKNOWN_RESOURCE_TYPE",
               "EXPERIMENT",
-              "JOB"
+              "JOB",
+              "PIPELINE",
+              "PIPELINE_VERSION"
             ],
             "default": "UNKNOWN_RESOURCE_TYPE"
           },
@@ -603,6 +607,170 @@
         ],
         "tags": [
           "JobService"
+        ]
+      }
+    },
+    "/apis/v1beta1/pipeline_versions": {
+      "post": {
+        "operationId": "CreatePipelineVersion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiPipelineVersion"
+            }
+          },
+          "default": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ResourceReference inside PipelineVersion specifies the pipeline that this\nversion belongs to.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiPipelineVersion"
+            }
+          }
+        ],
+        "tags": [
+          "PipelineService"
+        ]
+      }
+    },
+    "/apis/v1beta1/pipeline_versions/pipeline/{resource_key.id}": {
+      "get": {
+        "operationId": "ListPipelineVersions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiListPipelineVersionsResponse"
+            }
+          },
+          "default": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "resource_key.id",
+            "description": "The ID of the resource that referred to.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "resource_key.type",
+            "description": "The type of the resource that referred to.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "UNKNOWN_RESOURCE_TYPE",
+              "EXPERIMENT",
+              "JOB",
+              "PIPELINE",
+              "PIPELINE_VERSION"
+            ],
+            "default": "UNKNOWN_RESOURCE_TYPE"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page_token",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "sort_by",
+            "description": "Can be format of \"field_name\", \"field_name asc\" or \"field_name des\"\nAscending by default.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter",
+            "description": "A base-64 encoded, JSON-serialized Filter protocol buffer (see\nfilter.proto).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PipelineService"
+        ]
+      }
+    },
+    "/apis/v1beta1/pipeline_versions/{version_id}": {
+      "get": {
+        "operationId": "GetPipelineVersion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiPipelineVersion"
+            }
+          },
+          "default": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PipelineService"
+        ]
+      },
+      "delete": {
+        "operationId": "DeletePipelineVersion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PipelineService"
         ]
       }
     },
@@ -1163,7 +1331,9 @@
       "enum": [
         "UNKNOWN_RESOURCE_TYPE",
         "EXPERIMENT",
-        "JOB"
+        "JOB",
+        "PIPELINE",
+        "PIPELINE_VERSION"
       ],
       "default": "UNKNOWN_RESOURCE_TYPE"
     },
@@ -1447,6 +1617,24 @@
         }
       }
     },
+    "apiListPipelineVersionsResponse": {
+      "type": "object",
+      "properties": {
+        "versions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiPipelineVersion"
+          }
+        },
+        "next_page_token": {
+          "type": "string"
+        },
+        "total_size": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
     "apiListPipelinesResponse": {
       "type": "object",
       "properties": {
@@ -1490,15 +1678,60 @@
           "items": {
             "$ref": "#/definitions/apiParameter"
           },
-          "description": "Output. The input parameters for this pipeline."
+          "description": "Output. The input parameters for this pipeline.\nTODO(jingzhang36): replace this parameters field with the parameters field\ninside PipelineVersion when all usage of the former has been changed to use\nthe latter."
         },
         "url": {
           "$ref": "#/definitions/apiUrl",
-          "description": "The URL to the source of the pipeline. This is required when creating the\npipeine through CreatePipeline API."
+          "description": "The URL to the source of the pipeline. This is required when creating the\npipeine through CreatePipeline API.\nTODO(jingzhang36): replace this url field with the code_source_urls field\ninside PipelineVersion when all usage of the former has been changed to use\nthe latter."
         },
         "error": {
           "type": "string",
           "description": "In case any error happens retrieving a pipeline field, only pipeline ID\nand the error message is returned. Client has the flexibility of choosing\nhow to handle error. This is especially useful during listing call."
+        },
+        "default_version": {
+          "$ref": "#/definitions/apiPipelineVersion",
+          "description": "Output only. The default version of the pipeline. As of now, the latest\nversion is used as default. (In the future, if desired by customers, we\ncan allow them to set default version.)\nTODO(jingzhang36): expose this in API pipeline definition with FE changes.",
+          "readOnly": true
+        }
+      }
+    },
+    "apiPipelineVersion": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Output. Unique version ID. Generated by API server."
+        },
+        "name": {
+          "type": "string",
+          "description": "Optional input field. Version name provided by user."
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Output. The time this pipeline version is created."
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiParameter"
+          },
+          "description": "Output. The input parameters for this pipeline."
+        },
+        "code_source_url": {
+          "type": "string",
+          "description": "Input. Optional. Pipeline version code source."
+        },
+        "package_url": {
+          "$ref": "#/definitions/apiUrl",
+          "description": "Input. Required. Pipeline version package url.\nWhe calling CreatePipelineVersion API method, need to provide one package\nfile location."
+        },
+        "resource_references": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiResourceReference"
+          },
+          "description": "Input. Required. E.g., specify which pipeline this pipeline version belongs\nto."
         }
       }
     },

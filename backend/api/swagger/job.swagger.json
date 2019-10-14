@@ -62,7 +62,9 @@
             "enum": [
               "UNKNOWN_RESOURCE_TYPE",
               "EXPERIMENT",
-              "JOB"
+              "JOB",
+              "PIPELINE",
+              "PIPELINE_VERSION"
             ],
             "default": "UNKNOWN_RESOURCE_TYPE"
           },
@@ -456,7 +458,9 @@
       "enum": [
         "UNKNOWN_RESOURCE_TYPE",
         "EXPERIMENT",
-        "JOB"
+        "JOB",
+        "PIPELINE",
+        "PIPELINE_VERSION"
       ],
       "default": "UNKNOWN_RESOURCE_TYPE"
     },
