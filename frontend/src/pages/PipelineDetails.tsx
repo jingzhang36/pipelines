@@ -453,7 +453,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
         // const source = this.state.selectedVersion!.code_source!;
         // TODO(rjbauer): handle non-github cases
         // const repoParts = source.repo_name!.split('_');
-        return `https://github.com/kubeflow/pipelines`; // `https://github.com/${repoParts[1]}/${repoParts[2]}/tree/${source.commit_sha}`;
+        return this.state.selectedVersion!.code_source_url!;
     }
 
     private _deleteCallback(_: string[], success: boolean): void {
