@@ -56,7 +56,7 @@ export enum QUERY_PARAMS {
     isRecurring = 'recurring',
     firstRunInExperiment = 'firstRunInExperiment',
     pipelineId = 'pipelineId',
-    pipelineVersionId = 'pvid', // 'pipelineVersionId',
+    pipelineVersionId = 'pipelineVersionId',
     fromRunId = 'fromRun',
     runlist = 'runlist',
     view = 'view',
