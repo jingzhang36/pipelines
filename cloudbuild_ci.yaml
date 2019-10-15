@@ -17,6 +17,7 @@ steps:
     args: [
         "-c",
         "cd ${_CODE_PATH};
+        pip3 install cffi==1.12.3 --upgrade;
         pip3 install https://storage.googleapis.com/jingzhangjz-kfp/kfp-0.1.23.tar.gz;
         python pipeline.py --commit_id $COMMIT_SHA;
         cp pipeline.py.zip /workspace/pipeline.zip",
