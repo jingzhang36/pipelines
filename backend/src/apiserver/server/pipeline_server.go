@@ -103,6 +103,15 @@ func (s *PipelineServer) GetTemplate(ctx context.Context, request *api.GetTempla
 	return &api.GetTemplateResponse{Template: string(template)}, nil
 }
 
+func (s *PipelineServer) GetPipelineVersionTemplate(ctx context.Context, request *api.GetPipelineVersionTemplateRequest) (*api.GetTemplateResponse, error) {
+	template, err := s.resourceManager.GetPipelineVersionTemplate(request.VersionId)
+	if err != nil {
+		return nil, util.Wrap(err, "Get pipeline version template failed.")
+	}
+
+	return &api.GetTemplateResponse{Template: string(template)}, nil
+}
+
 func ValidateCreatePipelineRequest(request *api.CreatePipelineRequest) error {
 	if request.Pipeline.Url == nil || request.Pipeline.Url.PipelineUrl == "" {
 		return util.NewInvalidInputError("Pipeline URL is empty. Please specify a valid URL.")

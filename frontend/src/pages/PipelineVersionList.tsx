@@ -14,128 +14,128 @@
  * limitations under the License.
  */
 
-import CustomTable, {Column, CustomRendererProps, Row} from '../components/CustomTable';
+import CustomTable, { Column, CustomRendererProps, Row } from '../components/CustomTable';
 import * as React from 'react';
-import {Link, RouteComponentProps} from 'react-router-dom';
-import {ApiPipelineVersion} from '../apis/pipeline';
-import {Apis, ListRequest, RunSortKeys} from '../lib/Apis';
-import {errorToMessage, formatDateString} from '../lib/Utils';
-import {RoutePage, RouteParams} from '../components/Router';
-import {commonCss} from '../Css';
+import { Link, RouteComponentProps } from 'react-router-dom';
+import { ApiPipelineVersion } from '../apis/pipeline';
+import { Apis, ListRequest, RunSortKeys } from '../lib/Apis';
+import { errorToMessage, formatDateString } from '../lib/Utils';
+import { RoutePage, RouteParams } from '../components/Router';
+import { commonCss } from '../Css';
 
 export interface PipelineVersionListProps extends RouteComponentProps {
-  pipelineId?: string;
-  disablePaging?: boolean;
-  disableSelection?: boolean;
-  disableSorting?: boolean;
-  noFilterBox?: boolean;
-  onError: (message: string, error: Error) => void;
-  onSelectionChange?: (selectedRunIds: string[]) => void;
-  selectedIds?: string[];
+    pipelineId?: string;
+    disablePaging?: boolean;
+    disableSelection?: boolean;
+    disableSorting?: boolean;
+    noFilterBox?: boolean;
+    onError: (message: string, error: Error) => void;
+    onSelectionChange?: (selectedRunIds: string[]) => void;
+    selectedIds?: string[];
 }
 
 interface PipelineVersionListState {
-  pipelineVersions: ApiPipelineVersion[];
+    pipelineVersions: ApiPipelineVersion[];
 }
 
 class PipelineVersionList extends React.PureComponent<PipelineVersionListProps, PipelineVersionListState> {
-  private _tableRef = React.createRef<CustomTable>();
+    private _tableRef = React.createRef<CustomTable>();
 
-  constructor(props: any) {
-    super(props);
+    constructor(props: any) {
+        super(props);
 
-    this.state = {
-      pipelineVersions: [],
-    };
-  }
-
-
-  public _nameCustomRenderer: React.FC<CustomRendererProps<string>> = (props: CustomRendererProps<string>) => {
-    if (this.props.pipelineId) {
-      return <Link className={commonCss.link}
-                   onClick={(e) => e.stopPropagation()}
-                   to={RoutePage.PIPELINE_DETAILS.
-                   replace(':' + RouteParams.pipelineId, this.props.pipelineId).
-                   replace(':' + RouteParams.pipelineVersionId, props.id)}>{props.value}</Link>;
+        this.state = {
+            pipelineVersions: [],
+        };
     }
-    else {
-      return <Link className={commonCss.link}
-                   onClick={(e) => e.stopPropagation()}
-                   to={RoutePage.PIPELINE_DETAILS.
-                   replace(':' + RouteParams.pipelineVersionId, props.id)}>{props.value}</Link>;
+
+
+    public _nameCustomRenderer: React.FC<CustomRendererProps<string>> = (props: CustomRendererProps<string>) => {
+        if (this.props.pipelineId) {
+            return <Link className={commonCss.link}
+                onClick={(e) => e.stopPropagation()}
+                to={RoutePage.PIPELINE_DETAILS.
+                    replace(':' + RouteParams.pipelineId, this.props.pipelineId).
+                    replace(':' + RouteParams.pipelineVersionId, props.id)}>{props.value}</Link>;
+        }
+        else {
+            return <Link className={commonCss.link}
+                onClick={(e) => e.stopPropagation()}
+                to={RoutePage.PIPELINE_DETAILS.
+                    replace(':' + RouteParams.pipelineVersionId, props.id)}>{props.value}</Link>;
+        }
     }
-  }
 
-  public render(): JSX.Element {
-    const columns: Column[] = [
-      {
-        customRenderer: this._nameCustomRenderer,
-        flex: 2,
-        label: 'Version name',
-      },
-      {label: 'Start time', flex: 1},
-    ];
+    public render(): JSX.Element {
+        const columns: Column[] = [
+            {
+                customRenderer: this._nameCustomRenderer,
+                flex: 2,
+                label: 'Version name',
+            },
+            { label: 'Start time', flex: 1 },
+        ];
 
-    const rows: Row[] = this.state.pipelineVersions.map(r => {
-      const row = {
-        id: r.id!,
-        otherFields: [
-          r.name,
-          formatDateString(r.created_at),
-        ] as any,
-      };
-      return row;
-    });
-
-    return (<div>
-      <CustomTable columns={columns} rows={rows}
-                   selectedIds={this.props.selectedIds}
-                   initialSortColumn={RunSortKeys.CREATED_AT}
-                   ref={this._tableRef}
-                   updateSelection={this.props.onSelectionChange}
-                   reload={this._loadPipelineVersions.bind(this)}
-                   disablePaging={this.props.disablePaging}
-                   disableSorting={this.props.disableSorting}
-                   disableSelection={this.props.disableSelection}
-                   noFilterBox={this.props.noFilterBox}
-      />
-    </div>);
-  }
-
-  protected async _loadPipelineVersions(request: ListRequest): Promise<string> {
-    let versions: ApiPipelineVersion[] = [];
-
-    if (this.props.pipelineId) {
-      try {
-        const response = await Apis.pipelineServiceApi.listPipelineVersions(this.props.pipelineId);
-        versions = (response.versions || []).sort((a, b) => {
-          if (!b.created_at) {
-            return -1;
-          }
-          if (!a.created_at) {
-            return 1;
-          }
-          if (a.created_at > b.created_at) {
-            return -1;
-          }
-          if (a.created_at < b.created_at) {
-            return 1;
-          }
-          return 0;
+        const rows: Row[] = this.state.pipelineVersions.map(r => {
+            const row = {
+                id: r.id!,
+                otherFields: [
+                    r.name,
+                    formatDateString(r.created_at),
+                ] as any,
+            };
+            return row;
         });
-      } catch (err) {
-        const error = new Error(await errorToMessage(err));
-        this.props.onError('Error: failed to fetch runs.', error);
-        // No point in continuing if we couldn't retrieve any runs.
-        return '';
-      }
 
-      this.setState({
-        pipelineVersions: versions,
-      });
+        return (<div>
+            <CustomTable columns={columns} rows={rows}
+                selectedIds={this.props.selectedIds}
+                initialSortColumn={RunSortKeys.CREATED_AT}
+                ref={this._tableRef}
+                updateSelection={this.props.onSelectionChange}
+                reload={this._loadPipelineVersions.bind(this)}
+                disablePaging={this.props.disablePaging}
+                disableSorting={this.props.disableSorting}
+                disableSelection={this.props.disableSelection}
+                noFilterBox={this.props.noFilterBox}
+            />
+        </div>);
     }
-    return '';
-  }
+
+    protected async _loadPipelineVersions(request: ListRequest): Promise<string> {
+        let versions: ApiPipelineVersion[] = [];
+
+        if (this.props.pipelineId) {
+            try {
+                const response = await Apis.pipelineServiceApi.listPipelineVersions(this.props.pipelineId);
+                versions = (response.versions || []).sort((a, b) => {
+                    if (!b.created_at) {
+                        return -1;
+                    }
+                    if (!a.created_at) {
+                        return 1;
+                    }
+                    if (a.created_at > b.created_at) {
+                        return -1;
+                    }
+                    if (a.created_at < b.created_at) {
+                        return 1;
+                    }
+                    return 0;
+                });
+            } catch (err) {
+                const error = new Error(await errorToMessage(err));
+                this.props.onError('Error: failed to fetch runs.', error);
+                // No point in continuing if we couldn't retrieve any runs.
+                return '';
+            }
+
+            this.setState({
+                pipelineVersions: versions,
+            });
+        }
+        return '';
+    }
 }
 
 export default PipelineVersionList;

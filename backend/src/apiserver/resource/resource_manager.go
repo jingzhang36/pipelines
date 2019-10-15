@@ -229,16 +229,30 @@ func (r *ResourceManager) GetPipelineTemplate(pipelineId string) ([]byte, error)
 	return template, nil
 }
 
+func (r *ResourceManager) GetPipelineVersionTemplate(versionId string) ([]byte, error) {
+	_, err := r.pipelineStore.GetPipelineVersion(versionId)
+	if err != nil {
+		return nil, util.Wrap(err, "Get pipeline version template failed")
+	}
+
+	template, err := r.objectStore.GetFile(storage.CreatePipelinePath(fmt.Sprint(versionId)))
+	if err != nil {
+		return nil, util.Wrap(err, "Get pipeline version template failed")
+	}
+
+	return template, nil
+}
+
 func (r *ResourceManager) CreateRun(apiRun *api.Run) (*model.RunDetail, error) {
 	// Get workflow from either of the two places:
 	// (1) pipeline spec, which might be pipeline ID or an argo workflow
 	// (2) resource references, which contains the pipeline version ID
-	var workflowSpecManifestBytes []byte 
+	var workflowSpecManifestBytes []byte
 	workflowSpecManifestBytes, err :=
 		r.getWorkflowSpecBytes(apiRun.GetPipelineSpec())
 	if err != nil {
 		workflowSpecManifestBytes, err =
-		r.getWorkflowSpecBytesFromPipelineVersion(apiRun.ResourceReferences)
+			r.getWorkflowSpecBytesFromPipelineVersion(apiRun.ResourceReferences)
 		if err != nil {
 			return nil, util.Wrap(err, "Failed to fetch workflow spec.")
 		}
