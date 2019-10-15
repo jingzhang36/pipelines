@@ -150,7 +150,7 @@ class NewRun extends Page<{}, NewRunState> {
     const originalRunId = urlParser.get(QUERY_PARAMS.cloneFromRun) || urlParser.get(QUERY_PARAMS.fromRunId);
     const pipelineDetailsUrl = originalRunId
       ? RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId + '?', '') +
-        urlParser.build({ [QUERY_PARAMS.fromRunId]: originalRunId })
+      urlParser.build({ [QUERY_PARAMS.fromRunId]: originalRunId })
       : '';
 
     return (
@@ -363,17 +363,17 @@ class NewRun extends Page<{}, NewRunState> {
     const embeddedPipelineRunId = urlParser.get(QUERY_PARAMS.fromRunId);
     if (originalRunId) {
       // If we are cloning a run, fetch the original
-        try {
-          const originalRun = await Apis.runServiceApi.getRun(originalRunId);
-          await this._prepareFormFromClone(originalRun.run, originalRun.pipeline_runtime);
-          // If the querystring did not contain an experiment ID, try to get one from the run.
-          if (!experimentId) {
-            experimentId = RunUtils.getFirstExperimentReferenceId(originalRun.run);
-          }
-        } catch (err) {
-          await this.showPageError(`Error: failed to retrieve original run: ${originalRunId}.`, err);
-          logger.error(`Failed to retrieve original run: ${originalRunId}`, err);
+      try {
+        const originalRun = await Apis.runServiceApi.getRun(originalRunId);
+        await this._prepareFormFromClone(originalRun.run, originalRun.pipeline_runtime);
+        // If the querystring did not contain an experiment ID, try to get one from the run.
+        if (!experimentId) {
+          experimentId = RunUtils.getFirstExperimentReferenceId(originalRun.run);
         }
+      } catch (err) {
+        await this.showPageError(`Error: failed to retrieve original run: ${originalRunId}.`, err);
+        logger.error(`Failed to retrieve original run: ${originalRunId}`, err);
+      }
 
 
     } else if (originalRecurringRunId) {
@@ -393,6 +393,9 @@ class NewRun extends Page<{}, NewRunState> {
     } else {
       // Get pipeline id from querystring if any
       const possiblePipelineId = urlParser.get(QUERY_PARAMS.pipelineId);
+      console.log('JING pipeline id:' + possiblePipelineId);
+      console.log('JING query params:' + JSON.stringify(QUERY_PARAMS));
+      console.log('JING version id:' + urlParser.get(QUERY_PARAMS.pipelineVersionId));
       if (possiblePipelineId) {
         try {
           const pipeline = await Apis.pipelineServiceApi.getPipeline(possiblePipelineId);
