@@ -32,42 +32,9 @@ steps:
       ]
     id: "UploadPipeline"
     waitFor: ["PackagePipeline"]
-                      # - name: gcr.io/jingzhangjz-experiment/kfpcitool
-                      #   entrypoint: "/bin/sh"
-                      #   args: [
-                      #       "-c",
-                      #       '/builder/kubectl.bash;
-                      #       python3 -c "import kfp; client=kfp.Client(namespace=\"$_NAMESPACE\"); client.pipelines.create_pipeline(name=\"helloworld_1\", url=\"https://storage.googleapis.com/$REPO_NAME/$COMMIT_SHA/pipeline.zip\")"',
-                      #     ]
-                      #   env:
-                      #     - "CLOUDSDK_COMPUTE_REGION=us-central1-a"
-                      #     - "CLOUDSDK_CONTAINER_CLUSTER=standard-cluster-3"
-                      #   id: "CreatePipeline"
-                      # - name: gcr.io/jingzhangjz-experiment/kfpcitool
-                      #   entrypoint: "/bin/sh"
-                      #   args: [
-                      #       "-c",
-                      #       '/builder/kubectl.bash;
-                      #       python3 -c "import kfp; client=kfp.Client(namespace=\"$_NAMESPACE\"); client.pipelines.create_pipeline_version(name=\"$COMMIT_SHA\", resource_references=[{key: {id: \"$_PIPELINE_ID\", type: 3}}], url=\"https://storage.googleapis.com/$REPO_NAME/$COMMIT_SHA/pipeline.zip\")"',
-                      #     ]
-                      #   env:
-                      #     - "CLOUDSDK_COMPUTE_REGION=us-central1-a"
-                      #     - "CLOUDSDK_CONTAINER_CLUSTER=standard-cluster-3"
-                      #   id: "CreatePipelineVersion"
   - name: "gcr.io/jingzhangjz-experiment/ubuntu-curl"
     args: ["bash", "./curl.bash", "$COMMIT_SHA", "$_PIPELINE_ID"]
     id: "CreatePipelineVersionAndRun"
-                      # - name: gcr.io/jingzhangjz-experiment/kfpcitool
-                      #   entrypoint: "/bin/sh"
-                      #   args: [
-                      #       "-c",
-                      #       '/builder/kubectl.bash;
-                      #       python3 -c "import kfp; client=kfp.Client(namespace=\"$_NAMESPACE\"); exp = client.create_experiment(name=\"$_EXPERIMENT_NAME\"); client.run_pipeline(exp.id, \"$COMMIT_SHA\", \"/workspace/pipeline.zip\")"',
-                      #     ]
-                      #   env:
-                      #     - "CLOUDSDK_COMPUTE_REGION=us-central1-a"
-                      #     - "CLOUDSDK_CONTAINER_CLUSTER=standard-cluster-3"
-                      #   id: "RunPipeline"
 images:
   - "gcr.io/jingzhangjz-experiment/helloworld-ci:$COMMIT_SHA"
   - "gcr.io/jingzhangjz-experiment/helloworld-ci:latest"
