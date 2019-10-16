@@ -1,4 +1,4 @@
-FROM node:9.4.0 as build
+FROM node:11.14.0 as build
 
 ARG COMMIT_HASH
 ARG DATE
@@ -11,9 +11,9 @@ WORKDIR ./frontend
 
 # Workaround for ppc64le since phantomjs does not support ppc64le
 RUN if [ "$(uname -m)" = "ppc64le" ]; then \
-        wget --no-verbose -O /tmp/phantomjs-2.1.1-linux-ppc64.tar.bz2 https://github.com/ibmsoe/phantomjs/releases/download/2.1.1/phantomjs-2.1.1-linux-ppc64.tar.bz2 \
-        && tar xf /tmp/phantomjs-2.1.1-linux-ppc64.tar.bz2 -C /usr/local/ \
-        && ln -s /usr/local/phantomjs-2.1.1-linux-ppc64/bin/phantomjs /usr/bin/phantomjs; \
+    wget --no-verbose -O /tmp/phantomjs-2.1.1-linux-ppc64.tar.bz2 https://github.com/ibmsoe/phantomjs/releases/download/2.1.1/phantomjs-2.1.1-linux-ppc64.tar.bz2 \
+    && tar xf /tmp/phantomjs-2.1.1-linux-ppc64.tar.bz2 -C /usr/local/ \
+    && ln -s /usr/local/phantomjs-2.1.1-linux-ppc64/bin/phantomjs /usr/bin/phantomjs; \
     fi
 
 RUN npm install && npm run postinstall
@@ -29,7 +29,7 @@ RUN npm i -D license-checker
 RUN node gen_licenses . && node gen_licenses server && \
     cat dependency-licenses.txt >> server/dependency-licenses.txt
 
-FROM node:9.4.0-alpine
+FROM node:11.14.0-alpine
 
 COPY --from=build ./src/frontend/server /server
 COPY --from=build ./src/frontend/build /client
