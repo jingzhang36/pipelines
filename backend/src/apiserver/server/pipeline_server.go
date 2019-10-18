@@ -132,33 +132,23 @@ func (s *PipelineServer) CreatePipelineVersion(ctx context.Context, request *api
 	// Read pipeline file.
 	if request.Version == nil || request.Version.PackageUrl == nil ||
 		len(request.Version.PackageUrl.PipelineUrl) == 0 {
-		return nil, util.NewInvalidInputError(
-			"Pipeline URL is empty. Please specify a valid URL.")
-	}
-	if _, err := url.ParseRequestURI(request.Version.PackageUrl.PipelineUrl); err != nil {
-		return nil, util.NewInvalidInputError(
-			"Invalid Pipeline URL %v. Please specify a valid URL",
-			request.Version.PackageUrl.PipelineUrl)
+		return nil, util.NewInvalidInputError("Pipeline URL is empty. Please specify a valid URL.")
 	}
 	pipelineUrl := request.Version.PackageUrl.PipelineUrl
+	if _, err := url.ParseRequestURI(request.Version.PackageUrl.PipelineUrl); err != nil {
+		return nil, util.NewInvalidInputError("Invalid Pipeline URL %v. Please specify a valid URL", request.Version.PackageUrl.PipelineUrl)
+	}
 	resp, err := s.httpClient.Get(pipelineUrl)
 	if err != nil || resp.StatusCode != http.StatusOK {
-		return nil, util.NewInternalServerError(err,
-			`Failed to download the pipeline from %v.
-			Please double check the URL is valid and can be accessed by the
-			pipeline system.`,
-			pipelineUrl)
+		return nil, util.NewInternalServerError(err, "Failed to download the pipeline from %v. Please double check the URL is valid and can be accessed by the pipeline system.", pipelineUrl)
 	}
 	pipelineFileName := path.Base(pipelineUrl)
-	pipelineFile, err := ReadPipelineFile(
-		pipelineFileName, resp.Body, MaxFileLength)
+	pipelineFile, err := ReadPipelineFile(pipelineFileName, resp.Body, MaxFileLength)
 	if err != nil {
-		return nil, util.Wrap(err,
-			"The URL is valid but pipeline system failed to read the file.")
+		return nil, util.Wrap(err, "The URL is valid but pipeline system failed to read the file.")
 	}
 
-	version, err := s.resourceManager.CreatePipelineVersion(
-		request.Version, pipelineFile)
+	version, err := s.resourceManager.CreatePipelineVersion(request.Version, pipelineFile)
 	if err != nil {
 		return nil, util.Wrap(err, "Failed to create a version.")
 	}
@@ -174,19 +164,28 @@ func (s *PipelineServer) GetPipelineVersion(ctx context.Context, request *api.Ge
 }
 
 func (s *PipelineServer) ListPipelineVersions(ctx context.Context, request *api.ListPipelineVersionsRequest) (*api.ListPipelineVersionsResponse, error) {
-	opts, err := validatedListOptions(&model.PipelineVersion{}, request.PageToken, int(request.PageSize), request.SortBy, request.Filter)
+	opts, err := validatedListOptions(
+		&model.PipelineVersion{},
+		request.PageToken,
+		int(request.PageSize),
+		request.SortBy,
+		request.Filter)
 
 	if err != nil {
 		return nil, util.Wrap(err, "Failed to create list options")
 	}
 
-	pipelineVersions, total_size, nextPageToken, err := s.resourceManager.ListPipelineVersions(request.ResourceKey.Id, opts)
+	pipelineVersions, total_size, nextPageToken, err :=
+		s.resourceManager.ListPipelineVersions(request.ResourceKey.Id, opts)
 	if err != nil {
 		return nil, util.Wrap(err, "List pipeline versions failed.")
 	}
 	apiPipelineVersions, _ := ToApiPipelineVersions(pipelineVersions)
 
-	return &api.ListPipelineVersionsResponse{Versions: apiPipelineVersions, NextPageToken: nextPageToken, TotalSize: int32(total_size)}, nil
+	return &api.ListPipelineVersionsResponse{
+		Versions:      apiPipelineVersions,
+		NextPageToken: nextPageToken,
+		TotalSize:     int32(total_size)}, nil
 }
 
 func (s *PipelineServer) DeletePipelineVersion(ctx context.Context, request *api.DeletePipelineVersionRequest) (*empty.Empty, error) {

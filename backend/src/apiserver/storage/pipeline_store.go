@@ -222,8 +222,7 @@ func (s *PipelineStore) GetPipelineWithStatus(id string, status model.PipelineSt
 		Select(pipelineColumns...).
 		From("pipelines").
 		LeftJoin("pipeline_versions on pipelines.DefaultVersionId = pipeline_versions.UUID").
-		Where(sq.Eq{"pipelines.uuid": id}).
-		Where(sq.Eq{"pipelines.Status": status}).
+		Where(sq.And{sq.Eq{"pipelines.uuid": id}, sq.Eq{"pipelines.Status": status}}).
 		Limit(1).ToSql()
 	if err != nil {
 		return nil, util.NewInternalServerError(err, "Failed to create query to get pipeline: %v", err.Error())
@@ -457,6 +456,7 @@ func (s *PipelineStore) CreatePipelineVersion(v *model.PipelineVersion) (*model.
 	}
 	newPipelineVersion.UUID = id.String()
 
+	// Prepare queries of inserting new version and updating default version.
 	versionSql, versionArgs, versionErr := sq.
 		Insert("pipeline_versions").
 		SetMap(
@@ -468,6 +468,7 @@ func (s *PipelineStore) CreatePipelineVersion(v *model.PipelineVersion) (*model.
 				"PipelineId":     newPipelineVersion.PipelineId,
 				"Status":         string(newPipelineVersion.Status),
 				"CodeSourceUrl":  ""}).
+				"CodeSourceUrl":  newPipelineVersion.CodeSourceUrl}).
 		ToSql()
 	if versionErr != nil {
 		return nil, util.NewInternalServerError(
@@ -487,6 +488,7 @@ func (s *PipelineStore) CreatePipelineVersion(v *model.PipelineVersion) (*model.
 			pipelineErr.Error())
 	}
 
+	// In a single transaction, insert new version and update default version.
 	tx, err := s.db.Begin()
 	if err != nil {
 		return nil, util.NewInternalServerError(
@@ -544,8 +546,7 @@ func (s *PipelineStore) GetPipelineVersionWithStatus(versionId string, status mo
 	sql, args, err := sq.
 		Select(pipelineVersionColumns...).
 		From("pipeline_versions").
-		Where(sq.Eq{"UUID": versionId}).
-		Where(sq.Eq{"Status": status}).
+		Where(sq.And{sq.Eq{"UUID": versionId}, sq.Eq{"Status": status}}).
 		Limit(1).
 		ToSql()
 	if err != nil {
@@ -605,26 +606,28 @@ func (s *PipelineStore) ListPipelineVersions(pipelineId string, opts *list.Optio
 	buildQuery := func(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
 		return sqlBuilder.
 			From("pipeline_versions").
-			Where(sq.Eq{"PipelineId": pipelineId}).
-			Where(sq.Eq{"status": model.PipelineVersionReady})
+			Where(sq.And{sq.Eq{"PipelineId": pipelineId}, sq.Eq{"status": model.PipelineVersionReady}})
 	}
 
-	sqlBuilder := buildQuery(sq.Select(pipelineVersionColumns...))
-
-	// SQL for row list
-	rowsSql, rowsArgs, err := opts.AddPaginationToSelect(sqlBuilder).ToSql()
+	// SQL for pipeline version list
+	rowsSql, rowsArgs, err := opts.AddPaginationToSelect(
+		buildQuery(sq.Select(pipelineVersionColumns...))).ToSql()
 	if err != nil {
 		return errorF(err)
 	}
 
-	// SQL for getting total size. This matches the query to get all the rows above, in order
-	// to do the same filter, but counts instead of scanning the rows.
+	// SQL for getting total size of pipeline versions.
 	sizeSql, sizeArgs, err := buildQuery(sq.Select("count(*)")).ToSql()
 	if err != nil {
 		return errorF(err)
 	}
 
+<<<<<<< HEAD
 	// Use a transaction to make sure we're returning the total_size of the same rows queried
+=======
+	// Use a transaction to make sure we're returning the total_size of the same
+	// rows queried.
+>>>>>>> origin/master
 	tx, err := s.db.Begin()
 	if err != nil {
 		glog.Errorf("Failed to start transaction to list pipelines")
@@ -671,8 +674,8 @@ func (s *PipelineStore) ListPipelineVersions(pipelineId string, opts *list.Optio
 
 func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 	// If this version is used as default version for a pipeline, we have to
-	// find a new default version for this pipeline, which is usually the latest
-	// version of this pipeline. Then we'll have 3 operations in a single
+	// find a new default version for that pipeline, which is usually the latest
+	// version of that pipeline. Then we'll have 3 operations in a single
 	// transactions: (1) delete version (2) get new default version id (3) use
 	// new default version id to update pipeline.
 	tx, err := s.db.Begin()
@@ -703,21 +706,23 @@ func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 		tx.Rollback()
 		return util.NewInternalServerError(
 			err,
-			"Failed to query pipelines table while deleting pipeline version: %v",
+			`Failed to query pipelines table while deleting pipeline version:
+			%v`,
 			err.Error())
 	}
-	var pipelineId string
+	var pipelineId = ""
 	if r.Next() {
 		if err := r.Scan(&pipelineId); err != nil {
+			tx.Rollback()
 			return util.NewInternalServerError(
 				err,
-				"Failed to query pipelines table while deleting pipeline version: %v",
+				"Failed to get pipeline id for version id: %v",
 				err.Error())
 		}
 	}
 	if len(pipelineId) == 0 {
-		// The deleted version is not used a default version. So no extra work
-		// is needed. We commit the deletion now.
+		// The deleted version is not used as a default version. So no extra
+		// work is needed. We commit the deletion now.
 		if err := tx.Commit(); err != nil {
 			return util.NewInternalServerError(
 				err,
@@ -738,16 +743,16 @@ func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 		tx.Rollback()
 		return util.NewInternalServerError(
 			err,
-			"Failed to get default version id: %v",
+			"Failed to get a new default version id: %v",
 			err.Error())
 	}
-	var newDefaultVersionId string
+	var newDefaultVersionId = ""
 	if r.Next() {
 		if err := r.Scan(&newDefaultVersionId); err != nil {
 			tx.Rollback()
 			return util.NewInternalServerError(
 				err,
-				"Failed to find a new default version id: %v",
+				"Failed to get a new default version id: %v",
 				err.Error())
 		}
 	}
@@ -784,4 +789,10 @@ func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 			err.Error())
 	}
 	return nil
+}
+
+// SetUUIDGenerator is for unit tests in other packages who need to set uuid,
+// since uuid is not exported.
+func (s *PipelineStore) SetUUIDGenerator(new_uuid util.UUIDGeneratorInterface) {
+	s.uuid = new_uuid
 }
