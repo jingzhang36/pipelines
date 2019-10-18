@@ -1797,46 +1797,6 @@ spec:
           path: /output.txt`
 )
 
-func TestCreatePipelineVersion(t *testing.T) {
-	store := NewFakeClientManagerOrFatal(util.NewFakeTimeForEpoch())
-	manager := NewResourceManager(store)
-
-	// Create a pipeline before versions.
-	_, err := manager.CreatePipeline("p", "", []byte(testWorkflow.ToStringForStore()))
-	assert.Nil(t, err)
-
-	// Create a version under the above pipeline.
-	pipelineStore, ok := store.pipelineStore.(*storage.PipelineStore)
-	assert.True(t, ok)
-	pipelineStore.SetUUIDGenerator(util.NewFakeUUIDGeneratorOrFatal(FakeUUIDOne, nil))
-	version, err := manager.CreatePipelineVersion(
-		&api.PipelineVersion{
-			Name: "p_v",
-			ResourceReferences: []*api.ResourceReference{
-				&api.ResourceReference{
-					Key: &api.ResourceKey{
-						Id:   DefaultFakeUUID,
-						Type: api.ResourceType_PIPELINE,
-					},
-					Relationship: api.Relationship_OWNER,
-				},
-			},
-		},
-		[]byte(testWorkflow.ToStringForStore()))
-	assert.Nil(t, err)
-
-	defer store.Close()
-	pipelineVersionExpected := &model.PipelineVersion{
-		UUID:           FakeUUIDOne,
-		CreatedAtInSec: 2,
-		Name:           "p_v",
-		Parameters:     "[{\"name\":\"param1\"}]",
-		Status:         model.PipelineVersionReady,
-		PipelineId:     DefaultFakeUUID,
-	}
-	assert.Equal(t, pipelineVersionExpected, version)
-}
-
 func TestCreatePipelineVersion_ComplexPipelineVersion(t *testing.T) {
 	store := NewFakeClientManagerOrFatal(util.NewFakeTimeForEpoch())
 	defer store.Close()

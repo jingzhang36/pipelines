@@ -102,7 +102,7 @@ type ListPipelineVersionsParams struct {
 	  The ID of the resource that referred to.
 
 	*/
-	ResourceKeyID string
+	ResourceKeyID *string
 	/*ResourceKeyType
 	  The type of the resource that referred to.
 
@@ -187,13 +187,13 @@ func (o *ListPipelineVersionsParams) SetPageToken(pageToken *string) {
 }
 
 // WithResourceKeyID adds the resourceKeyID to the list pipeline versions params
-func (o *ListPipelineVersionsParams) WithResourceKeyID(resourceKeyID string) *ListPipelineVersionsParams {
+func (o *ListPipelineVersionsParams) WithResourceKeyID(resourceKeyID *string) *ListPipelineVersionsParams {
 	o.SetResourceKeyID(resourceKeyID)
 	return o
 }
 
 // SetResourceKeyID adds the resourceKeyId to the list pipeline versions params
-func (o *ListPipelineVersionsParams) SetResourceKeyID(resourceKeyID string) {
+func (o *ListPipelineVersionsParams) SetResourceKeyID(resourceKeyID *string) {
 	o.ResourceKeyID = resourceKeyID
 }
 
@@ -275,9 +275,20 @@ func (o *ListPipelineVersionsParams) WriteToRequest(r runtime.ClientRequest, reg
 
 	}
 
-	// path param resource_key.id
-	if err := r.SetPathParam("resource_key.id", o.ResourceKeyID); err != nil {
-		return err
+	if o.ResourceKeyID != nil {
+
+		// query param resource_key.id
+		var qrResourceKeyID string
+		if o.ResourceKeyID != nil {
+			qrResourceKeyID = *o.ResourceKeyID
+		}
+		qResourceKeyID := qrResourceKeyID
+		if qResourceKeyID != "" {
+			if err := r.SetQueryParam("resource_key.id", qResourceKeyID); err != nil {
+				return err
+			}
+		}
+
 	}
 
 	if o.ResourceKeyType != nil {

@@ -467,7 +467,6 @@ func (s *PipelineStore) CreatePipelineVersion(v *model.PipelineVersion) (*model.
 				"Parameters":     newPipelineVersion.Parameters,
 				"PipelineId":     newPipelineVersion.PipelineId,
 				"Status":         string(newPipelineVersion.Status),
-				"CodeSourceUrl":  ""}).
 				"CodeSourceUrl":  newPipelineVersion.CodeSourceUrl}).
 		ToSql()
 	if versionErr != nil {
@@ -622,12 +621,8 @@ func (s *PipelineStore) ListPipelineVersions(pipelineId string, opts *list.Optio
 		return errorF(err)
 	}
 
-<<<<<<< HEAD
-	// Use a transaction to make sure we're returning the total_size of the same rows queried
-=======
 	// Use a transaction to make sure we're returning the total_size of the same
 	// rows queried.
->>>>>>> origin/master
 	tx, err := s.db.Begin()
 	if err != nil {
 		glog.Errorf("Failed to start transaction to list pipelines")

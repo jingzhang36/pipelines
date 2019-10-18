@@ -15,8 +15,6 @@ go_library(
         "get_pipeline_responses.go",
         "get_pipeline_version_parameters.go",
         "get_pipeline_version_responses.go",
-        "get_pipeline_version_template_parameters.go",
-        "get_pipeline_version_template_responses.go",
         "get_template_parameters.go",
         "get_template_responses.go",
         "list_pipeline_versions_parameters.go",

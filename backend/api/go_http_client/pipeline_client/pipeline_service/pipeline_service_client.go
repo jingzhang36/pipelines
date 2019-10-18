@@ -213,35 +213,6 @@ func (a *Client) GetPipelineVersion(params *GetPipelineVersionParams, authInfo r
 }
 
 /*
-GetPipelineVersionTemplate get pipeline version template API
-*/
-func (a *Client) GetPipelineVersionTemplate(params *GetPipelineVersionTemplateParams, authInfo runtime.ClientAuthInfoWriter) (*GetPipelineVersionTemplateOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewGetPipelineVersionTemplateParams()
-	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
-		ID:                 "GetPipelineVersionTemplate",
-		Method:             "GET",
-		PathPattern:        "/apis/v1beta1/pipeline_versions/{version_id}/templates",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http", "https"},
-		Params:             params,
-		Reader:             &GetPipelineVersionTemplateReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return result.(*GetPipelineVersionTemplateOK), nil
-
-}
-
-/*
 GetTemplate get template API
 */
 func (a *Client) GetTemplate(params *GetTemplateParams, authInfo runtime.ClientAuthInfoWriter) (*GetTemplateOK, error) {
@@ -282,7 +253,7 @@ func (a *Client) ListPipelineVersions(params *ListPipelineVersionsParams, authIn
 	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "ListPipelineVersions",
 		Method:             "GET",
-		PathPattern:        "/apis/v1beta1/pipeline_versions/pipeline/{resource_key.id}",
+		PathPattern:        "/apis/v1beta1/pipeline_versions",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},

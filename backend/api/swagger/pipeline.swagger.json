@@ -16,39 +16,6 @@
   ],
   "paths": {
     "/apis/v1beta1/pipeline_versions": {
-      "post": {
-        "operationId": "CreatePipelineVersion",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apiPipelineVersion"
-            }
-          },
-          "default": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "description": "ResourceReference inside PipelineVersion specifies the pipeline that this\nversion belongs to.",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/apiPipelineVersion"
-            }
-          }
-        ],
-        "tags": [
-          "PipelineService"
-        ]
-      }
-    },
-    "/apis/v1beta1/pipeline_versions/pipeline/{resource_key.id}": {
       "get": {
         "operationId": "ListPipelineVersions",
         "responses": {
@@ -67,13 +34,6 @@
         },
         "parameters": [
           {
-            "name": "resource_key.id",
-            "description": "The ID of the resource that referred to.",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "resource_key.type",
             "description": "The type of the resource that referred to.",
             "in": "query",
@@ -87,6 +47,13 @@
               "PIPELINE_VERSION"
             ],
             "default": "UNKNOWN_RESOURCE_TYPE"
+          },
+          {
+            "name": "resource_key.id",
+            "description": "The ID of the resource that referred to.",
+            "in": "query",
+            "required": false,
+            "type": "string"
           },
           {
             "name": "page_size",
@@ -114,6 +81,37 @@
             "in": "query",
             "required": false,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "PipelineService"
+        ]
+      },
+      "post": {
+        "operationId": "CreatePipelineVersion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiPipelineVersion"
+            }
+          },
+          "default": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "ResourceReference inside PipelineVersion specifies the pipeline that this\nversion belongs to.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiPipelineVersion"
+            }
           }
         ],
         "tags": [
@@ -157,36 +155,6 @@
             "description": "A successful response.",
             "schema": {
               "properties": {}
-            }
-          },
-          "default": {
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/apiStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "version_id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "PipelineService"
-        ]
-      }
-    },
-    "/apis/v1beta1/pipeline_versions/{version_id}/templates": {
-      "get": {
-        "operationId": "GetPipelineVersionTemplate",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apiGetTemplateResponse"
             }
           },
           "default": {
