@@ -79,7 +79,7 @@ export const css = stylesheet({
     fontSize: fontsize.base,
     letterSpacing: 0.25,
     marginRight: 20,
-    overflow: 'hidden',
+    overflow: 'visible',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
