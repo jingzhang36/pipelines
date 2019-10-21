@@ -48,7 +48,7 @@
         ]
       }
     },
-    "/apis/v1beta1/pipeline_versions/pipeline/{resource_key.id}": {
+    "/apis/v1beta1/pipeline_versions": {
       "get": {
         "operationId": "ListPipelineVersions",
         "responses": {

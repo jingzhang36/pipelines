@@ -282,7 +282,7 @@ func (a *Client) ListPipelineVersions(params *ListPipelineVersionsParams, authIn
 	result, err := a.transport.Submit(&runtime.ClientOperation{
 		ID:                 "ListPipelineVersions",
 		Method:             "GET",
-		PathPattern:        "/apis/v1beta1/pipeline_versions/pipeline/{resource_key.id}",
+		PathPattern:        "/apis/v1beta1/pipeline_versions",
 		ProducesMediaTypes: []string{"application/json"},
 		ConsumesMediaTypes: []string{"application/json"},
 		Schemes:            []string{"http", "https"},

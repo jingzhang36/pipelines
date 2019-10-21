@@ -72,7 +72,7 @@ type ListPipelineVersionsOK struct {
 }
 
 func (o *ListPipelineVersionsOK) Error() string {
-	return fmt.Sprintf("[GET /apis/v1beta1/pipeline_versions/pipeline/{resource_key.id}][%d] listPipelineVersionsOK  %+v", 200, o.Payload)
+	return fmt.Sprintf("[GET /apis/v1beta1/pipeline_versions][%d] listPipelineVersionsOK  %+v", 200, o.Payload)
 }
 
 func (o *ListPipelineVersionsOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
@@ -110,7 +110,7 @@ func (o *ListPipelineVersionsDefault) Code() int {
 }
 
 func (o *ListPipelineVersionsDefault) Error() string {
-	return fmt.Sprintf("[GET /apis/v1beta1/pipeline_versions/pipeline/{resource_key.id}][%d] ListPipelineVersions default  %+v", o._statusCode, o.Payload)
+	return fmt.Sprintf("[GET /apis/v1beta1/pipeline_versions][%d] ListPipelineVersions default  %+v", o._statusCode, o.Payload)
 }
 
 func (o *ListPipelineVersionsDefault) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
