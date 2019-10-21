@@ -229,30 +229,17 @@ func (r *ResourceManager) GetPipelineTemplate(pipelineId string) ([]byte, error)
 	return template, nil
 }
 
-func (r *ResourceManager) GetPipelineVersionTemplate(versionId string) ([]byte, error) {
-	_, err := r.pipelineStore.GetPipelineVersion(versionId)
-	if err != nil {
-		return nil, util.Wrap(err, "Get pipeline version template failed")
-	}
-
-	template, err := r.objectStore.GetFile(storage.CreatePipelinePath(fmt.Sprint(versionId)))
-	if err != nil {
-		return nil, util.Wrap(err, "Get pipeline version template failed")
-	}
-
-	return template, nil
-}
-
 func (r *ResourceManager) CreateRun(apiRun *api.Run) (*model.RunDetail, error) {
 	// Get workflow from either of the two places:
-	// (1) pipeline spec, which might be pipeline ID or an argo workflow
-	// (2) resource references, which contains the pipeline version ID
+	// (1) raw pipeline manifest in pipeline_spec
+	// (2) pipeline version in resource_references
 	var workflowSpecManifestBytes []byte
 	workflowSpecManifestBytes, err :=
 		r.getWorkflowSpecBytes(apiRun.GetPipelineSpec())
 	if err != nil {
 		workflowSpecManifestBytes, err =
-			r.getWorkflowSpecBytesFromPipelineVersion(apiRun.ResourceReferences)
+			r.getWorkflowSpecBytesFromPipelineVersion(
+				apiRun.GetResourceReferences())
 		if err != nil {
 			return nil, util.Wrap(err, "Failed to fetch workflow spec.")
 		}
@@ -464,8 +451,8 @@ func (r *ResourceManager) GetJob(id string) (*model.Job, error) {
 
 func (r *ResourceManager) CreateJob(apiJob *api.Job) (*model.Job, error) {
 	// Get workflow from either of the two places:
-	// (1) pipeline spec, which might be pipeline ID or an argo workflow
-	// (2) resource references, which contains the pipeline version ID
+	// (1) raw pipeline manifest in pipeline_spec
+	// (2) pipeline version in resource_references
 	var workflowSpecManifestBytes []byte
 	workflowSpecManifestBytes, err :=
 		r.getWorkflowSpecBytes(apiJob.GetPipelineSpec())
@@ -722,6 +709,8 @@ func (r *ResourceManager) checkRunExist(runID string) (*model.RunDetail, error) 
 }
 
 func (r *ResourceManager) getWorkflowSpecBytes(spec *api.PipelineSpec) ([]byte, error) {
+	// TODO(jingzhang36): after FE is enabled to use pipeline version to create
+	// run, we'll only check for the raw manifest in pipeline_spec.
 	if spec.GetPipelineId() != "" {
 		var workflow util.Workflow
 		err := r.objectStore.GetFromYamlFile(&workflow, storage.CreatePipelinePath(spec.GetPipelineId()))
@@ -950,4 +939,19 @@ func (r *ResourceManager) DeletePipelineVersion(pipelineVersionId string) error 
 	}
 
 	return nil
+}
+
+func (r *ResourceManager) GetPipelineVersionTemplate(versionId string) ([]byte, error) {
+	// Verify pipeline version exist
+	_, err := r.pipelineStore.GetPipelineVersion(versionId)
+	if err != nil {
+		return nil, util.Wrap(err, "Get pipeline version template failed")
+	}
+
+	template, err := r.objectStore.GetFile(storage.CreatePipelinePath(fmt.Sprint(versionId)))
+	if err != nil {
+		return nil, util.Wrap(err, "Get pipeline version template failed")
+	}
+
+	return template, nil
 }

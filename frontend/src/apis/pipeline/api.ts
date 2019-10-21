@@ -448,45 +448,6 @@ export const PipelineServiceApiFetchParamCreator = function (configuration?: Con
         },
         /**
          * 
-         * @param {ApiPipelineVersion} body ResourceReference inside PipelineVersion specifies the pipeline that this version belongs to.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        createPipelineVersion(body: ApiPipelineVersion, options: any = {}): FetchArgs {
-            // verify required parameter 'body' is not null or undefined
-            if (body === null || body === undefined) {
-                throw new RequiredError('body','Required parameter body was null or undefined when calling createPipelineVersion.');
-            }
-            const localVarPath = `/apis/v1beta1/pipeline_versions`;
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication Bearer required
-            if (configuration && configuration.apiKey) {
-                const localVarApiKeyValue = typeof configuration.apiKey === 'function'
-					? configuration.apiKey("authorization")
-					: configuration.apiKey;
-                localVarHeaderParameter["authorization"] = localVarApiKeyValue;
-            }
-
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"ApiPipelineVersion" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -717,8 +678,7 @@ export const PipelineServiceApiFetchParamCreator = function (configuration?: Con
             if (resource_key_id === null || resource_key_id === undefined) {
                 throw new RequiredError('resource_key_id','Required parameter resource_key_id was null or undefined when calling listPipelineVersions.');
             }
-            const localVarPath = `/apis/v1beta1/pipeline_versions/pipeline/{resource_key.id}`
-                .replace(`{${"resource_key.id"}}`, encodeURIComponent(String(resource_key_id)));
+            const localVarPath = `/apis/v1beta1/pipeline_versions`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'GET' }, options);
             const localVarHeaderParameter = {} as any;
@@ -829,24 +789,6 @@ export const PipelineServiceApiFp = function(configuration?: Configuration) {
          */
         createPipeline(body: ApiPipeline, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<ApiPipeline> {
             const localVarFetchArgs = PipelineServiceApiFetchParamCreator(configuration).createPipeline(body, options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response.json();
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-        /**
-         * 
-         * @param {ApiPipelineVersion} body ResourceReference inside PipelineVersion specifies the pipeline that this version belongs to.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        createPipelineVersion(body: ApiPipelineVersion, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<ApiPipelineVersion> {
-            const localVarFetchArgs = PipelineServiceApiFetchParamCreator(configuration).createPipelineVersion(body, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -1029,15 +971,6 @@ export const PipelineServiceApiFactory = function (configuration?: Configuration
         },
         /**
          * 
-         * @param {ApiPipelineVersion} body ResourceReference inside PipelineVersion specifies the pipeline that this version belongs to.
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        createPipelineVersion(body: ApiPipelineVersion, options?: any) {
-            return PipelineServiceApiFp(configuration).createPipelineVersion(body, options)(fetch, basePath);
-        },
-        /**
-         * 
          * @param {string} id 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -1135,17 +1068,6 @@ export class PipelineServiceApi extends BaseAPI {
      */
     public createPipeline(body: ApiPipeline, options?: any) {
         return PipelineServiceApiFp(this.configuration).createPipeline(body, options)(this.fetch, this.basePath);
-    }
-
-    /**
-     * 
-     * @param {ApiPipelineVersion} body ResourceReference inside PipelineVersion specifies the pipeline that this version belongs to.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof PipelineServiceApi
-     */
-    public createPipelineVersion(body: ApiPipelineVersion, options?: any) {
-        return PipelineServiceApiFp(this.configuration).createPipelineVersion(body, options)(this.fetch, this.basePath);
     }
 
     /**
