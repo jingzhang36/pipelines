@@ -27,7 +27,7 @@ import RunUtils from '../lib/RunUtils';
 import SidePanel from '../components/SidePanel';
 import StaticNodeDetails from '../components/StaticNodeDetails';
 import { ApiExperiment } from '../apis/experiment';
-import { ApiPipeline, ApiGetTemplateResponse } from '../apis/pipeline';
+import { ApiPipeline, ApiGetTemplateResponse, ApiPipelineVersion } from '../apis/pipeline';
 import { Apis } from '../lib/Apis';
 import { Page } from './Page';
 import { RoutePage, RouteParams, QUERY_PARAMS } from '../components/Router';
@@ -43,16 +43,22 @@ import 'brace/ext/language_tools';
 import 'brace/mode/yaml';
 import 'brace/theme/github';
 import { Descriptoin } from '../components/Description';
+import Select from '@material-ui/core/Select';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
 
 interface PipelineDetailsState {
-  graph?: dagre.graphlib.Graph;
+  graph: dagre.graphlib.Graph | null;
   pipeline: ApiPipeline | null;
   selectedNodeId: string;
   selectedNodeInfo: JSX.Element | null;
   selectedTab: number;
+  selectedVersion?: ApiPipelineVersion;
   summaryShown: boolean;
   template?: Workflow;
   templateString?: string;
+  versions: ApiPipelineVersion[];
 }
 
 const summaryCardWidth = 500;
@@ -150,7 +156,14 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
   }
 
   public render(): JSX.Element {
-    const { pipeline, selectedNodeId, selectedTab, summaryShown, templateString } = this.state;
+    const {
+      pipeline,
+      selectedNodeId,
+      selectedTab,
+      summaryShown,
+      templateString,
+      versions,
+    } = this.state;
 
     let selectedNodeInfo: StaticGraphParser.SelectedNodeInfo | null = null;
     if (this.state.graph && this.state.graph.node(selectedNodeId)) {
@@ -195,10 +208,39 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
                         </div>
                         <div className={css.summaryKey}>ID</div>
                         <div>{pipeline.id || 'Unable to obtain Pipeline ID'}</div>
+                        {versions.length && (
+                          <React.Fragment>
+                            <form autoComplete='off'>
+                              <FormControl>
+                                <InputLabel>Version</InputLabel>
+                                <Select
+                                  value={
+                                    selectedVersion
+                                      ? selectedVersion.id
+                                      : pipeline.default_version!.id!
+                                  }
+                                  onChange={event => this.handleVersionSelected(event.target.value)}
+                                  inputProps={{ id: 'version-selector', name: 'selectedVersion' }}
+                                >
+                                  {versions.map((v, i) => (
+                                    <MenuItem key={i} value={v.id}>
+                                      {v.name}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </form>
+                            <div className={css.summaryKey}>
+                              <a href={this._createVersionUrl()} target='_blank'>
+                                Version source
+                              </a>
+                            </div>
+                          </React.Fragment>
+                        )}
                         <div className={css.summaryKey}>Uploaded on</div>
                         <div>{formatDateString(pipeline.created_at)}</div>
                         <div className={css.summaryKey}>Description</div>
-                        <Descriptoin description={pipeline.description || ''} />
+                        <div>{pipeline.description}</div>
                       </Paper>
                     )}
 
@@ -271,6 +313,25 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     );
   }
 
+  public async handleVersionSelected(versionId: string): Promise<void> {
+    if (this.state.pipeline) {
+      const selectedVersion = (this.state.versions || []).find(v => v.id === versionId);
+      const selectedVersionPipelineTemplate = await this._getTemplateString(
+        this.state.pipeline.id!,
+        versionId,
+      );
+      // TODO(rjbauer): remove last history entry
+      this.props.history.replace({
+        pathname: `/pipelines/details/${this.state.pipeline.id}/version/${versionId}`,
+      });
+      this.setStateSafe({
+        graph: await this._createGraph(selectedVersionPipelineTemplate),
+        selectedVersion,
+        templateString: selectedVersionPipelineTemplate,
+      });
+    }
+  }
+
   public async refresh(): Promise<void> {
     return this.load();
   }
@@ -284,11 +345,14 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     const fromRunId = new URLParser(this.props).get(QUERY_PARAMS.fromRunId);
 
     let pipeline: ApiPipeline | null = null;
+    let version: ApiPipelineVersion | null = null;
     let templateString = '';
     let template: Workflow | undefined;
     let breadcrumbs: Array<{ displayName: string; href: string }> = [];
     const toolbarActions = this.props.toolbarProps.actions;
     let pageTitle = '';
+    let selectedVersion: ApiPipelineVersion | undefined;
+    let versions: ApiPipelineVersion[] = [];
 
     // If fromRunId is specified, load the run and get the pipeline template from it
     if (fromRunId) {
@@ -354,7 +418,6 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     } else {
       // if fromRunId is not specified, then we have a full pipeline
       const pipelineId = this.props.match.params[RouteParams.pipelineId];
-      let templateResponse: ApiGetTemplateResponse;
 
       try {
         pipeline = await Apis.pipelineServiceApi.getPipeline(pipelineId);
@@ -365,15 +428,31 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
         return;
       }
 
+      const versionId = this.props.match.params[RouteParams.pipelineVersionId];
+
+
       try {
-        templateResponse = await Apis.pipelineServiceApi.getTemplate(pipelineId);
-        templateString = templateResponse.template || '';
+        // TODO(rjbauer): it's possible we might not have a version, even default
+        if (versionId) {
+          version = await Apis.pipelineServiceApi.getPipelineVersion(versionId);
+        }
       } catch (err) {
-        await this.showPageError('Cannot retrieve pipeline template.', err);
-        logger.error('Cannot retrieve pipeline details.', err);
+        await this.showPageError('Cannot retrieve pipeline version.', err);
+        logger.error('Cannot retrieve pipeline version.', err);
         return;
       }
 
+      selectedVersion = versionId ? version! : pipeline.default_version;
+
+      try {
+        versions = (await Apis.pipelineServiceApi.listPipelineVersions(pipelineId)).versions || [];
+      } catch (err) {
+        await this.showPageError('Cannot retrieve pipeline versions.', err);
+        logger.error('Cannot retrieve pipeline versions.', err);
+        return;
+      }
+
+      templateString = await this._getTemplateString(pipelineId, versionId);
       breadcrumbs = [{ displayName: 'Pipelines', href: RoutePage.PIPELINES }];
     }
 
@@ -388,11 +467,51 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     }
 
     this.setStateSafe({
-      graph: g,
+      graph: await this._createGraph(templateString),
       pipeline,
-      template,
+      selectedVersion,
       templateString,
+      versions,
     });
+  }
+
+  private async _getTemplateString(pipelineId: string, versionId: string): Promise<string> {
+    try {
+      let templateResponse: ApiGetTemplateResponse;
+      if (versionId) {
+        templateResponse = await Apis.pipelineServiceApi.getPipelineVersionTemplate(
+          pipelineId,
+          versionId,
+        );
+      } else {
+        templateResponse = await Apis.pipelineServiceApi.getTemplate(pipelineId);
+      }
+      return templateResponse.template || '';
+    } catch (err) {
+      await this.showPageError('Cannot retrieve pipeline template.', err);
+      logger.error('Cannot retrieve pipeline details.', err);
+    }
+    return '';
+  }
+
+  private async _createGraph(templateString: string): Promise<dagre.graphlib.Graph | null> {
+    if (templateString) {
+      try {
+        const template = JsYaml.safeLoad(templateString);
+        return StaticGraphParser.createGraph(template!);
+      } catch (err) {
+        await this.showPageError('Error: failed to generate Pipeline graph.', err);
+      }
+    }
+    return null;
+  }
+
+  private _createVersionUrl(): string {
+    // TODO(rjbauer): verify how much we can assume to always be defined here.
+    // const source = this.state.selectedVersion!.code_source!;
+    // TODO(rjbauer): handle non-github cases
+    // const repoParts = source.repo_name!.split('_');
+    return this.state.selectedVersion!.code_source_url!;
   }
 
   private _deleteCallback(_: string[], success: boolean): void {
