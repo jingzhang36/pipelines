@@ -667,6 +667,7 @@ const BodyRowSelectionSection: React.FC<BodyRowSelectionSectionProps> = ({
         {disableSelection !== true && useRadioButtons && (
           <Radio color='primary' checked={isSelected} />
         )}
+        {console.log("showExpandButton: " + showExpandButton)}
         {showExpandButton && (
           <IconButton
             className={classes(
