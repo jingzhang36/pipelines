@@ -158,6 +158,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
   }
 
   public render(): JSX.Element {
+    console.log("On details page");
     const {
       pipeline,
       selectedNodeId,
@@ -324,6 +325,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
         versionId,
       );
       // TODO(rjbauer): remove last history entry
+      console.log("id/version: " + JSON.stringify(this.state.pipeline.id) + "/" + JSON.stringify(versionId));
       this.props.history.replace({
         pathname: `/pipelines/details/${this.state.pipeline.id}/version/${versionId}`,
       });
@@ -437,6 +439,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
       try {
         // TODO(rjbauer): it's possible we might not have a version, even default
         if (versionId) {
+          console.log("Get pipeline version: " + versionId);
           version = await Apis.pipelineServiceApi.getPipelineVersion(versionId);
         }
       } catch (err) {
@@ -448,7 +451,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
       selectedVersion = versionId ? version! : pipeline.default_version;
 
       try {
-        versions = (await Apis.pipelineServiceApi.listPipelineVersions(pipelineId)).versions || [];
+        versions = (await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE_VERSION', pipelineId)).versions || [];
       } catch (err) {
         await this.showPageError('Cannot retrieve pipeline versions.', err);
         logger.error('Cannot retrieve pipeline versions.', err);

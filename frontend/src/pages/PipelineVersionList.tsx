@@ -88,7 +88,7 @@ class PipelineVersionList extends React.PureComponent<
         flex: 2,
         label: 'Version name',
       },
-      { label: 'Start time', flex: 1 },
+      { label: 'Uploaded on', flex: 1 },
     ];
 
     const rows: Row[] = this.state.pipelineVersions.map(r => {
