@@ -16,7 +16,12 @@
 
 import * as React from 'react';
 import Buttons, { ButtonKeys } from '../lib/Buttons';
-import CustomTable, { Column, Row, CustomRendererProps, ExpandState } from '../components/CustomTable';
+import CustomTable, {
+  Column,
+  Row,
+  CustomRendererProps,
+  ExpandState,
+} from '../components/CustomTable';
 import PipelineVersionList from './PipelineVersionList';
 import UploadPipelineDialog, { ImportMethod } from '../components/UploadPipelineDialog';
 import { ApiPipeline, ApiListPipelinesResponse } from '../apis/pipeline';
@@ -33,12 +38,19 @@ import produce from 'immer';
 interface DisplayPipeline extends ApiPipeline {
   expandState?: ExpandState;
 }
+import { Descriptoin } from '../components/Description';
 
 interface PipelineListState {
   displayPipelines: DisplayPipeline[];
   selectedIds: string[];
   uploadDialogOpen: boolean;
 }
+
+const descriptionCustomRenderer: React.FC<CustomRendererProps<string>> = (
+  props: CustomRendererProps<string>,
+) => {
+  return <Descriptoin description={props.value || ''} forceInline={true} />;
+};
 
 class PipelineList extends Page<{}, PipelineListState> {
   private _tableRef = React.createRef<CustomTable>();
@@ -63,7 +75,7 @@ class PipelineList extends Page<{}, PipelineListState> {
           () => this.state.selectedIds,
           'pipeline',
           ids => this._selectionChanged(ids),
-          false, /* useCurrentResource */
+          false /* useCurrentResource */,
         )
         .getToolbarActionMap(),
       breadcrumbs: [],
@@ -79,12 +91,11 @@ class PipelineList extends Page<{}, PipelineListState> {
         label: 'Pipeline name',
         sortKey: PipelineSortKeys.NAME,
       },
-      { label: 'Description', flex: 2 },
+      { label: 'Description', flex: 3, customRenderer: descriptionCustomRenderer },
       { label: 'Uploaded on', sortKey: PipelineSortKeys.CREATED_AT, flex: 1 },
     ];
 
-
-    const rows: Row[] = this.state.displayPipelines.map((p) => {
+    const rows: Row[] = this.state.pipelines.map(p => {
       return {
         expandState: p.expandState,
         id: p.id!,
@@ -94,14 +105,22 @@ class PipelineList extends Page<{}, PipelineListState> {
 
     return (
       <div className={classes(commonCss.page, padding(20, 'lr'))}>
-        <CustomTable ref={this._tableRef} columns={columns} rows={rows} initialSortColumn={PipelineSortKeys.CREATED_AT}
-          updateSelection={this._selectionChanged.bind(this)} selectedIds={this.state.selectedIds}
-          reload={this._reload.bind(this)} toggleExpansion={this._toggleRowExpand.bind(this)}
-          getExpandComponent={this._getExpandedPipelineComponent.bind(this)} filterLabel='Filter pipelines'
-          emptyMessage='No pipelines found. Click "Upload pipeline" to start.' />
+        <CustomTable
+          ref={this._tableRef}
+          columns={columns}
+          rows={rows}
+          initialSortColumn={PipelineSortKeys.CREATED_AT}
+          updateSelection={this._selectionChanged.bind(this)}
+          selectedIds={this.state.selectedIds}
+          reload={this._reload.bind(this)}
+          filterLabel='Filter pipelines'
+          emptyMessage='No pipelines found. Click "Upload pipeline" to start.'
+        />
 
-        <UploadPipelineDialog open={this.state.uploadDialogOpen}
-          onClose={this._uploadDialogClosed.bind(this)} />
+        <UploadPipelineDialog
+          open={this.state.uploadDialogOpen}
+          onClose={this._uploadDialogClosed.bind(this)}
+        />
       </div>
     );
   }
@@ -115,9 +134,9 @@ class PipelineList extends Page<{}, PipelineListState> {
   private _toggleRowExpand(rowIndex: number): void {
     const displayPipelines = produce(this.state.displayPipelines, draft => {
       draft[rowIndex].expandState =
-        draft[rowIndex].expandState === ExpandState.COLLAPSED ?
-          ExpandState.EXPANDED :
-          ExpandState.COLLAPSED;
+        draft[rowIndex].expandState === ExpandState.COLLAPSED
+          ? ExpandState.EXPANDED
+          : ExpandState.COLLAPSED;
     });
 
     this.setState({ displayPipelines });
@@ -126,9 +145,14 @@ class PipelineList extends Page<{}, PipelineListState> {
   private _getExpandedPipelineComponent(rowIndex: number): JSX.Element {
     const pipeline = this.state.displayPipelines[rowIndex];
     return (
-      <PipelineVersionList pipelineId={pipeline.id} onError={() => null}
-        {...this.props} selectedIds={this.state.selectedIds} noFilterBox={true}
-        onSelectionChange={this._selectionChanged.bind(this)} disableSorting={true}
+      <PipelineVersionList
+        pipelineId={pipeline.id}
+        onError={() => null}
+        {...this.props}
+        selectedIds={this.state.selectedIds}
+        noFilterBox={true}
+        onSelectionChange={this._selectionChanged.bind(this)}
+        disableSorting={true}
         disablePaging={true}
       />
     );
@@ -139,9 +163,13 @@ class PipelineList extends Page<{}, PipelineListState> {
     let response: ApiListPipelinesResponse | null = null;
     try {
       response = await Apis.pipelineServiceApi.listPipelines(
-        request.pageToken, request.pageSize, request.sortBy, request.filter);
+        request.pageToken,
+        request.pageSize,
+        request.sortBy,
+        request.filter,
+      );
       displayPipelines = response.pipelines || [];
-      displayPipelines.forEach((exp) => exp.expandState = ExpandState.COLLAPSED);
+      displayPipelines.forEach(exp => (exp.expandState = ExpandState.COLLAPSED));
       this.clearBanner();
     } catch (err) {
       await this.showPageError('Error: failed to retrieve list of pipelines.', err);
@@ -152,15 +180,19 @@ class PipelineList extends Page<{}, PipelineListState> {
     return response ? response.next_page_token || '' : '';
   }
 
-  private _nameCustomRenderer: React.FC<CustomRendererProps<string>> = (props: CustomRendererProps<string>) => {
+  private _nameCustomRenderer: React.FC<CustomRendererProps<string>> = (
+    props: CustomRendererProps<string>,
+  ) => {
     return (
-      <Link onClick={(e) => e.stopPropagation()}
+      <Link
+        onClick={e => e.stopPropagation()}
         className={commonCss.link}
-        to={RoutePage.PIPELINE_DETAILS_NO_VERSION.replace(':' + RouteParams.pipelineId, props.id)} >
+        to={RoutePage.PIPELINE_DETAILS_NO_VERSION.replace(':' + RouteParams.pipelineId, props.id)}
+      >
         {props.value}
-      </Link >
+      </Link>
     );
-  }
+  };
 
   private _selectionChanged(selectedIds: string[]): void {
     const actions = this.props.toolbarProps.actions;
@@ -169,12 +201,19 @@ class PipelineList extends Page<{}, PipelineListState> {
     this.setStateSafe({ selectedIds });
   }
 
-  private async _uploadDialogClosed(confirmed: boolean, name: string, file: File | null, url: string,
-    method: ImportMethod, description?: string): Promise<boolean> {
-
-    if (!confirmed
-      || (method === ImportMethod.LOCAL && !file)
-      || (method === ImportMethod.URL && !url)) {
+  private async _uploadDialogClosed(
+    confirmed: boolean,
+    name: string,
+    file: File | null,
+    url: string,
+    method: ImportMethod,
+    description?: string,
+  ): Promise<boolean> {
+    if (
+      !confirmed ||
+      (method === ImportMethod.LOCAL && !file) ||
+      (method === ImportMethod.URL && !url)
+    ) {
       this.setStateSafe({ uploadDialogOpen: false });
       return false;
     }

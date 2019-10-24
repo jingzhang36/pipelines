@@ -103,20 +103,21 @@ export const RoutePage = {
 
 // tslint:disable-next-line:variable-name
 export const RoutePageFactory = {
-    artifactDetails: (artifactType: string, artifactId: number) => {
-        return RoutePage.ARTIFACT_DETAILS
-            .replace(`:${RouteParams.ARTIFACT_TYPE}+`, artifactType)
-            .replace(`:${RouteParams.ID}`, '' + artifactId);
-    }
+  artifactDetails: (artifactType: string, artifactId: number) => {
+    return RoutePage.ARTIFACT_DETAILS.replace(
+      `:${RouteParams.ARTIFACT_TYPE}+`,
+      artifactType,
+    ).replace(`:${RouteParams.ID}`, '' + artifactId);
+  },
 };
 
 export interface DialogProps {
-    buttons?: Array<{ onClick?: () => any, text: string }>;
-    // TODO: This should be generalized to any react component.
-    content?: string;
-    onClose?: () => any;
-    open?: boolean;
-    title?: string;
+  buttons?: Array<{ onClick?: () => any; text: string }>;
+  // TODO: This should be generalized to any react component.
+  content?: string;
+  onClose?: () => any;
+  open?: boolean;
+  title?: string;
 }
 
 interface RouteComponentState {
@@ -127,9 +128,16 @@ interface RouteComponentState {
 }
 
 class Router extends React.Component<{}, RouteComponentState> {
+ constructor(props: any) {
+    super(props);
 
-    constructor(props: any) {
-        super(props);
+    this.state = {
+      bannerProps: {},
+      dialogProps: { open: false },
+      snackbarProps: { autoHideDuration: 5000, open: false },
+      toolbarProps: { breadcrumbs: [{ displayName: '', href: '' }], actions: [], ...props },
+    };
+  }
 
         this.state = {
             bannerProps: {},
@@ -139,33 +147,67 @@ class Router extends React.Component<{}, RouteComponentState> {
         };
     }
 
-    public render(): JSX.Element {
-        const childProps = {
-            toolbarProps: this.state.toolbarProps,
-            updateBanner: this._updateBanner.bind(this),
-            updateDialog: this._updateDialog.bind(this),
-            updateSnackbar: this._updateSnackbar.bind(this),
-            updateToolbar: this._updateToolbar.bind(this),
-        };
+    const routes: Array<{ path: string; Component: React.ComponentClass; view?: any }> = [
+      { path: RoutePage.ARCHIVE, Component: Archive },
+      { path: RoutePage.ARTIFACTS, Component: ArtifactList },
+      { path: RoutePage.ARTIFACT_DETAILS, Component: ArtifactDetails },
+      { path: RoutePage.EXECUTIONS, Component: ExecutionList },
+      { path: RoutePage.EXECUTION_DETAILS, Component: ExecutionDetails },
+      {
+        Component: ExperimentsAndRuns,
+        path: RoutePage.EXPERIMENTS,
+        view: ExperimentsAndRunsTab.EXPERIMENTS,
+      },
+      { path: RoutePage.EXPERIMENT_DETAILS, Component: ExperimentDetails },
+      { path: RoutePage.NEW_EXPERIMENT, Component: NewExperiment },
+      { path: RoutePage.NEW_RUN, Component: NewRun },
+      { path: RoutePage.PIPELINES, Component: PipelineList },
+      { path: RoutePage.PIPELINE_DETAILS, Component: PipelineDetails },
+      { path: RoutePage.PIPELINE_DETAILS_NO_VERSION, Component: PipelineDetails },
+      { path: RoutePage.RUNS, Component: ExperimentsAndRuns, view: ExperimentsAndRunsTab.RUNS },
+      { path: RoutePage.RECURRING_RUN, Component: RecurringRunDetails },
+      { path: RoutePage.RUN_DETAILS, Component: RunDetails },
+      { path: RoutePage.COMPARE, Component: Compare },
+    ];
 
-        const routes: Array<{ path: string, Component: React.ComponentClass, view?: any }> = [
-            { path: RoutePage.ARCHIVE, Component: Archive },
-            { path: RoutePage.ARTIFACTS, Component: ArtifactList },
-            { path: RoutePage.ARTIFACT_DETAILS, Component: ArtifactDetails },
-            { path: RoutePage.EXECUTIONS, Component: ExecutionList },
-            { path: RoutePage.EXECUTION_DETAILS, Component: ExecutionDetails },
-            { path: RoutePage.EXPERIMENTS, Component: ExperimentsAndRuns, view: ExperimentsAndRunsTab.EXPERIMENTS },
-            { path: RoutePage.EXPERIMENT_DETAILS, Component: ExperimentDetails },
-            { path: RoutePage.NEW_EXPERIMENT, Component: NewExperiment },
-            { path: RoutePage.NEW_RUN, Component: NewRun },
-            { path: RoutePage.PIPELINES, Component: PipelineList },
-            { path: RoutePage.PIPELINE_DETAILS, Component: PipelineDetails },
-            { path: RoutePage.PIPELINE_DETAILS_NO_VERSION, Component: PipelineDetails },
-            { path: RoutePage.RUNS, Component: ExperimentsAndRuns, view: ExperimentsAndRunsTab.RUNS },
-            { path: RoutePage.RECURRING_RUN, Component: RecurringRunDetails },
-            { path: RoutePage.RUN_DETAILS, Component: RunDetails },
-            { path: RoutePage.COMPARE, Component: Compare },
-        ];
+    return (
+      <HashRouter>
+        <div className={commonCss.page}>
+          <div className={commonCss.flexGrow}>
+            <Route
+              render={({ ...props }) => <SideNav page={props.location.pathname} {...props} />}
+            />
+            <div className={classes(commonCss.page)}>
+              <Route
+                render={({ ...props }) => <Toolbar {...this.state.toolbarProps} {...props} />}
+              />
+              {this.state.bannerProps.message && (
+                <Banner
+                  message={this.state.bannerProps.message}
+                  mode={this.state.bannerProps.mode}
+                  additionalInfo={this.state.bannerProps.additionalInfo}
+                  refresh={this.state.bannerProps.refresh}
+                />
+              )}
+              <Switch>
+                <Route
+                  exact={true}
+                  path={'/'}
+                  render={({ ...props }) => <Redirect to={RoutePage.PIPELINES} {...props} />}
+                />
+                {routes.map((route, i) => {
+                  const { path, Component, ...otherProps } = { ...route };
+                  return (
+                    <Route
+                      key={i}
+                      exact={true}
+                      path={path}
+                      render={({ ...props }) => (
+                        <Component {...props} {...childProps} {...otherProps} />
+                      )}
+                    />
+                  );
+                })}
 
         return (
             <HashRouter>
@@ -195,14 +237,39 @@ class Router extends React.Component<{}, RouteComponentState> {
                                 {<Route render={({ ...props }) => <Page404 {...props} {...childProps} />} />}
                             </Switch>
 
-                            <Snackbar
-                                autoHideDuration={this.state.snackbarProps.autoHideDuration}
-                                message={this.state.snackbarProps.message}
-                                open={this.state.snackbarProps.open}
-                                onClose={this._handleSnackbarClose.bind(this)}
-                            />
-                        </div>
-                    </div>
+          <Dialog
+            open={this.state.dialogProps.open !== false}
+            classes={{ paper: css.dialog }}
+            className='dialog'
+            onClose={() => this._handleDialogClosed()}
+          >
+            {this.state.dialogProps.title && (
+              <DialogTitle> {this.state.dialogProps.title}</DialogTitle>
+            )}
+            {this.state.dialogProps.content && (
+              <DialogContent className={commonCss.prewrap}>
+                {this.state.dialogProps.content}
+              </DialogContent>
+            )}
+            {this.state.dialogProps.buttons && (
+              <DialogActions>
+                {this.state.dialogProps.buttons.map((b, i) => (
+                  <Button
+                    key={i}
+                    onClick={() => this._handleDialogClosed(b.onClick)}
+                    className='dialogButton'
+                    color='secondary'
+                  >
+                    {b.text}
+                  </Button>
+                ))}
+              </DialogActions>
+            )}
+          </Dialog>
+        </div>
+      </HashRouter>
+    );
+  }
 
                     <Dialog open={this.state.dialogProps.open !== false} classes={{ paper: css.dialog }}
                         className='dialog' onClose={() => this._handleDialogClosed()}>

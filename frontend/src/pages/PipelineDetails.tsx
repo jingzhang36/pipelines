@@ -47,6 +47,7 @@ import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 
+import { Descriptoin } from '../components/Description';
 
 interface PipelineDetailsState {
     graph: dagre.graphlib.Graph | null;
@@ -109,19 +110,49 @@ export const css = stylesheet({
 });
 
 class PipelineDetails extends Page<{}, PipelineDetailsState> {
+  constructor(props: any) {
+    super(props);
 
-    constructor(props: any) {
-        super(props);
+    this.state = {
+      pipeline: null,
+      selectedNodeId: '',
+      selectedNodeInfo: null,
+      selectedTab: 0,
+      summaryShown: true,
+    };
+  }
 
-        this.state = {
-            graph: null,
-            pipeline: null,
-            selectedNodeId: '',
-            selectedNodeInfo: null,
-            selectedTab: 0,
-            summaryShown: true,
-            versions: [],
-        };
+  public getInitialToolbarState(): ToolbarProps {
+    const buttons = new Buttons(this.props, this.refresh.bind(this));
+    const fromRunId = new URLParser(this.props).get(QUERY_PARAMS.fromRunId);
+    buttons.newRunFromPipeline(() => (this.state.pipeline ? this.state.pipeline.id! : ''));
+
+    if (fromRunId) {
+      return {
+        actions: buttons.getToolbarActionMap(),
+        breadcrumbs: [
+          {
+            displayName: fromRunId,
+            href: RoutePage.RUN_DETAILS.replace(':' + RouteParams.runId, fromRunId),
+          },
+        ],
+        pageTitle: 'Pipeline details',
+      };
+    } else {
+      // Add buttons for creating experiment and deleting pipeline
+      buttons
+        .newExperiment(() => (this.state.pipeline ? this.state.pipeline.id! : ''))
+        .delete(
+          () => (this.state.pipeline ? [this.state.pipeline.id!] : []),
+          'pipeline',
+          this._deleteCallback.bind(this),
+          true /* useCurrentResource */,
+        );
+      return {
+        actions: buttons.getToolbarActionMap(),
+        breadcrumbs: [{ displayName: 'Pipelines', href: RoutePage.PIPELINES }],
+        pageTitle: this.props.match.params[RouteParams.pipelineId],
+      };
     }
 
     public getInitialToolbarState(): ToolbarProps {
@@ -397,6 +428,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
 
             templateString = await this._getTemplateString(pipelineId, versionId);
             breadcrumbs = [{ displayName: 'Pipelines', href: RoutePage.PIPELINES }];
+
         }
 
         this.props.updateToolbar({ breadcrumbs, actions: toolbarActions, pageTitle });
@@ -456,13 +488,21 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
         return this.state.selectedVersion!.code_source_url!;
     }
 
-    private _deleteCallback(_: string[], success: boolean): void {
-        if (success) {
-            const breadcrumbs = this.props.toolbarProps.breadcrumbs;
-            const previousPage = breadcrumbs.length ?
-                breadcrumbs[breadcrumbs.length - 1].href : RoutePage.PIPELINES;
-            this.props.history.push(previousPage);
-        }
+    this.setStateSafe({
+      graph: g,
+      pipeline,
+      template,
+      templateString,
+    });
+  }
+
+  private _deleteCallback(_: string[], success: boolean): void {
+    if (success) {
+      const breadcrumbs = this.props.toolbarProps.breadcrumbs;
+      const previousPage = breadcrumbs.length
+        ? breadcrumbs[breadcrumbs.length - 1].href
+        : RoutePage.PIPELINES;
+      this.props.history.push(previousPage);
     }
 }
 
