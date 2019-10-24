@@ -108,6 +108,8 @@ class PipelineList extends Page<{}, PipelineListState> {
           updateSelection={this._selectionChanged.bind(this)}
           selectedIds={this.state.selectedIds}
           reload={this._reload.bind(this)}
+          toggleExpansion={this._toggleRowExpand.bind(this)}
+          getExpandComponent={this._getExpandedPipelineComponent.bind(this)}
           filterLabel='Filter pipelines'
           emptyMessage='No pipelines found. Click "Upload pipeline" to start.'
         />
