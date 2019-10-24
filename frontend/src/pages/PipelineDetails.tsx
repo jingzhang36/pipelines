@@ -448,7 +448,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
       selectedVersion = versionId ? version! : pipeline.default_version;
 
       try {
-        versions = (await Apis.pipelineServiceApi.listPipelineVersions(pipelineId)).versions || [];
+        versions = (await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE_VERSION', pipelineId)).versions || [];
       } catch (err) {
         await this.showPageError('Cannot retrieve pipeline versions.', err);
         logger.error('Cannot retrieve pipeline versions.', err);
