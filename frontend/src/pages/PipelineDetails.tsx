@@ -113,11 +113,13 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     super(props);
 
     this.state = {
+      graph: null,
       pipeline: null,
       selectedNodeId: '',
       selectedNodeInfo: null,
       selectedTab: 0,
       summaryShown: true,
+      versions: [],
     };
   }
 
@@ -160,6 +162,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
       pipeline,
       selectedNodeId,
       selectedTab,
+      selectedVersion,
       summaryShown,
       templateString,
       versions,
