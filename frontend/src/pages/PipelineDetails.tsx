@@ -50,63 +50,63 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { Descriptoin } from '../components/Description';
 
 interface PipelineDetailsState {
-    graph: dagre.graphlib.Graph | null;
-    pipeline: ApiPipeline | null;
-    selectedNodeId: string;
-    selectedNodeInfo: JSX.Element | null;
-    selectedTab: number;
-    selectedVersion?: ApiPipelineVersion;
-    summaryShown: boolean;
-    template?: Workflow;
-    templateString?: string;
-    versions: ApiPipelineVersion[];
+  graph: dagre.graphlib.Graph | null;
+  pipeline: ApiPipeline | null;
+  selectedNodeId: string;
+  selectedNodeInfo: JSX.Element | null;
+  selectedTab: number;
+  selectedVersion?: ApiPipelineVersion;
+  summaryShown: boolean;
+  template?: Workflow;
+  templateString?: string;
+  versions: ApiPipelineVersion[];
 }
 
 const summaryCardWidth = 500;
 
 export const css = stylesheet({
-    containerCss: {
-        $nest: {
-            '& .CodeMirror': {
-                height: '100%',
-                width: '80%',
-            },
-
-            '& .CodeMirror-gutters': {
-                backgroundColor: '#f7f7f7',
-            },
-        },
-        background: '#f7f7f7',
+  containerCss: {
+    $nest: {
+      '& .CodeMirror': {
         height: '100%',
+        width: '80%',
+      },
+
+      '& .CodeMirror-gutters': {
+        backgroundColor: '#f7f7f7',
+      },
     },
-    footer: {
-        background: color.graphBg,
-        display: 'flex',
-        padding: '0 0 20px 20px',
-    },
-    footerInfoOffset: {
-        marginLeft: summaryCardWidth + 40,
-    },
-    infoSpan: {
-        color: color.lowContrast,
-        fontFamily: fonts.secondary,
-        fontSize: fontsize.small,
-        letterSpacing: '0.21px',
-        lineHeight: '24px',
-        paddingLeft: 6,
-    },
-    summaryCard: {
-        bottom: 20,
-        left: 20,
-        padding: 10,
-        position: 'absolute',
-        width: summaryCardWidth,
-        zIndex: zIndex.PIPELINE_SUMMARY_CARD,
-    },
-    summaryKey: {
-        color: color.strong,
-        marginTop: 10,
-    },
+    background: '#f7f7f7',
+    height: '100%',
+  },
+  footer: {
+    background: color.graphBg,
+    display: 'flex',
+    padding: '0 0 20px 20px',
+  },
+  footerInfoOffset: {
+    marginLeft: summaryCardWidth + 40,
+  },
+  infoSpan: {
+    color: color.lowContrast,
+    fontFamily: fonts.secondary,
+    fontSize: fontsize.small,
+    letterSpacing: '0.21px',
+    lineHeight: '24px',
+    paddingLeft: 6,
+  },
+  summaryCard: {
+    bottom: 20,
+    left: 20,
+    padding: 10,
+    position: 'absolute',
+    width: summaryCardWidth,
+    zIndex: zIndex.PIPELINE_SUMMARY_CARD,
+  },
+  summaryKey: {
+    color: color.strong,
+    marginTop: 10,
+  },
 });
 
 class PipelineDetails extends Page<{}, PipelineDetailsState> {
@@ -154,346 +154,375 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
         pageTitle: this.props.match.params[RouteParams.pipelineId],
       };
     }
+  }
 
-    public getInitialToolbarState(): ToolbarProps {
-        const buttons = new Buttons(this.props, this.refresh.bind(this));
-        const fromRunId = new URLParser(this.props).get(QUERY_PARAMS.fromRunId);
-        buttons.newRunFromPipeline(() => this.state.pipeline ? this.state.pipeline.id! : '');
+  public render(): JSX.Element {
+    const {
+      pipeline,
+      selectedNodeId,
+      selectedTab,
+      selectedVersion,
+      summaryShown,
+      templateString,
+      versions,
+    } = this.state;
 
-        if (fromRunId) {
-            return {
-                actions: buttons.getToolbarActionMap(),
-                breadcrumbs: [
-                    { displayName: fromRunId, href: RoutePage.RUN_DETAILS.replace(':' + RouteParams.runId, fromRunId) }
-                ],
-                pageTitle: 'Pipeline details',
-            };
-        } else {
-            // Add buttons for creating experiment and deleting pipeline
-            buttons
-                .newExperiment(() => this.state.pipeline ? this.state.pipeline.id! : '')
-                .delete(
-                    () => this.state.pipeline ? [this.state.pipeline.id!] : [],
-                    'pipeline',
-                    this._deleteCallback.bind(this),
-                    true, /* useCurrentResource */
-                );
-            return {
-                actions: buttons.getToolbarActionMap(),
-                breadcrumbs: [{ displayName: 'Pipelines', href: RoutePage.PIPELINES }],
-                pageTitle: this.props.match.params[RouteParams.pipelineId],
-            };
-        }
+    let selectedNodeInfo: StaticGraphParser.SelectedNodeInfo | null = null;
+    if (this.state.graph && this.state.graph.node(selectedNodeId)) {
+      selectedNodeInfo = this.state.graph.node(selectedNodeId).info;
+      if (!!selectedNodeId && !selectedNodeInfo) {
+        logger.error(`Node with ID: ${selectedNodeId} was not found in the graph`);
+      }
     }
 
-    public render(): JSX.Element {
-        const { pipeline, selectedNodeId, selectedTab, selectedVersion, summaryShown, templateString, versions } = this.state;
-
-        let selectedNodeInfo: StaticGraphParser.SelectedNodeInfo | null = null;
-        if (this.state.graph && this.state.graph.node(selectedNodeId)) {
-            selectedNodeInfo = this.state.graph.node(selectedNodeId).info;
-            if (!!selectedNodeId && !selectedNodeInfo) {
-                logger.error(`Node with ID: ${selectedNodeId} was not found in the graph`);
-            }
-        }
-
-        return (
-            <div className={classes(commonCss.page, padding(20, 't'))}>
-
-                <div className={commonCss.page}>
-                    <MD2Tabs
-                        selectedTab={selectedTab}
-                        onSwitch={(tab: number) => this.setStateSafe({ selectedTab: tab })}
-                        tabs={['Graph', 'Source']}
-                    />
-                    <div className={commonCss.page}>
-                        {selectedTab === 0 && <div className={commonCss.page}>
-                            {this.state.graph && <div className={commonCss.page} style={{ position: 'relative', overflow: 'hidden' }}>
-                                {!!pipeline && summaryShown && (
-                                    <Paper className={css.summaryCard}>
-                                        <div style={{ alignItems: 'baseline', display: 'flex', justifyContent: 'space-between' }}>
-                                            <div className={commonCss.header}>
-                                                Summary
-                      </div>
-                                            <Button onClick={() => this.setStateSafe({ summaryShown: false })} color='secondary'>
-                                                Hide
-                      </Button>
-                                        </div>
-                                        {(versions.length) && (
-                                            <React.Fragment>
-                                                <form autoComplete='off'>
-                                                    <FormControl>
-                                                        <InputLabel>Version</InputLabel>
-                                                        <Select
-                                                            value={selectedVersion ? selectedVersion.id : pipeline.default_version!.id!}
-                                                            onChange={(event) => this.handleVersionSelected(event.target.value)}
-                                                            inputProps={{ id: 'version-selector', name: 'selectedVersion' }}
-                                                        >
-                                                            {versions.map((v, i) => <MenuItem key={i} value={v.id}>{v.name}</MenuItem>)}
-                                                        </Select>
-                                                    </FormControl>
-                                                </form>
-                                                <div className={css.summaryKey}>
-                                                    <a href={this._createVersionUrl()} target='_blank'>
-                                                        Version source
-                          </a>
-                                                </div>
-                                            </React.Fragment>
-                                        )}
-                                        <div className={css.summaryKey}>Uploaded on</div>
-                                        <div>{formatDateString(pipeline.created_at)}</div>
-                                        <div className={css.summaryKey}>Description</div>
-                                        <div>{pipeline.description}</div>
-                                    </Paper>
-                                )}
-
-                                <Graph graph={this.state.graph} selectedNodeId={selectedNodeId}
-                                    onClick={id => this.setStateSafe({ selectedNodeId: id })} />
-
-                                <SidePanel isOpen={!!selectedNodeId}
-                                    title={selectedNodeId} onClose={() => this.setStateSafe({ selectedNodeId: '' })}>
-                                    <div className={commonCss.page}>
-                                        {!selectedNodeInfo && (
-                                            <div className={commonCss.absoluteCenter}>Unable to retrieve node info</div>
-                                        )}
-                                        {!!selectedNodeInfo && <div className={padding(20, 'lr')}>
-                                            <StaticNodeDetails nodeInfo={selectedNodeInfo} />
-                                        </div>}
-                                    </div>
-                                </SidePanel>
-                                <div className={css.footer}>
-                                    {!summaryShown && (
-                                        <Button onClick={() => this.setStateSafe({ summaryShown: !summaryShown })} color='secondary'>
-                                            Show summary
-                    </Button>
-                                    )}
-                                    <div className={classes(commonCss.flex, (summaryShown && !!pipeline) && css.footerInfoOffset)}>
-                                        <InfoIcon className={commonCss.infoIcon} />
-                                        <span className={css.infoSpan}>Static pipeline graph</span>
-                                    </div>
-                                </div>
-                            </div>}
-                            {!this.state.graph && <span style={{ margin: '40px auto' }}>No graph to show</span>}
-                        </div>}
-                        {selectedTab === 1 && !!templateString &&
-                            <div className={css.containerCss}>
-                                <Editor
-                                    value={templateString || ''}
-                                    height='100%' width='100%' mode='yaml' theme='github'
-                                    editorProps={{ $blockScrolling: true }}
-                                    readOnly={true} highlightActiveLine={true} showGutter={true}
-                                />
+    return (
+      <div className={classes(commonCss.page, padding(20, 't'))}>
+        <div className={commonCss.page}>
+          <MD2Tabs
+            selectedTab={selectedTab}
+            onSwitch={(tab: number) => this.setStateSafe({ selectedTab: tab })}
+            tabs={['Graph', 'Source']}
+          />
+          <div className={commonCss.page}>
+            {selectedTab === 0 && (
+              <div className={commonCss.page}>
+                {this.state.graph && (
+                  <div
+                    className={commonCss.page}
+                    style={{ position: 'relative', overflow: 'hidden' }}
+                  >
+                    {!!pipeline && summaryShown && (
+                      <Paper className={css.summaryCard}>
+                        <div
+                          style={{
+                            alignItems: 'baseline',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <div className={commonCss.header}>Summary</div>
+                          <Button
+                            onClick={() => this.setStateSafe({ summaryShown: false })}
+                            color='secondary'
+                          >
+                            Hide
+                          </Button>
+                        </div>
+                        {versions.length && (
+                          <React.Fragment>
+                            <form autoComplete='off'>
+                              <FormControl>
+                                <InputLabel>Version</InputLabel>
+                                <Select
+                                  value={
+                                    selectedVersion
+                                      ? selectedVersion.id
+                                      : pipeline.default_version!.id!
+                                  }
+                                  onChange={event => this.handleVersionSelected(event.target.value)}
+                                  inputProps={{ id: 'version-selector', name: 'selectedVersion' }}
+                                >
+                                  {versions.map((v, i) => (
+                                    <MenuItem key={i} value={v.id}>
+                                      {v.name}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            </form>
+                            <div className={css.summaryKey}>
+                              <a href={this._createVersionUrl()} target='_blank'>
+                                Version source
+                              </a>
                             </div>
-                        }
+                          </React.Fragment>
+                        )}
+                        <div className={css.summaryKey}>Uploaded on</div>
+                        <div>{formatDateString(pipeline.created_at)}</div>
+                        <div className={css.summaryKey}>Description</div>
+                        <div>{pipeline.description}</div>
+                      </Paper>
+                    )}
+
+                    <Graph
+                      graph={this.state.graph}
+                      selectedNodeId={selectedNodeId}
+                      onClick={id => this.setStateSafe({ selectedNodeId: id })}
+                    />
+
+                    <SidePanel
+                      isOpen={!!selectedNodeId}
+                      title={selectedNodeId}
+                      onClose={() => this.setStateSafe({ selectedNodeId: '' })}
+                    >
+                      <div className={commonCss.page}>
+                        {!selectedNodeInfo && (
+                          <div className={commonCss.absoluteCenter}>
+                            Unable to retrieve node info
+                          </div>
+                        )}
+                        {!!selectedNodeInfo && (
+                          <div className={padding(20, 'lr')}>
+                            <StaticNodeDetails nodeInfo={selectedNodeInfo} />
+                          </div>
+                        )}
+                      </div>
+                    </SidePanel>
+                    <div className={css.footer}>
+                      {!summaryShown && (
+                        <Button
+                          onClick={() => this.setStateSafe({ summaryShown: !summaryShown })}
+                          color='secondary'
+                        >
+                          Show summary
+                        </Button>
+                      )}
+                      <div
+                        className={classes(
+                          commonCss.flex,
+                          summaryShown && !!pipeline && css.footerInfoOffset,
+                        )}
+                      >
+                        <InfoIcon className={commonCss.infoIcon} />
+                        <span className={css.infoSpan}>Static pipeline graph</span>
+                      </div>
                     </div>
-                </div>
-            </div>
-        );
+                  </div>
+                )}
+                {!this.state.graph && <span style={{ margin: '40px auto' }}>No graph to show</span>}
+              </div>
+            )}
+            {selectedTab === 1 && !!templateString && (
+              <div className={css.containerCss}>
+                <Editor
+                  value={templateString || ''}
+                  height='100%'
+                  width='100%'
+                  mode='yaml'
+                  theme='github'
+                  editorProps={{ $blockScrolling: true }}
+                  readOnly={true}
+                  highlightActiveLine={true}
+                  showGutter={true}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  public async handleVersionSelected(versionId: string): Promise<void> {
+    if (this.state.pipeline) {
+      const selectedVersion = (this.state.versions || []).find(v => v.id === versionId);
+      const selectedVersionPipelineTemplate = await this._getTemplateString(
+        this.state.pipeline.id!,
+        versionId,
+      );
+      // TODO(rjbauer): remove last history entry
+      this.props.history.replace({
+        pathname: `/pipelines/details/${this.state.pipeline.id}/version/${versionId}`,
+      });
+      this.setStateSafe({
+        graph: await this._createGraph(selectedVersionPipelineTemplate),
+        selectedVersion,
+        templateString: selectedVersionPipelineTemplate,
+      });
     }
+  }
 
-    public async handleVersionSelected(versionId: string): Promise<void> {
-        if (this.state.pipeline) {
-            const selectedVersion = (this.state.versions || []).find(v => v.id === versionId);
-            const selectedVersionPipelineTemplate = await this._getTemplateString(this.state.pipeline.id!, versionId);
-            // TODO(rjbauer): remove last history entry
-            this.props.history.replace({
-                pathname: `/pipelines/details/${this.state.pipeline.id}/version/${versionId}`,
-            });
-            this.setStateSafe({
-                graph: await this._createGraph(selectedVersionPipelineTemplate),
-                selectedVersion,
-                templateString: selectedVersionPipelineTemplate
-            });
-        }
-    }
+  public async refresh(): Promise<void> {
+    return this.load();
+  }
 
-    public async refresh(): Promise<void> {
-        return this.load();
-    }
+  public async componentDidMount(): Promise<void> {
+    return this.load();
+  }
 
-    public async componentDidMount(): Promise<void> {
-        return this.load();
-    }
+  public async load(): Promise<void> {
+    this.clearBanner();
+    const fromRunId = new URLParser(this.props).get(QUERY_PARAMS.fromRunId);
 
-    public async load(): Promise<void> {
-        this.clearBanner();
-        const fromRunId = new URLParser(this.props).get(QUERY_PARAMS.fromRunId);
+    let pipeline: ApiPipeline | null = null;
+    let version: ApiPipelineVersion | null = null;
+    let templateString = '';
+    let breadcrumbs: Array<{ displayName: string; href: string }> = [];
+    const toolbarActions = this.props.toolbarProps.actions;
+    let pageTitle = '';
+    let selectedVersion: ApiPipelineVersion | undefined;
+    let versions: ApiPipelineVersion[] = [];
 
-        let pipeline: ApiPipeline | null = null;
-        let version: ApiPipelineVersion | null = null;
-        let templateString = '';
-        let breadcrumbs: Array<{ displayName: string, href: string }> = [];
-        const toolbarActions = this.props.toolbarProps.actions;
-        let pageTitle = '';
-        let selectedVersion: ApiPipelineVersion | undefined;
-        let versions: ApiPipelineVersion[] = [];
+    // If fromRunId is specified, load the run and get the pipeline template from it
+    if (fromRunId) {
+      console.log('JING 1');
+      try {
+        const runDetails = await Apis.runServiceApi.getRun(fromRunId);
 
-        // If fromRunId is specified, load the run and get the pipeline template from it
-        if (fromRunId) {
-            console.log('JING 1');
-            try {
-                const runDetails = await Apis.runServiceApi.getRun(fromRunId);
-
-                // Convert the run's pipeline spec to YAML to be displayed as the pipeline's source.
-                try {
-                    const pipelineSpec = JSON.parse(RunUtils.getWorkflowManifest(runDetails.run) || '{}');
-                    try {
-                        templateString = JsYaml.safeDump(pipelineSpec);
-                    } catch (err) {
-                        await this.showPageError(
-                            `Failed to parse pipeline spec from run with ID: ${runDetails.run!.id}.`, err);
-                        logger.error(
-                            `Failed to convert pipeline spec YAML from run with ID: ${runDetails.run!.id}.`, err);
-                    }
-                } catch (err) {
-                    await this.showPageError(
-                        `Failed to parse pipeline spec from run with ID: ${runDetails.run!.id}.`, err);
-                    logger.error(
-                        `Failed to parse pipeline spec JSON from run with ID: ${runDetails.run!.id}.`, err);
-                }
-
-                const relatedExperimentId = RunUtils.getFirstExperimentReferenceId(runDetails.run);
-                let experiment: ApiExperiment | undefined;
-                if (relatedExperimentId) {
-                    experiment = await Apis.experimentServiceApi.getExperiment(relatedExperimentId);
-                }
-
-                // Build the breadcrumbs, by adding experiment and run names
-                if (experiment) {
-                    breadcrumbs.push(
-                        { displayName: 'Experiments', href: RoutePage.EXPERIMENTS },
-                        {
-                            displayName: experiment.name!,
-                            href: RoutePage.EXPERIMENT_DETAILS.replace(':' + RouteParams.experimentId, experiment.id!)
-                        });
-                } else {
-                    breadcrumbs.push(
-                        { displayName: 'All runs', href: RoutePage.RUNS }
-                    );
-                }
-                breadcrumbs.push({
-                    displayName: runDetails.run!.name!,
-                    href: RoutePage.RUN_DETAILS.replace(':' + RouteParams.runId, fromRunId),
-                });
-                pageTitle = 'Pipeline details';
-            } catch (err) {
-                await this.showPageError('Cannot retrieve run details.', err);
-                logger.error('Cannot retrieve run details.', err);
-            }
-        } else {
-            console.log('JING 2');
-            // if fromRunId is not specified, then we have a full pipeline
-            const pipelineId = this.props.match.params[RouteParams.pipelineId];
-            console.log('JING pipeline id:' + pipelineId);
-            // let templateResponse: ApiGetTemplateResponse;
-
-            try {
-                pipeline = await Apis.pipelineServiceApi.getPipeline(pipelineId);
-                pageTitle = pipeline.name!;
-            } catch (err) {
-                await this.showPageError('Cannot retrieve pipeline details.', err);
-                logger.error('Cannot retrieve pipeline details.', err);
-                return;
-            }
-
-            const versionId = this.props.match.params[RouteParams.pipelineVersionId];
-            console.log('JING pipeline version id:' + versionId);
-
-            try {
-                // templateResponse = await Apis.pipelineServiceApi.getTemplate(pipelineId);
-                // templateString = templateResponse.template || '';
-                // TODO(rjbauer): it's possible we might not have a version, even default
-                if (versionId) {
-                    version = await Apis.pipelineServiceApi.getPipelineVersion(versionId);
-                }
-            } catch (err) {
-                // await this.showPageError('Cannot retrieve pipeline template.', err);
-                // logger.error('Cannot retrieve pipeline details.', err);
-                await this.showPageError('Cannot retrieve pipeline version.', err);
-                logger.error('Cannot retrieve pipeline version.', err);
-                return;
-            }
-
-            console.log('JING default version: ' + JSON.stringify(pipeline.default_version));
-            selectedVersion = versionId ? version! : pipeline.default_version;
-            console.log('JING selected version: ' + selectedVersion);
-
-            try {
-                versions = (await Apis.pipelineServiceApi.listPipelineVersions(pipelineId)).versions || [];
-            } catch (err) {
-                await this.showPageError('Cannot retrieve pipeline versions.', err);
-                logger.error('Cannot retrieve pipeline versions.', err);
-                return;
-            }
-
-            templateString = await this._getTemplateString(pipelineId, versionId);
-            breadcrumbs = [{ displayName: 'Pipelines', href: RoutePage.PIPELINES }];
-
-        }
-
-        this.props.updateToolbar({ breadcrumbs, actions: toolbarActions, pageTitle });
-
-        // let g: dagre.graphlib.Graph | undefined;
-        // try {
-        //     template = JsYaml.safeLoad(templateString);
-        //     g = StaticGraphParser.createGraph(template!);
-        // } catch (err) {
-        //     await this.showPageError('Error: failed to generate Pipeline graph.', err);
-        // }
-
-        this.setStateSafe({
-            // graph: g,
-            graph: await this._createGraph(templateString),
-            pipeline,
-            // template,
-            selectedVersion,
-            templateString,
-            versions,
-        });
-    }
-
-    private async _getTemplateString(pipelineId: string, versionId: string): Promise<string> {
+        // Convert the run's pipeline spec to YAML to be displayed as the pipeline's source.
         try {
-            let templateResponse: ApiGetTemplateResponse;
-            if (versionId) {
-                templateResponse = await Apis.pipelineServiceApi.getPipelineVersionTemplate(pipelineId, versionId);
-            } else {
-                templateResponse = await Apis.pipelineServiceApi.getTemplate(pipelineId);
-            }
-            return templateResponse.template || '';
+          const pipelineSpec = JSON.parse(RunUtils.getWorkflowManifest(runDetails.run) || '{}');
+          try {
+            templateString = JsYaml.safeDump(pipelineSpec);
+          } catch (err) {
+            await this.showPageError(
+              `Failed to parse pipeline spec from run with ID: ${runDetails.run!.id}.`,
+              err,
+            );
+            logger.error(
+              `Failed to convert pipeline spec YAML from run with ID: ${runDetails.run!.id}.`,
+              err,
+            );
+          }
         } catch (err) {
-            await this.showPageError('Cannot retrieve pipeline template.', err);
-            logger.error('Cannot retrieve pipeline details.', err);
+          await this.showPageError(
+            `Failed to parse pipeline spec from run with ID: ${runDetails.run!.id}.`,
+            err,
+          );
+          logger.error(
+            `Failed to parse pipeline spec JSON from run with ID: ${runDetails.run!.id}.`,
+            err,
+          );
         }
-        return '';
+
+        const relatedExperimentId = RunUtils.getFirstExperimentReferenceId(runDetails.run);
+        let experiment: ApiExperiment | undefined;
+        if (relatedExperimentId) {
+          experiment = await Apis.experimentServiceApi.getExperiment(relatedExperimentId);
+        }
+
+        // Build the breadcrumbs, by adding experiment and run names
+        if (experiment) {
+          breadcrumbs.push(
+            { displayName: 'Experiments', href: RoutePage.EXPERIMENTS },
+            {
+              displayName: experiment.name!,
+              href: RoutePage.EXPERIMENT_DETAILS.replace(
+                ':' + RouteParams.experimentId,
+                experiment.id!,
+              ),
+            },
+          );
+        } else {
+          breadcrumbs.push({ displayName: 'All runs', href: RoutePage.RUNS });
+        }
+        breadcrumbs.push({
+          displayName: runDetails.run!.name!,
+          href: RoutePage.RUN_DETAILS.replace(':' + RouteParams.runId, fromRunId),
+        });
+        pageTitle = 'Pipeline details';
+      } catch (err) {
+        await this.showPageError('Cannot retrieve run details.', err);
+        logger.error('Cannot retrieve run details.', err);
+      }
+    } else {
+      console.log('JING 2');
+      // if fromRunId is not specified, then we have a full pipeline
+      const pipelineId = this.props.match.params[RouteParams.pipelineId];
+      console.log('JING pipeline id:' + pipelineId);
+      // let templateResponse: ApiGetTemplateResponse;
+
+      try {
+        pipeline = await Apis.pipelineServiceApi.getPipeline(pipelineId);
+        pageTitle = pipeline.name!;
+      } catch (err) {
+        await this.showPageError('Cannot retrieve pipeline details.', err);
+        logger.error('Cannot retrieve pipeline details.', err);
+        return;
+      }
+
+      const versionId = this.props.match.params[RouteParams.pipelineVersionId];
+      console.log('JING pipeline version id:' + versionId);
+
+      try {
+        // templateResponse = await Apis.pipelineServiceApi.getTemplate(pipelineId);
+        // templateString = templateResponse.template || '';
+        // TODO(rjbauer): it's possible we might not have a version, even default
+        if (versionId) {
+          version = await Apis.pipelineServiceApi.getPipelineVersion(versionId);
+        }
+      } catch (err) {
+        // await this.showPageError('Cannot retrieve pipeline template.', err);
+        // logger.error('Cannot retrieve pipeline details.', err);
+        await this.showPageError('Cannot retrieve pipeline version.', err);
+        logger.error('Cannot retrieve pipeline version.', err);
+        return;
+      }
+
+      console.log('JING default version: ' + JSON.stringify(pipeline.default_version));
+      selectedVersion = versionId ? version! : pipeline.default_version;
+      console.log('JING selected version: ' + selectedVersion);
+
+      try {
+        versions = (await Apis.pipelineServiceApi.listPipelineVersions(pipelineId)).versions || [];
+      } catch (err) {
+        await this.showPageError('Cannot retrieve pipeline versions.', err);
+        logger.error('Cannot retrieve pipeline versions.', err);
+        return;
+      }
+
+      templateString = await this._getTemplateString(pipelineId, versionId);
+      breadcrumbs = [{ displayName: 'Pipelines', href: RoutePage.PIPELINES }];
     }
 
-    private async _createGraph(templateString: string): Promise<dagre.graphlib.Graph | null> {
-        if (templateString) {
-            try {
-                const template = JsYaml.safeLoad(templateString);
-                return StaticGraphParser.createGraph(template!);
-            } catch (err) {
-                await this.showPageError('Error: failed to generate Pipeline graph.', err);
-            }
-        }
-        return null;
-    }
+    this.props.updateToolbar({ breadcrumbs, actions: toolbarActions, pageTitle });
 
-    private _createVersionUrl(): string {
-        // TODO(rjbauer): verify how much we can assume to always be defined here.
-        // const source = this.state.selectedVersion!.code_source!;
-        // TODO(rjbauer): handle non-github cases
-        // const repoParts = source.repo_name!.split('_');
-        return this.state.selectedVersion!.code_source_url!;
-    }
+    // let g: dagre.graphlib.Graph | undefined;
+    // try {
+    //     template = JsYaml.safeLoad(templateString);
+    //     g = StaticGraphParser.createGraph(template!);
+    // } catch (err) {
+    //     await this.showPageError('Error: failed to generate Pipeline graph.', err);
+    // }
 
     this.setStateSafe({
-      graph: g,
+      // graph: g,
+      graph: await this._createGraph(templateString),
       pipeline,
-      template,
+      // template,
+      selectedVersion,
       templateString,
+      versions,
     });
+  }
+
+  private async _getTemplateString(pipelineId: string, versionId: string): Promise<string> {
+    try {
+      let templateResponse: ApiGetTemplateResponse;
+      if (versionId) {
+        templateResponse = await Apis.pipelineServiceApi.getPipelineVersionTemplate(
+          pipelineId,
+          versionId,
+        );
+      } else {
+        templateResponse = await Apis.pipelineServiceApi.getTemplate(pipelineId);
+      }
+      return templateResponse.template || '';
+    } catch (err) {
+      await this.showPageError('Cannot retrieve pipeline template.', err);
+      logger.error('Cannot retrieve pipeline details.', err);
+    }
+    return '';
+  }
+
+  private async _createGraph(templateString: string): Promise<dagre.graphlib.Graph | null> {
+    if (templateString) {
+      try {
+        const template = JsYaml.safeLoad(templateString);
+        return StaticGraphParser.createGraph(template!);
+      } catch (err) {
+        await this.showPageError('Error: failed to generate Pipeline graph.', err);
+      }
+    }
+    return null;
+  }
+
+  private _createVersionUrl(): string {
+    // TODO(rjbauer): verify how much we can assume to always be defined here.
+    // const source = this.state.selectedVersion!.code_source!;
+    // TODO(rjbauer): handle non-github cases
+    // const repoParts = source.repo_name!.split('_');
+    return this.state.selectedVersion!.code_source_url!;
   }
 
   private _deleteCallback(_: string[], success: boolean): void {
@@ -504,6 +533,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
         : RoutePage.PIPELINES;
       this.props.history.push(previousPage);
     }
+  }
 }
 
 export default PipelineDetails;

@@ -146,11 +146,7 @@ class RecurringRunsManager extends React.Component<RecurringRunListProps, Recurr
         request.pageToken,
         request.pageSize,
         request.sortBy,
-<<<<<<< HEAD
-        'EXPERIMENT', // ApiResourceType.EXPERIMENT.toString(),
-=======
         'EXPERIMENT',
->>>>>>> origin/master
         this.props.experimentId,
         request.filter,
       );

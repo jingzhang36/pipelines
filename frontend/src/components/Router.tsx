@@ -44,61 +44,60 @@ import { classes, stylesheet } from 'typestyle';
 import { commonCss } from '../Css';
 
 const css = stylesheet({
-    dialog: {
-        minWidth: 250,
-    },
+  dialog: {
+    minWidth: 250,
+  },
 });
 
 export enum QUERY_PARAMS {
-    cloneFromRun = 'cloneFromRun',
-    cloneFromRecurringRun = 'cloneFromRecurringRun',
-    experimentId = 'experimentId',
-    isRecurring = 'recurring',
-    firstRunInExperiment = 'firstRunInExperiment',
-    pipelineId = 'pipelineId',
-    pipelineVersionId = 'pipelineVersionId',
-    fromRunId = 'fromRun',
-    runlist = 'runlist',
-    view = 'view',
+  cloneFromRun = 'cloneFromRun',
+  cloneFromRecurringRun = 'cloneFromRecurringRun',
+  experimentId = 'experimentId',
+  isRecurring = 'recurring',
+  firstRunInExperiment = 'firstRunInExperiment',
+  pipelineId = 'pipelineId',
+  pipelineVersionId = 'pipelineVersionId',
+  fromRunId = 'fromRun',
+  runlist = 'runlist',
+  view = 'view',
 }
 
 export enum RouteParams {
-    experimentId = 'eid',
-    pipelineId = 'pid',
-    pipelineVersionId = 'pvid',
-    runId = 'rid',
-    ARTIFACT_TYPE = 'artifactType',
-    EXECUTION_TYPE = 'executionType',
-    // TODO: create one of these for artifact and execution?
-    ID = 'id',
+  experimentId = 'eid',
+  pipelineId = 'pid',
+  pipelineVersionId = 'vid',
+  runId = 'rid',
+  ARTIFACT_TYPE = 'artifactType',
+  EXECUTION_TYPE = 'executionType',
+  // TODO: create one of these for artifact and execution?
+  ID = 'id',
 }
 
 // tslint:disable-next-line:variable-name
 export const RoutePrefix = {
-    ARTIFACT: '/artifact',
-    EXECUTION: '/execution',
-    RECURRING_RUN: '/recurringrun',
+  ARTIFACT: '/artifact',
+  EXECUTION: '/execution',
+  RECURRING_RUN: '/recurringrun',
 };
 
 // tslint:disable-next-line:variable-name
 export const RoutePage = {
-    ARCHIVE: '/archive',
-    ARTIFACTS: '/artifacts',
-    ARTIFACT_DETAILS: `/artifact_types/:${RouteParams.ARTIFACT_TYPE}+/artifacts/:${RouteParams.ID}`,
-    COMPARE: `/compare`,
-    EXECUTIONS: '/executions',
-    EXECUTION_DETAILS: `/execution_types/:${RouteParams.EXECUTION_TYPE}+/executions/:${RouteParams.ID}`,
-    EXPERIMENTS: '/experiments',
-    EXPERIMENT_DETAILS: `/experiments/details/:${RouteParams.experimentId}`,
-    NEW_EXPERIMENT: '/experiments/new',
-    NEW_RUN: '/runs/new',
-    PIPELINES: '/pipelines',
-    // PIPELINE_DETAILS: `/pipelines/details/:${RouteParams.pipelineId}?`, // pipelineId is optional
-    PIPELINE_DETAILS: `/pipelines/details/:${RouteParams.pipelineId}/version/:${RouteParams.pipelineVersionId}`,
-    PIPELINE_DETAILS_NO_VERSION: `/pipelines/details/:${RouteParams.pipelineId}`, // pipelineId is optional
-    RECURRING_RUN: `/recurringrun/details/:${RouteParams.runId}`,
-    RUNS: '/runs',
-    RUN_DETAILS: `/runs/details/:${RouteParams.runId}`,
+  ARCHIVE: '/archive',
+  ARTIFACTS: '/artifacts',
+  ARTIFACT_DETAILS: `/artifact_types/:${RouteParams.ARTIFACT_TYPE}+/artifacts/:${RouteParams.ID}`,
+  COMPARE: `/compare`,
+  EXECUTIONS: '/executions',
+  EXECUTION_DETAILS: `/execution_types/:${RouteParams.EXECUTION_TYPE}+/executions/:${RouteParams.ID}`,
+  EXPERIMENTS: '/experiments',
+  EXPERIMENT_DETAILS: `/experiments/details/:${RouteParams.experimentId}`,
+  NEW_EXPERIMENT: '/experiments/new',
+  NEW_RUN: '/runs/new',
+  PIPELINES: '/pipelines',
+  PIPELINE_DETAILS: `/pipelines/details/:${RouteParams.pipelineId}/version/:${RouteParams.pipelineVersionId}`,
+  PIPELINE_DETAILS_NO_VERSION: `/pipelines/details/:${RouteParams.pipelineId}`, // pipelineId is optional
+  RECURRING_RUN: `/recurringrun/details/:${RouteParams.runId}`,
+  RUNS: '/runs',
+  RUN_DETAILS: `/runs/details/:${RouteParams.runId}`,
 };
 
 // tslint:disable-next-line:variable-name
@@ -121,14 +120,14 @@ export interface DialogProps {
 }
 
 interface RouteComponentState {
-    bannerProps: BannerProps;
-    dialogProps: DialogProps;
-    snackbarProps: SnackbarProps;
-    toolbarProps: ToolbarProps;
+  bannerProps: BannerProps;
+  dialogProps: DialogProps;
+  snackbarProps: SnackbarProps;
+  toolbarProps: ToolbarProps;
 }
 
 class Router extends React.Component<{}, RouteComponentState> {
- constructor(props: any) {
+  constructor(props: any) {
     super(props);
 
     this.state = {
@@ -139,13 +138,14 @@ class Router extends React.Component<{}, RouteComponentState> {
     };
   }
 
-        this.state = {
-            bannerProps: {},
-            dialogProps: { open: false },
-            snackbarProps: { autoHideDuration: 5000, open: false },
-            toolbarProps: { breadcrumbs: [{ displayName: '', href: '' }], actions: [], ...props },
-        };
-    }
+  public render(): JSX.Element {
+    const childProps = {
+      toolbarProps: this.state.toolbarProps,
+      updateBanner: this._updateBanner.bind(this),
+      updateDialog: this._updateDialog.bind(this),
+      updateSnackbar: this._updateSnackbar.bind(this),
+      updateToolbar: this._updateToolbar.bind(this),
+    };
 
     const routes: Array<{ path: string; Component: React.ComponentClass; view?: any }> = [
       { path: RoutePage.ARCHIVE, Component: Archive },
@@ -209,33 +209,18 @@ class Router extends React.Component<{}, RouteComponentState> {
                   );
                 })}
 
-        return (
-            <HashRouter>
-                <div className={commonCss.page}>
-                    <div className={commonCss.flexGrow}>
-                        <Route render={({ ...props }) => (<SideNav page={props.location.pathname} {...props} />)} />
-                        <div className={classes(commonCss.page)}>
-                            <Route render={({ ...props }) => (<Toolbar {...this.state.toolbarProps} {...props} />)} />
-                            {this.state.bannerProps.message
-                                && <Banner
-                                    message={this.state.bannerProps.message}
-                                    mode={this.state.bannerProps.mode}
-                                    additionalInfo={this.state.bannerProps.additionalInfo}
-                                    refresh={this.state.bannerProps.refresh} />}
-                            <Switch>
-                                <Route exact={true} path={'/'} render={({ ...props }) => (
-                                    <Redirect to={RoutePage.PIPELINES} {...props} />
-                                )} />
-                                {routes.map((route, i) => {
-                                    const { path, Component, ...otherProps } = { ...route };
-                                    return <Route key={i} exact={true} path={path} render={({ ...props }) => (
-                                        <Component {...props} {...childProps} {...otherProps} />
-                                    )} />;
-                                })}
+                {/* 404 */}
+                {<Route render={({ ...props }) => <Page404 {...props} {...childProps} />} />}
+              </Switch>
 
-                                {/* 404 */}
-                                {<Route render={({ ...props }) => <Page404 {...props} {...childProps} />} />}
-                            </Switch>
+              <Snackbar
+                autoHideDuration={this.state.snackbarProps.autoHideDuration}
+                message={this.state.snackbarProps.message}
+                open={this.state.snackbarProps.open}
+                onClose={this._handleSnackbarClose.bind(this)}
+              />
+            </div>
+          </div>
 
           <Dialog
             open={this.state.dialogProps.open !== false}
@@ -271,67 +256,42 @@ class Router extends React.Component<{}, RouteComponentState> {
     );
   }
 
-                    <Dialog open={this.state.dialogProps.open !== false} classes={{ paper: css.dialog }}
-                        className='dialog' onClose={() => this._handleDialogClosed()}>
-                        {this.state.dialogProps.title && (
-                            <DialogTitle> {this.state.dialogProps.title}</DialogTitle>
-                        )}
-                        {this.state.dialogProps.content && (
-                            <DialogContent className={commonCss.prewrap}>
-                                {this.state.dialogProps.content}
-                            </DialogContent>
-                        )}
-                        {this.state.dialogProps.buttons && (
-                            <DialogActions>
-                                {this.state.dialogProps.buttons.map((b, i) =>
-                                    <Button key={i} onClick={() => this._handleDialogClosed(b.onClick)}
-                                        className='dialogButton' color='secondary'>
-                                        {b.text}
-                                    </Button>)}
-                            </DialogActions>
-                        )}
-                    </Dialog>
-                </div>
-            </HashRouter>
-        );
+  private _updateDialog(dialogProps: DialogProps): void {
+    // Assuming components will want to open the dialog by defaut.
+    if (dialogProps.open === undefined) {
+      dialogProps.open = true;
     }
+    this.setState({ dialogProps });
+  }
 
-    private _updateDialog(dialogProps: DialogProps): void {
-        // Assuming components will want to open the dialog by defaut.
-        if (dialogProps.open === undefined) {
-            dialogProps.open = true;
-        }
-        this.setState({ dialogProps });
+  private _handleDialogClosed(onClick?: () => void): void {
+    this.setState({ dialogProps: { open: false } });
+    if (onClick) {
+      onClick();
     }
+    if (this.state.dialogProps.onClose) {
+      this.state.dialogProps.onClose();
+    }
+  }
 
-    private _handleDialogClosed(onClick?: () => void): void {
-        this.setState({ dialogProps: { open: false } });
-        if (onClick) {
-            onClick();
-        }
-        if (this.state.dialogProps.onClose) {
-            this.state.dialogProps.onClose();
-        }
-    }
+  private _updateToolbar(newToolbarProps: Partial<ToolbarProps>): void {
+    const toolbarProps = Object.assign(this.state.toolbarProps, newToolbarProps);
+    this.setState({ toolbarProps });
+  }
 
-    private _updateToolbar(newToolbarProps: Partial<ToolbarProps>): void {
-        const toolbarProps = Object.assign(this.state.toolbarProps, newToolbarProps);
-        this.setState({ toolbarProps });
-    }
+  private _updateBanner(bannerProps: BannerProps): void {
+    this.setState({ bannerProps });
+  }
 
-    private _updateBanner(bannerProps: BannerProps): void {
-        this.setState({ bannerProps });
-    }
+  private _updateSnackbar(snackbarProps: SnackbarProps): void {
+    snackbarProps.autoHideDuration =
+      snackbarProps.autoHideDuration || this.state.snackbarProps.autoHideDuration;
+    this.setState({ snackbarProps });
+  }
 
-    private _updateSnackbar(snackbarProps: SnackbarProps): void {
-        snackbarProps.autoHideDuration =
-            snackbarProps.autoHideDuration || this.state.snackbarProps.autoHideDuration;
-        this.setState({ snackbarProps });
-    }
-
-    private _handleSnackbarClose(): void {
-        this.setState({ snackbarProps: { open: false, message: '' } });
-    }
+  private _handleSnackbarClose(): void {
+    this.setState({ snackbarProps: { open: false, message: '' } });
+  }
 }
 
 // TODO: loading/error experience until backend is reachable
