@@ -12,20 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { HTMLViewerConfig } from 'src/components/viewers/HTMLViewer';
-import { ExperimentServiceApi } from '../apis/experiment';
-import { JobServiceApi } from '../apis/job';
-import { ApiPipeline, PipelineServiceApi } from '../apis/pipeline';
-import { RunServiceApi } from '../apis/run';
-import { ApiVisualization, VisualizationServiceApi } from '../apis/visualization';
-import { PlotType } from '../components/viewers/Viewer';
-import {
-  MetadataStoreServiceClient,
-  ServiceError,
-  UnaryResponse,
-} from '../generated/src/apis/metadata/metadata_store_service_pb_service';
+import {HTMLViewerConfig} from 'src/components/viewers/HTMLViewer';
+import {ExperimentServiceApi} from '../apis/experiment';
+import {JobServiceApi} from '../apis/job';
+import {ApiPipeline, PipelineServiceApi} from '../apis/pipeline';
+import {RunServiceApi} from '../apis/run';
+import {ApiVisualization, VisualizationServiceApi} from '../apis/visualization';
+import {PlotType} from '../components/viewers/Viewer';
+import {MetadataStoreServiceClient, ServiceError, UnaryResponse} from '../generated/src/apis/metadata/metadata_store_service_pb_service';
 import * as Utils from './Utils';
-import { StoragePath } from './WorkflowParser';
+import {StoragePath} from './WorkflowParser';
 
 const v1beta1Prefix = 'apis/v1beta1';
 
@@ -367,5 +363,11 @@ export enum JobSortKeys {
 export enum ExperimentSortKeys {
   CREATED_AT = 'created_at',
   ID = 'id',
+  NAME = 'name',
+}
+
+// Valid sortKeys as specified by the backend.
+export enum PipelineVersionSortKeys {
+  CREATED_AT = 'created_at',
   NAME = 'name',
 }

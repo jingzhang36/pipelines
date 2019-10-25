@@ -149,8 +149,8 @@ class PipelineList extends Page<{}, PipelineListState> {
         selectedIds={this.state.selectedIds}
         noFilterBox={true}
         onSelectionChange={this._selectionChanged.bind(this)}
-        disableSorting={true}
-        disablePaging={true}
+        disableSorting={false}
+        disablePaging={false}
       />
     );
   }

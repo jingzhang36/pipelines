@@ -17,8 +17,8 @@
 import CustomTable, { Column, CustomRendererProps, Row } from '../components/CustomTable';
 import * as React from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
-import { ApiPipelineVersion } from '../apis/pipeline';
-import { Apis, ListRequest, RunSortKeys } from '../lib/Apis';
++import { ApiPipelineVersion, ApiListPipelineVersionsResponse } from '../apis/pipeline';
++import { Apis, ListRequest, PipelineVersionSortKeys } from '../lib/Apis';
 import { errorToMessage, formatDateString } from '../lib/Utils';
 import { RoutePage, RouteParams } from '../components/Router';
 import { commonCss } from '../Css';
@@ -87,8 +87,9 @@ class PipelineVersionList extends React.PureComponent<
         customRenderer: this._nameCustomRenderer,
         flex: 2,
         label: 'Version name',
+        sortKey: PipelineVersionSortKeys.NAME,
       },
-      { label: 'Uploaded on', flex: 1 },
+      { label: 'Uploaded on', flex: 1, sortKey: PipelineVersionSortKeys.CREATED_AT },
     ];
 
     const rows: Row[] = this.state.pipelineVersions.map(r => {
@@ -105,7 +106,7 @@ class PipelineVersionList extends React.PureComponent<
           columns={columns}
           rows={rows}
           selectedIds={this.props.selectedIds}
-          initialSortColumn={RunSortKeys.CREATED_AT}
+          initialSortColumn={PipelineVersionSortKeys.CREATED_AT}
           ref={this._tableRef}
           updateSelection={this.props.onSelectionChange}
           reload={this._loadPipelineVersions.bind(this)}
@@ -120,29 +121,18 @@ class PipelineVersionList extends React.PureComponent<
 
   protected async _loadPipelineVersions(request: ListRequest): Promise<string> {
     let versions: ApiPipelineVersion[] = [];
+    let response: ApiListPipelineVersionsResponse | null = null;
 
     if (this.props.pipelineId) {
       try {
         console.log(this.props.pipelineId);
-        const response = await Apis.pipelineServiceApi.listPipelineVersions(
+        response = await Apis.pipelineServiceApi.listPipelineVersions(
           'PIPELINE_VERSION',
           this.props.pipelineId,
+          request.pageSize,
+          request.pageToken,
+          request.sortBy,
         );
-        versions = (response.versions || []).sort((a, b) => {
-          if (!b.created_at) {
-            return -1;
-          }
-          if (!a.created_at) {
-            return 1;
-          }
-          if (a.created_at > b.created_at) {
-            return -1;
-          }
-          if (a.created_at < b.created_at) {
-            return 1;
-          }
-          return 0;
-        });
       } catch (err) {
         const error = new Error(await errorToMessage(err));
         this.props.onError('Error: failed to fetch runs.', error);
@@ -151,10 +141,10 @@ class PipelineVersionList extends React.PureComponent<
       }
 
       this.setState({
-        pipelineVersions: versions,
+        pipelineVersions: response.versions || [],
       });
     }
-    return '';
+    return response ? response.next_page_token || '' : '';
   }
 }
 
