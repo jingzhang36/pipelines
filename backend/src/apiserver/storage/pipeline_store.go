@@ -611,6 +611,7 @@ func (s *PipelineStore) ListPipelineVersions(pipelineId string, opts *list.Optio
 	// SQL for pipeline version list
 	rowsSql, rowsArgs, err := opts.AddPaginationToSelect(
 		buildQuery(sq.Select(pipelineVersionColumns...))).ToSql()
+	fmt.Printf("list pipeline versions request: %+v", rowsSql)
 	if err != nil {
 		return errorF(err)
 	}

@@ -158,7 +158,6 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
   }
 
   public render(): JSX.Element {
-    console.log("On details page");
     const {
       pipeline,
       selectedNodeId,
@@ -325,7 +324,6 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
         versionId,
       );
       // TODO(rjbauer): remove last history entry
-      console.log("id/version: " + JSON.stringify(this.state.pipeline.id) + "/" + JSON.stringify(versionId));
       this.props.history.replace({
         pathname: `/pipelines/details/${this.state.pipeline.id}/version/${versionId}`,
       });
@@ -426,7 +424,6 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
 
       try {
         pipeline = await Apis.pipelineServiceApi.getPipeline(pipelineId);
-        pageTitle = pipeline.name!;
       } catch (err) {
         await this.showPageError('Cannot retrieve pipeline details.', err);
         logger.error('Cannot retrieve pipeline details.', err);
@@ -435,11 +432,9 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
 
       const versionId = this.props.match.params[RouteParams.pipelineVersionId];
 
-
       try {
         // TODO(rjbauer): it's possible we might not have a version, even default
         if (versionId) {
-          console.log("Get pipeline version: " + versionId);
           version = await Apis.pipelineServiceApi.getPipelineVersion(versionId);
         }
       } catch (err) {
@@ -449,9 +444,13 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
       }
 
       selectedVersion = versionId ? version! : pipeline.default_version;
+      pageTitle = pipeline.name!.concat(" (", selectedVersion!.name!, ")");
 
       try {
-        versions = (await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE_VERSION', pipelineId)).versions || [];
+        versions =
+          (await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE_VERSION', pipelineId, 50))
+            .versions || [];
+        console.log("versions length: " + versions.length)
       } catch (err) {
         await this.showPageError('Cannot retrieve pipeline versions.', err);
         logger.error('Cannot retrieve pipeline versions.', err);
@@ -513,10 +512,6 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
   }
 
   private _createVersionUrl(): string {
-    // TODO(rjbauer): verify how much we can assume to always be defined here.
-    // const source = this.state.selectedVersion!.code_source!;
-    // TODO(rjbauer): handle non-github cases
-    // const repoParts = source.repo_name!.split('_');
     return this.state.selectedVersion!.code_source_url!;
   }
 

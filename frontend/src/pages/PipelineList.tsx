@@ -16,7 +16,12 @@
 
 import * as React from 'react';
 import Buttons, { ButtonKeys } from '../lib/Buttons';
-import CustomTable, { Column, Row, CustomRendererProps, ExpandState } from '../components/CustomTable';
+import CustomTable, {
+  Column,
+  Row,
+  CustomRendererProps,
+  ExpandState,
+} from '../components/CustomTable';
 import PipelineVersionList from './PipelineVersionList';
 import UploadPipelineDialog, { ImportMethod } from '../components/UploadPipelineDialog';
 import { ApiPipeline, ApiListPipelinesResponse } from '../apis/pipeline';
@@ -149,8 +154,8 @@ class PipelineList extends Page<{}, PipelineListState> {
         selectedIds={this.state.selectedIds}
         noFilterBox={true}
         onSelectionChange={this._selectionChanged.bind(this)}
-        disableSorting={true}
-        disablePaging={true}
+        disableSorting={false}
+        disablePaging={false}
       />
     );
   }
@@ -159,6 +164,7 @@ class PipelineList extends Page<{}, PipelineListState> {
     let response: ApiListPipelinesResponse | null = null;
     let displayPipelines: DisplayPipeline[];
     try {
+      console.log('list pipeline request: ' + JSON.stringify(request));
       response = await Apis.pipelineServiceApi.listPipelines(
         request.pageToken,
         request.pageSize,
