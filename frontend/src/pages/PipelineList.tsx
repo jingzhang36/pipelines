@@ -16,7 +16,12 @@
 
 import * as React from 'react';
 import Buttons, { ButtonKeys } from '../lib/Buttons';
-import CustomTable, { Column, Row, CustomRendererProps, ExpandState } from '../components/CustomTable';
+import CustomTable, {
+  Column,
+  Row,
+  CustomRendererProps,
+  ExpandState,
+} from '../components/CustomTable';
 import PipelineVersionList from './PipelineVersionList';
 import UploadPipelineDialog, { ImportMethod } from '../components/UploadPipelineDialog';
 import { ApiPipeline, ApiListPipelinesResponse } from '../apis/pipeline';

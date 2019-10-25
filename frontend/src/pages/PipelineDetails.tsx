@@ -433,7 +433,6 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
 
       const versionId = this.props.match.params[RouteParams.pipelineVersionId];
 
-
       try {
         // TODO(rjbauer): it's possible we might not have a version, even default
         if (versionId) {
