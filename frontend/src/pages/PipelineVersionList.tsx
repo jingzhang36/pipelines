@@ -120,7 +120,6 @@ class PipelineVersionList extends React.PureComponent<
   }
 
   protected async _loadPipelineVersions(request: ListRequest): Promise<string> {
-    let versions: ApiPipelineVersion[] = [];
     let response: ApiListPipelineVersionsResponse | null = null;
 
     if (this.props.pipelineId) {
