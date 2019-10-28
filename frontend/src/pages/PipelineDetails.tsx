@@ -143,6 +143,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
       // Add buttons for creating experiment and deleting pipeline
       buttons
         .newExperiment(() => (this.state.pipeline ? this.state.pipeline.id! : ''))
+        .newPipelineVersion(() => (this.state.pipeline ? this.state.pipeline.id! : ''))
         .delete(
           () => (this.state.pipeline ? [this.state.pipeline.id!] : []),
           'pipeline',

@@ -35,7 +35,7 @@ interface NewPipelineVersionState {
   isbeingCreated: boolean;
   pipelineVersionName: string;
   pipelineId?: string;
-  // pipelineVersionId: string;
+  pipelineName?: string;
 }
 
 const css = stylesheet({
@@ -50,6 +50,7 @@ const css = stylesheet({
 
 class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   private _pipelineVersionNameRef = React.createRef<HTMLInputElement>();
+  private _pipelineNameRef = React.createRef<HTMLInputElement>();
 
   constructor(props: any) {
     super(props);
@@ -57,6 +58,8 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     this.state = {
       description: '',
       pipelineVersionName: '',
+      pipelineId: '',
+      pipelineName: '',
       isbeingCreated: false,
       validationError: '',
     };
@@ -71,7 +74,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   }
 
   public render(): JSX.Element {
-    const { description, pipelineVersionName, isbeingCreated, validationError } = this.state;
+    const { description, pipelineVersionName, pipelineId, pipelineName, isbeingCreated, validationError } = this.state;
 
     return (
       <div className={classes(commonCss.page, padding(20, 'lr'))}>
@@ -81,7 +84,16 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
           <div className={css.explanation}>
             TODO
           </div>
-
+          <Input
+            id='pipelineName'
+            label='Pipeline name'
+            inputRef={this._pipelineNameRef}
+            required={true}
+            onChange={this.handleChange('pipelineName')}
+            value={pipelineName}
+            autoFocus={true}
+            variant='outlined'
+          />
           <Input
             id='pipelineVersionName'
             label='Pipeline Version name'
@@ -131,7 +143,8 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     const urlParser = new URLParser(this.props);
     const pipelineId = urlParser.get(QUERY_PARAMS.pipelineId);
     if (pipelineId) {
-      this.setState({ pipelineId });
+      const apiPipeline = await Apis.pipelineServiceApi.getPipeline(pipelineId);
+      this.setState({ pipelineId, pipelineName : apiPipeline.name });
     }
 
     this._validate();

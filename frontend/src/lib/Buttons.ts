@@ -255,9 +255,9 @@ export default class Buttons {
     return this;
   }
 
-  public createPipelineVersion(action: () => void): Buttons {
+  public newPipelineVersion(getPipelineId?: () => string): Buttons {
     this._map[ButtonKeys.NEW_PIPELINE_VERSION] = {
-      action,
+      action: () => this._createNewPipelineVersion(getPipelineId ? getPipelineId() : ''),
       icon: AddIcon,
       id: 'createPipelineVersionBtn',
       outlined: true,
@@ -552,6 +552,7 @@ export default class Buttons {
           [QUERY_PARAMS.pipelineId]: pipelineId,
         })
       : '';
+    console.log('search string: ' + JSON.stringify(searchString));
     this._props.history.push(RoutePage.NEW_EXPERIMENT + searchString);
   }
 
@@ -609,5 +610,12 @@ export default class Buttons {
   }
 
   private _createNewPipelineVersion(pipelineId?: string): void {
+    const searchString = pipelineId
+      ? this._urlParser.build({
+          [QUERY_PARAMS.pipelineId]: pipelineId,
+        })
+      : '';
+    console.log('search string: ' + JSON.stringify(searchString));
+    this._props.history.push(RoutePage.NEW_PIPELINE_VERSION + searchString);
   }
 }
