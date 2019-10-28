@@ -461,7 +461,6 @@ export default class CustomTable extends React.Component<CustomTableProps, Custo
   }
 
   public async reload(loadRequest?: ListRequest): Promise<string> {
-    console.log('Load request: ' + JSON.stringify(loadRequest));
     // Override the current state with incoming request
     const request: ListRequest = Object.assign(
       {
@@ -568,7 +567,6 @@ export default class CustomTable extends React.Component<CustomTableProps, Custo
   }
 
   private async _requestRowsPerPage(event: React.ChangeEvent): Promise<void> {
-    console.log('Request page size change');
     const pageSize = (event.target as TextFieldProps).value as number;
 
     this._resetToFirstPage(await this.reload({ pageSize, pageToken: '' }));
@@ -669,7 +667,6 @@ const BodyRowSelectionSection: React.FC<BodyRowSelectionSectionProps> = ({
         {disableSelection !== true && useRadioButtons && (
           <Radio color='primary' checked={isSelected} />
         )}
-        {console.log('showExpandButton: ' + showExpandButton)}
         {showExpandButton && (
           <IconButton
             className={classes(
