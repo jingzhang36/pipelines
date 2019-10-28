@@ -36,6 +36,7 @@ export interface PipelineVersionListProps extends RouteComponentProps {
 
 interface PipelineVersionListState {
   pipelineVersions: ApiPipelineVersion[];
+  // createNewVersionDialogOpen: boolean;
 }
 
 class PipelineVersionList extends React.PureComponent<

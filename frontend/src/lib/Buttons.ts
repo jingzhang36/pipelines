@@ -17,12 +17,12 @@
 import AddIcon from '@material-ui/icons/Add';
 import CollapseIcon from '@material-ui/icons/UnfoldLess';
 import ExpandIcon from '@material-ui/icons/UnfoldMore';
-import { PageProps } from '../pages/Page';
-import { URLParser } from './URLParser';
-import { RoutePage, QUERY_PARAMS } from '../components/Router';
-import { Apis } from './Apis';
-import { errorToMessage, s } from './Utils';
-import { ToolbarActionMap } from '../components/Toolbar';
+import {QUERY_PARAMS, RoutePage} from '../components/Router';
+import {ToolbarActionMap} from '../components/Toolbar';
+import {PageProps} from '../pages/Page';
+import {Apis} from './Apis';
+import {URLParser} from './URLParser';
+import {errorToMessage, s} from './Utils';
 
 export enum ButtonKeys {
   ARCHIVE = 'archive',
@@ -43,6 +43,7 @@ export enum ButtonKeys {
   RESTORE = 'restore',
   TERMINATE_RUN = 'terminateRun',
   UPLOAD_PIPELINE = 'uploadPipeline',
+  NEW_PIPELINE_VERSION = 'newPipelineVersion',
 }
 
 export default class Buttons {
@@ -250,6 +251,19 @@ export default class Buttons {
       style: { minWidth: 195 },
       title: 'Create recurring run',
       tooltip: 'Create a new recurring run',
+    };
+    return this;
+  }
+
+  public createPipelineVersion(action: () => void): Buttons {
+    this._map[ButtonKeys.NEW_PIPELINE_VERSION] = {
+      action,
+      icon: AddIcon,
+      id: 'createPipelineVersionBtn',
+      outlined: true,
+      style: { minWidth: 160 },
+      title: 'Create pipeline version',
+      tooltip: 'Create pipeline version',
     };
     return this;
   }
@@ -592,5 +606,8 @@ export default class Buttons {
         this._props.updateToolbar({ actions: toolbarActions });
       }
     }
+  }
+
+  private _createNewPipelineVersion(pipelineId?: string): void {
   }
 }
