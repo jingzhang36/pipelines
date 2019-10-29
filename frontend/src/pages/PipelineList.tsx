@@ -74,7 +74,7 @@ class PipelineList extends Page<{}, PipelineListState> {
     return {
       actions: buttons
         .upload(() => this.setStateSafe({ uploadDialogOpen: true }))
-        .createPipelineVersion(() => this.refresh.bind(this))
+        .newPipelineVersion()
         .refresh(this.refresh.bind(this))
         .delete(
           () => this.state.selectedIds,

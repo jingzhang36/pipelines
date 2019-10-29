@@ -62,6 +62,7 @@ class NewExperiment extends Page<{}, NewExperimentState> {
   }
 
   public getInitialToolbarState(): ToolbarProps {
+    console.log('getInitialToolbarState');
     return {
       actions: {},
       breadcrumbs: [{ displayName: 'Experiments', href: RoutePage.EXPERIMENTS }],
@@ -70,6 +71,7 @@ class NewExperiment extends Page<{}, NewExperimentState> {
   }
 
   public render(): JSX.Element {
+    console.log('render');
     const { description, experimentName, isbeingCreated, validationError } = this.state;
 
     return (
@@ -124,12 +126,15 @@ class NewExperiment extends Page<{}, NewExperimentState> {
   }
 
   public async refresh(): Promise<void> {
+    console.log('refresh');
     return;
   }
 
   public async componentDidMount(): Promise<void> {
+    console.log('componentDidMount');
     const urlParser = new URLParser(this.props);
     const pipelineId = urlParser.get(QUERY_PARAMS.pipelineId);
+    console.log('pipelineId: ' + JSON.stringify(pipelineId));
     if (pipelineId) {
       this.setState({ pipelineId });
     }
@@ -138,11 +143,13 @@ class NewExperiment extends Page<{}, NewExperimentState> {
   }
 
   public handleChange = (name: string) => (event: any) => {
+    console.log('handleChange');
     const value = (event.target as TextFieldProps).value;
     this.setState({ [name]: value } as any, this._validate.bind(this));
   };
 
   private _create(): void {
+    console.log('_create');
     const newExperiment: ApiExperiment = {
       description: this.state.description,
       name: this.state.experimentName,
@@ -164,6 +171,7 @@ class NewExperiment extends Page<{}, NewExperimentState> {
             [QUERY_PARAMS.firstRunInExperiment]: '1',
           });
         }
+        console.log('search string: ' + JSON.stringify(searchString));
         this.props.history.push(RoutePage.NEW_RUN + searchString);
         this.props.updateSnackbar({
           autoHideDuration: 10000,
@@ -180,6 +188,7 @@ class NewExperiment extends Page<{}, NewExperimentState> {
   }
 
   private _validate(): void {
+    console.log('_validate');
     // Validate state
     const { experimentName } = this.state;
     try {
