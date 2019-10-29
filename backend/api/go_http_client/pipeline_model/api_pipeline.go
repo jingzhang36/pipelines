@@ -53,10 +53,16 @@ type APIPipeline struct {
 	Name string `json:"name,omitempty"`
 
 	// Output. The input parameters for this pipeline.
+	// TODO(jingzhang36): replace this parameters field with the parameters field
+	// inside PipelineVersion when all usage of the former has been changed to use
+	// the latter.
 	Parameters []*APIParameter `json:"parameters"`
 
 	// The URL to the source of the pipeline. This is required when creating the
 	// pipeine through CreatePipeline API.
+	// TODO(jingzhang36): replace this url field with the code_source_urls field
+	// inside PipelineVersion when all usage of the former has been changed to use
+	// the latter.
 	URL *APIURL `json:"url,omitempty"`
 }
 

@@ -8,13 +8,14 @@ import (
 	"compress/gzip"
 	"encoding/json"
 
-	api "github.com/kubeflow/pipelines/backend/api/go_client"
-	"github.com/kubeflow/pipelines/backend/src/apiserver/resource"
-	"github.com/kubeflow/pipelines/backend/src/common/util"
 	"io"
 	"io/ioutil"
 	"net/url"
 	"strings"
+
+	api "github.com/kubeflow/pipelines/backend/api/go_client"
+	"github.com/kubeflow/pipelines/backend/src/apiserver/resource"
+	"github.com/kubeflow/pipelines/backend/src/common/util"
 )
 
 // These are valid conditions of a ScheduledWorkflow.
@@ -242,8 +243,11 @@ func ValidatePipelineSpec(resourceManager *resource.ResourceManager, spec *api.P
 	return nil
 }
 
-// Verify pipeline version in resource references as creator.
-func VerifyPipelineVersionReferenceAsCreator(resourceManager *resource.ResourceManager, references []*api.ResourceReference) (*string, error) {
+// Verify that
+// (1) a pipeline version is specified in references as a creator.
+// (2) the above pipeline version does exists in pipeline version store and is
+// in ready status.
+func CheckPipelineVersionReference(resourceManager *resource.ResourceManager, references []*api.ResourceReference) (*string, error) {
 	if references == nil {
 		return nil, util.NewInvalidInputError("Please specify a pipeline version in Run's resource references")
 	}

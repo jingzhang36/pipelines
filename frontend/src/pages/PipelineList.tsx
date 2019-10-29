@@ -33,12 +33,16 @@ import { ToolbarProps } from '../components/Toolbar';
 import { classes } from 'typestyle';
 import { commonCss, padding } from '../Css';
 import { formatDateString, errorToMessage } from '../lib/Utils';
+<<<<<<< HEAD
 import { Descriptoin } from '../components/Description';
 import produce from 'immer';
 
 interface DisplayPipeline extends ApiPipeline {
   expandState?: ExpandState;
 }
+=======
+import { Description } from '../components/Description';
+>>>>>>> origin/master
 
 interface PipelineListState {
   displayPipelines: DisplayPipeline[];
@@ -49,7 +53,7 @@ interface PipelineListState {
 const descriptionCustomRenderer: React.FC<CustomRendererProps<string>> = (
   props: CustomRendererProps<string>,
 ) => {
-  return <Descriptoin description={props.value || ''} forceInline={true} />;
+  return <Description description={props.value || ''} forceInline={true} />;
 };
 
 class PipelineList extends Page<{}, PipelineListState> {
