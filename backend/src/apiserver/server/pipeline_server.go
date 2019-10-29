@@ -33,28 +33,12 @@ type PipelineServer struct {
 }
 
 func (s *PipelineServer) CreatePipeline(ctx context.Context, request *api.CreatePipelineRequest) (*api.Pipeline, error) {
-	if err := ValidateCreatePipelineRequest(request); err != nil {
-		return nil, err
-	}
-
-	pipelineUrl := request.Pipeline.Url.PipelineUrl
-	resp, err := s.httpClient.Get(pipelineUrl)
-	if err != nil || resp.StatusCode != http.StatusOK {
-		return nil, util.NewInternalServerError(err, "Failed to download the pipeline from %v "+
-			"Please double check the URL is valid and can be accessed by the pipeline system.", pipelineUrl)
-	}
-	pipelineFileName := path.Base(pipelineUrl)
-	pipelineFile, err := ReadPipelineFile(pipelineFileName, resp.Body, MaxFileLength)
-	if err != nil {
-		return nil, util.Wrap(err, "The URL is valid but pipeline system failed to read the file.")
-	}
-
-	pipelineName, err := GetPipelineName(request.Pipeline.Name, pipelineFileName)
+	pipelineName, err := GetPipelineName(request.Pipeline.Name)
 	if err != nil {
 		return nil, util.Wrap(err, "Invalid pipeline name.")
 	}
 
-	pipeline, err := s.resourceManager.CreatePipeline(pipelineName, "", pipelineFile)
+	pipeline, err := s.resourceManager.CreatePipeline(pipelineName, request.Pipeline.Description)
 	if err != nil {
 		return nil, util.Wrap(err, "Create pipeline failed.")
 	}

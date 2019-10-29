@@ -63,11 +63,31 @@ func (s *PipelineUploadServer) UploadPipeline(w http.ResponseWriter, r *http.Req
 		s.writeErrorToResponse(w, http.StatusBadRequest, util.Wrap(err, "Invalid pipeline name."))
 		return
 	}
-	newPipeline, err := s.resourceManager.CreatePipeline(pipelineName, "", pipelineFile)
+
+	// Create a pipeline.
+	newPipeline, err := s.resourceManager.CreatePipeline(pipelineName, "")
 	if err != nil {
 		s.writeErrorToResponse(w, http.StatusInternalServerError, util.Wrap(err, "Error creating pipeline"))
 		return
 	}
+
+	// Create a pipeline version.
+	version := &model.PipelineVersion{
+		Name:          pipelineName,
+		PipelineId:    newPipeline.UUID,
+		Status:        model.PipelineVersionCreating,
+		Parameters:    "", // todo
+		CodeSourceUrl: "", // todo
+	}
+	version, err = r.resourceManager.CreatePipelineVersion(version, pipelineFile)
+	if err != nil {
+		s.writeErrorToResponse(w, http.StatusInternalServerError, util.Wrap(err, "Error creating pipeline version"))
+		return
+	}
+	newPipeline.DefaultVersionId = version.UUID
+	newPipeline.DefaulVersion = version
+
+	// Construct http response
 	apiPipeline := ToApiPipeline(newPipeline)
 	createdAt := time.Unix(apiPipeline.CreatedAt.Seconds, int64(apiPipeline.CreatedAt.Nanos)).UTC().Format(time.RFC3339)
 	apiPipeline.CreatedAt = nil

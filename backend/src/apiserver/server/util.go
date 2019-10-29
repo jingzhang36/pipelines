@@ -26,13 +26,13 @@ const (
 // This method extract the common logic of naming the pipeline.
 // API caller can either explicitly name the pipeline through query string ?name=foobar
 // or API server can use the file name by default.
-func GetPipelineName(queryString string, fileName string) (string, error) {
+func GetPipelineName(queryString string) (string, error) {
 	pipelineName, err := url.QueryUnescape(queryString)
 	if err != nil {
 		return "", util.NewInvalidInputErrorWithDetails(err, "Pipeline name in the query string has invalid format.")
 	}
 	if pipelineName == "" {
-		pipelineName = fileName
+		return "", util.NewInvalidInputErrorWithDetails(err, "Pipeline name can't be empty.")
 	}
 	if len(pipelineName) > MaxFileNameLength {
 		return "", util.NewInvalidInputError("Pipeline name too long. Support maximum length of %v", MaxFileNameLength)

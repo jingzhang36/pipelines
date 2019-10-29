@@ -69,9 +69,6 @@ type PipelineStoreInterface interface {
 	DeletePipelineVersion(pipelineVersionId string) error
 	// Change status of a particular version.
 	UpdatePipelineVersionStatus(pipelineVersionId string, status model.PipelineVersionStatus) error
-	// TODO(jingzhang36): remove this temporary method after resource manager's
-	// CreatePipeline stops using it.
-	UpdatePipelineAndVersionsStatus(id string, status model.PipelineStatus, pipelineVersionId string, pipelineVersionStatus model.PipelineVersionStatus) error
 }
 
 type PipelineStore struct {
@@ -266,95 +263,31 @@ func (s *PipelineStore) CreatePipeline(p *model.Pipeline) (*model.Pipeline, erro
 		return nil, util.NewInternalServerError(err, "Failed to create a pipeline id.")
 	}
 	newPipeline.UUID = id.String()
-	// TODO(jingzhang36): remove default version id assignment after version API
-	// is ready.
-	newPipeline.DefaultVersionId = id.String()
 	sql, args, err := sq.
 		Insert("pipelines").
 		SetMap(
 			sq.Eq{
-				"UUID":             newPipeline.UUID,
-				"CreatedAtInSec":   newPipeline.CreatedAtInSec,
-				"Name":             newPipeline.Name,
-				"Description":      newPipeline.Description,
-				"Parameters":       newPipeline.Parameters,
-				"Status":           string(newPipeline.Status),
-				"DefaultVersionId": newPipeline.DefaultVersionId}).
+				"UUID":           newPipeline.UUID,
+				"CreatedAtInSec": newPipeline.CreatedAtInSec,
+				"Name":           newPipeline.Name,
+				"Description":    newPipeline.Description,
+				"Parameters":     newPipeline.Parameters,
+				"Status":         string(newPipeline.Status)}).
 		ToSql()
 	if err != nil {
 		return nil, util.NewInternalServerError(err, "Failed to create query to insert pipeline to pipeline table: %v",
 			err.Error())
 	}
 
-	// Set up creation time, UUID and sql query for pipeline.
-	// TODO(jingzhang36): remove version related operations from CreatePipeline
-	// when version API is ready. Before that we create an implicit version
-	// inside CreatePipeline method. And this implicit version has the same UUID
-	// as pipeline; and thus FE can use either pipeline UUID or version UUID to
-	// retrieve pipeline package.
-	if newPipeline.DefaultVersion == nil {
-		newPipeline.DefaultVersion = &model.PipelineVersion{
-			Name:          newPipeline.Name,
-			Parameters:    newPipeline.Parameters,
-			Status:        model.PipelineVersionCreating,
-			CodeSourceUrl: ""}
-	}
-	newPipeline.DefaultVersion.CreatedAtInSec = now
-	newPipeline.DefaultVersion.PipelineId = id.String()
-	newPipeline.DefaultVersion.UUID = id.String()
-	sqlPipelineVersions, argsPipelineVersions, err := sq.
-		Insert("pipeline_versions").
-		SetMap(
-			sq.Eq{
-				"UUID":           newPipeline.DefaultVersion.UUID,
-				"CreatedAtInSec": newPipeline.DefaultVersion.CreatedAtInSec,
-				"Name":           newPipeline.DefaultVersion.Name,
-				"Parameters":     newPipeline.DefaultVersion.Parameters,
-				"Status":         string(newPipeline.DefaultVersion.Status),
-				"PipelineId":     newPipeline.UUID,
-				"CodeSourceUrl":  newPipeline.DefaultVersion.CodeSourceUrl}).
-		ToSql()
-	if err != nil {
-		return nil, util.NewInternalServerError(err,
-			`Failed to create query to insert pipeline version to
-			pipeline_versions table: %v`, err.Error())
-	}
-
-	// In a transaction, we insert into both pipelines and pipeline_versions.
-	tx, err := s.db.Begin()
-	if err != nil {
-		return nil, util.NewInternalServerError(err,
-			`Failed to start a transaction to create a new pipeline: %v`,
-			err.Error())
-	}
-	_, err = tx.Exec(sql, args...)
+	// Update pipeline store.
+	_, err = s.db.Exec(sql, args...)
 	if err != nil {
 		if s.db.IsDuplicateError(err) {
-			tx.Rollback()
 			return nil, util.NewInvalidInputError(
 				"Failed to create a new pipeline. The name %v already exist. Please specify a new name.", p.Name)
 		}
-		tx.Rollback()
 		return nil, util.NewInternalServerError(err, "Failed to add pipeline to pipeline table: %v",
 			err.Error())
-	}
-	_, err = tx.Exec(sqlPipelineVersions, argsPipelineVersions...)
-	if err != nil {
-		if s.db.IsDuplicateError(err) {
-			tx.Rollback()
-			return nil, util.NewInvalidInputError(
-				`Failed to create a new pipeline version. The name %v already
-				exist. Please specify a new name.`, p.DefaultVersion.Name)
-		}
-		tx.Rollback()
-		return nil, util.NewInternalServerError(err,
-			"Failed to add pipeline version to pipeline_versions table: %v",
-			err.Error())
-	}
-	if err := tx.Commit(); err != nil {
-		return nil, util.NewInternalServerError(err,
-			`Failed to update pipelines and pipeline_versions in a
-			transaction: %v`, err.Error())
 	}
 	return &newPipeline, nil
 }
@@ -390,54 +323,6 @@ func (s *PipelineStore) UpdatePipelineVersionStatus(id string, status model.Pipe
 	if err != nil {
 		return util.NewInternalServerError(err,
 			"Failed to update the pipeline version metadata: %s", err.Error())
-	}
-	return nil
-}
-
-func (s *PipelineStore) UpdatePipelineAndVersionsStatus(id string, status model.PipelineStatus, pipelineVersionId string, pipelineVersionStatus model.PipelineVersionStatus) error {
-	tx, err := s.db.Begin()
-	if err != nil {
-		return util.NewInternalServerError(
-			err,
-			"Failed to start a transaction: %s",
-			err.Error())
-	}
-
-	sql, args, err := sq.
-		Update("pipelines").
-		SetMap(sq.Eq{"Status": status}).
-		Where(sq.Eq{"UUID": id}).
-		ToSql()
-	if err != nil {
-		tx.Rollback()
-		return util.NewInternalServerError(err, "Failed to create query to update the pipeline status: %s", err.Error())
-	}
-	_, err = tx.Exec(sql, args...)
-	if err != nil {
-		tx.Rollback()
-		return util.NewInternalServerError(err, "Failed to update the pipeline status: %s", err.Error())
-	}
-	sql, args, err = sq.
-		Update("pipeline_versions").
-		SetMap(sq.Eq{"Status": pipelineVersionStatus}).
-		Where(sq.Eq{"UUID": pipelineVersionId}).
-		ToSql()
-	if err != nil {
-		tx.Rollback()
-		return util.NewInternalServerError(err,
-			`Failed to create query to update the pipeline version
-			status: %s`, err.Error())
-	}
-	_, err = tx.Exec(sql, args...)
-	if err != nil {
-		tx.Rollback()
-		return util.NewInternalServerError(err,
-			"Failed to update the pipeline version status: %s", err.Error())
-	}
-
-	if err := tx.Commit(); err != nil {
-		return util.NewInternalServerError(err,
-			"Failed to update pipeline status and its version status: %v", err)
 	}
 	return nil
 }
