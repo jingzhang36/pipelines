@@ -208,10 +208,16 @@ func (r *ResourceManager) GetPipelineTemplate(pipelineId string) ([]byte, error)
 }
 
 func (r *ResourceManager) CreateRun(apiRun *api.Run) (*model.RunDetail, error) {
-	// Get workflow from pipeline spec, which might be pipeline ID or an argo workflow
+	// Get workflow from either of the two places:
+	// (1) raw pipeline manifest in pipeline_spec
+	// (2) pipeline version in resource_references
+	var workflowSpecManifestBytes []byte
 	workflowSpecManifestBytes, err := r.getWorkflowSpecBytes(apiRun.GetPipelineSpec())
 	if err != nil {
-		return nil, util.Wrap(err, "Failed to fetch workflow spec.")
+		workflowSpecManifestBytes, err = r.getWorkflowSpecBytesFromPipelineVersion(apiRun.GetResourceReferences())
+		if err != nil {
+			return nil, util.Wrap(err, "Failed to fetch workflow spec.")
+		}
 	}
 	uuid, err := r.uuid.NewRandom()
 	if err != nil {
@@ -260,7 +266,7 @@ func (r *ResourceManager) CreateRun(apiRun *api.Run) (*model.RunDetail, error) {
 	}
 
 	// Add a reference to the default experiment if run does not already have a containing experiment
-	ref, err := r.getDefaultExperimentIfNoExperiment(apiRun.ResourceReferences)
+	ref, err := r.getDefaultExperimentIfNoExperiment(apiRun.GetResourceReferences())
 	if err != nil {
 		return nil, err
 	}
@@ -419,11 +425,18 @@ func (r *ResourceManager) GetJob(id string) (*model.Job, error) {
 }
 
 func (r *ResourceManager) CreateJob(apiJob *api.Job) (*model.Job, error) {
-	// Get workflow from pipeline spec, which might be pipeline ID or an argo workflow
+	// Get workflow from either of the two places:
+	// (1) raw pipeline manifest in pipeline_spec
+	// (2) pipeline version in resource_references
+	var workflowSpecManifestBytes []byte
 	workflowSpecManifestBytes, err := r.getWorkflowSpecBytes(apiJob.GetPipelineSpec())
 	if err != nil {
-		return nil, util.Wrap(err, "Failed to fetch workflow spec.")
+		workflowSpecManifestBytes, err = r.getWorkflowSpecBytesFromPipelineVersion(apiJob.GetResourceReferences())
+		if err != nil {
+			return nil, util.Wrap(err, "Failed to fetch workflow spec.")
+		}
 	}
+
 	var workflow util.Workflow
 	err = json.Unmarshal(workflowSpecManifestBytes, &workflow)
 	if err != nil {
@@ -432,7 +445,7 @@ func (r *ResourceManager) CreateJob(apiJob *api.Job) (*model.Job, error) {
 	}
 
 	// Verify no additional parameter provided
-	err = workflow.VerifyParameters(toParametersMap(apiJob.PipelineSpec.Parameters))
+	err = workflow.VerifyParameters(toParametersMap(apiJob.GetPipelineSpec().GetParameters()))
 	if err != nil {
 		return nil, util.Wrap(err, "Create job failed")
 	}
@@ -451,7 +464,7 @@ func (r *ResourceManager) CreateJob(apiJob *api.Job) (*model.Job, error) {
 			MaxConcurrency: &apiJob.MaxConcurrency,
 			Trigger:        *toCRDTrigger(apiJob.Trigger),
 			Workflow: &scheduledworkflow.WorkflowResource{
-				Parameters: toCRDParameter(apiJob.PipelineSpec.Parameters),
+				Parameters: toCRDParameter(apiJob.GetPipelineSpec().GetParameters()),
 				Spec:       workflow.Spec,
 			},
 		},
@@ -462,12 +475,12 @@ func (r *ResourceManager) CreateJob(apiJob *api.Job) (*model.Job, error) {
 	}
 
 	// Add a reference to the default experiment if run does not already have a containing experiment
-	ref, err := r.getDefaultExperimentIfNoExperiment(apiJob.ResourceReferences)
+	ref, err := r.getDefaultExperimentIfNoExperiment(apiJob.GetResourceReferences())
 	if err != nil {
 		return nil, err
 	}
 	if ref != nil {
-		apiJob.ResourceReferences = append(apiJob.ResourceReferences, ref)
+		apiJob.ResourceReferences = append(apiJob.GetResourceReferences(), ref)
 	}
 
 	job, err := r.ToModelJob(apiJob, util.NewScheduledWorkflow(newScheduledWorkflow), string(workflowSpecManifestBytes))
@@ -666,6 +679,8 @@ func (r *ResourceManager) checkRunExist(runID string) (*model.RunDetail, error) 
 }
 
 func (r *ResourceManager) getWorkflowSpecBytes(spec *api.PipelineSpec) ([]byte, error) {
+	// TODO(jingzhang36): after FE is enabled to use pipeline version to create
+	// run, we'll only check for the raw manifest in pipeline_spec.
 	if spec.GetPipelineId() != "" {
 		var workflow util.Workflow
 		err := r.objectStore.GetFromYamlFile(&workflow, storage.CreatePipelinePath(spec.GetPipelineId()))
@@ -678,6 +693,25 @@ func (r *ResourceManager) getWorkflowSpecBytes(spec *api.PipelineSpec) ([]byte, 
 		return []byte(spec.GetWorkflowManifest()), nil
 	}
 	return nil, util.NewInvalidInputError("Please provide a valid pipeline spec")
+}
+
+func (r *ResourceManager) getWorkflowSpecBytesFromPipelineVersion(references []*api.ResourceReference) ([]byte, error) {
+	var pipelineVersionId = ""
+	for _, reference := range references {
+		if reference.Key.Type == api.ResourceType_PIPELINE_VERSION && reference.Relationship == api.Relationship_CREATOR {
+			pipelineVersionId = reference.Key.Id
+		}
+	}
+	if len(pipelineVersionId) == 0 {
+		return nil, util.NewInvalidInputError("No pipeline version.")
+	}
+	var workflow util.Workflow
+	err := r.objectStore.GetFromYamlFile(&workflow, storage.CreatePipelinePath(pipelineVersionId))
+	if err != nil {
+		return nil, util.Wrap(err, "Get pipeline YAML failed.")
+	}
+
+	return []byte(workflow.ToStringForStore()), nil
 }
 
 // Used to initialize the Experiment database with a default to be used for runs
@@ -873,4 +907,19 @@ func (r *ResourceManager) DeletePipelineVersion(pipelineVersionId string) error 
 	}
 
 	return nil
+}
+
+func (r *ResourceManager) GetPipelineVersionTemplate(versionId string) ([]byte, error) {
+	// Verify pipeline version exist
+	_, err := r.pipelineStore.GetPipelineVersion(versionId)
+	if err != nil {
+		return nil, util.Wrap(err, "Get pipeline version template failed")
+	}
+
+	template, err := r.objectStore.GetFile(storage.CreatePipelinePath(fmt.Sprint(versionId)))
+	if err != nil {
+		return nil, util.Wrap(err, "Get pipeline version template failed")
+	}
+
+	return template, nil
 }
