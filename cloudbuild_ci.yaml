@@ -33,7 +33,7 @@ steps:
     id: "UploadPipeline"
     waitFor: ["PackagePipeline"]
   - name: "gcr.io/jingzhangjz-experiment/ubuntu-curl"
-    args: ["bash", "./curl.bash", "$COMMIT_SHA", "$_PIPELINE_ID"]
+    args: ["bash", "./curl.bash", "$COMMIT_SHA", "$_PIPELINE_ID", "$_EXPERIMENT_ID"]
     id: "CreatePipelineVersionAndRun"
 images:
   - "gcr.io/jingzhangjz-experiment/helloworld-ci:$COMMIT_SHA"
@@ -43,4 +43,4 @@ substitutions:
   _CODE_PATH: /workspace/experiment/ci/hello-world
   _NAMESPACE: kubeflow
   _PIPELINE_ID: 82766fb8-c7fb-4793-b7eb-34384daf5bcc
-  _EXPERIMENT_NAME: helloworldexp
+  _EXPERIMENT_ID: a02aa236-645c-46f3-a65e-84f82cb9b20d
