@@ -146,7 +146,7 @@ message ListPipelinesRequest {
   // Ascending by default.
   string sort_by = 3;
 
-  // A base-64 encoded, JSON-serialized Filter protocol buffer (see
+  // A url-encoded, JSON-serialized Filter protocol buffer (see
   // filter.proto).
   string filter = 4;
 }
@@ -169,7 +169,7 @@ message GetTemplateResponse {
   string template = 1;
 }
 
-message GetPipelineVersionTemplateRequest{
+message GetPipelineVersionTemplateRequest {
   string version_id = 1;
 }
 
@@ -242,7 +242,6 @@ message Pipeline {
   // Output only. The default version of the pipeline. As of now, the latest
   // version is used as default. (In the future, if desired by customers, we
   // can allow them to set default version.)
-  // TODO(jingzhang36): expose this in API pipeline definition with FE changes.
   PipelineVersion default_version = 8;
 }
 

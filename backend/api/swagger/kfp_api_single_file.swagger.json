@@ -78,7 +78,7 @@
           },
           {
             "name": "filter",
-            "description": "A base-64 encoded, JSON-serialized Filter protocol buffer (see\nfilter.proto).",
+            "description": "A url-encoded, JSON-serialized Filter protocol buffer (see\nfilter.proto).",
             "in": "query",
             "required": false,
             "type": "string"
@@ -346,7 +346,7 @@
     },
     "/apis/v1beta1/runs/{run_id}:reportMetrics": {
       "post": {
-        "summary": "ReportRunMetrics reports metrics of a run. Each metric is reported in its\nown transaction, so this API accepts partial failures. Metric can be uniquely\nidentified by (run_id, node_id, name). Duplicate reporting will be\nignored by the API. First reporting wins.",
+        "summary": "ReportRunMetrics reports metrics of a run. Each metric is reported in its\nown transaction, so this API accepts partial failures. Metric can be\nuniquely identified by (run_id, node_id, name). Duplicate reporting will be\nignored by the API. First reporting wins.",
         "operationId": "ReportRunMetrics",
         "responses": {
           "200": {
@@ -446,7 +446,7 @@
           },
           {
             "name": "filter",
-            "description": "A base-64 encoded, JSON-serialized Filter protocol buffer (see\nfilter.proto).",
+            "description": "A url-encoded, JSON-serialized Filter protocol buffer (see\nfilter.proto).",
             "in": "query",
             "required": false,
             "type": "string"
@@ -772,6 +772,36 @@
         ]
       }
     },
+    "/apis/v1beta1/pipeline_versions/{version_id}/templates": {
+      "get": {
+        "operationId": "GetPipelineVersionTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiGetTemplateResponse"
+            }
+          },
+          "default": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/apiStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PipelineService"
+        ]
+      }
+    },
     "/apis/v1beta1/pipelines": {
       "get": {
         "operationId": "ListPipelines",
@@ -812,7 +842,7 @@
           },
           {
             "name": "filter",
-            "description": "A base-64 encoded, JSON-serialized Filter protocol buffer (see\nfilter.proto).",
+            "description": "A url-encoded, JSON-serialized Filter protocol buffer (see\nfilter.proto).",
             "in": "query",
             "required": false,
             "type": "string"
@@ -981,7 +1011,7 @@
           },
           {
             "name": "filter",
-            "description": "A base-64 encoded, JSON-serialized Filter protocol buffer (see\nfilter.proto).",
+            "description": "A url-encoded, JSON-serialized Filter protocol buffer (see\nfilter.proto).",
             "in": "query",
             "required": false,
             "type": "string"
@@ -1412,11 +1442,11 @@
       "properties": {
         "name": {
           "type": "string",
-          "description": "Required. The user defined name of the metric. It must between 1 and 63 characters\nlong and must conform to the following regular expression:\n`[a-z]([-a-z0-9]*[a-z0-9])?`."
+          "description": "Required. The user defined name of the metric. It must between 1 and 63\ncharacters long and must conform to the following regular expression:\n`[a-z]([-a-z0-9]*[a-z0-9])?`."
         },
         "node_id": {
           "type": "string",
-          "description": "Required. The runtime node ID which reports the metric. The node ID can be found in\nthe RunDetail.workflow.Status. Metric with same (node_id, name)\nare considerd as duplicate. Only the first reporting will be recorded. Max length is 128."
+          "description": "Required. The runtime node ID which reports the metric. The node ID can be\nfound in the RunDetail.workflow.Status. Metric with same (node_id, name)\nare considerd as duplicate. Only the first reporting will be recorded. Max\nlength is 128."
         },
         "number_value": {
           "type": "number",
@@ -1487,7 +1517,7 @@
         },
         "cron": {
           "type": "string",
-          "title": "The cron string. For details how to compose a cron, visit ttps://en.wikipedia.org/wiki/Cron"
+          "title": "The cron string. For details how to compose a cron, visit\nttps://en.wikipedia.org/wiki/Cron"
         }
       },
       "title": "CronSchedule allow scheduling the job with unix-like cron"
@@ -1688,7 +1718,7 @@
         },
         "default_version": {
           "$ref": "#/definitions/apiPipelineVersion",
-          "description": "Output only. The default version of the pipeline. As of now, the latest\nversion is used as default. (In the future, if desired by customers, we\ncan allow them to set default version.)\nTODO(jingzhang36): expose this in API pipeline definition with FE changes.",
+          "title": "Output only. The default version of the pipeline. As of now, the latest\nversion is used as default. (In the future, if desired by customers, we\ncan allow them to set default version.)",
           "readOnly": true
         }
       }

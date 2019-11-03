@@ -40,7 +40,6 @@ type APIPipeline struct {
 	// Output only. The default version of the pipeline. As of now, the latest
 	// version is used as default. (In the future, if desired by customers, we
 	// can allow them to set default version.)
-	// TODO(jingzhang36): expose this in API pipeline definition with FE changes.
 	// Read Only: true
 	DefaultVersion *APIPipelineVersion `json:"default_version,omitempty"`
 

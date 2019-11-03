@@ -47,7 +47,7 @@ import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 
-import { Descriptoin } from '../components/Description';
+import { Description } from '../components/Description';
 
 interface PipelineDetailsState {
   graph: dagre.graphlib.Graph | null;
@@ -240,7 +240,11 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
                         <div className={css.summaryKey}>Uploaded on</div>
                         <div>{formatDateString(pipeline.created_at)}</div>
                         <div className={css.summaryKey}>Description</div>
+<<<<<<< HEAD
                         <div>{pipeline.description}</div>
+=======
+                        <Description description={pipeline.description || ''} />
+>>>>>>> origin/master
                       </Paper>
                     )}
 
