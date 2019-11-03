@@ -6,6 +6,6 @@ version=$(curl -H "Content-Type: application/json" -X POST -d "$data" http://34.
 echo "$version"
 
 # create run
-rundata='{"name":'\""$1-run"\"', "resource_references": [{"key": {"id": '\""$version"\"', "type":4}, "relationship":2}, {"key": {"id": "52e9cbbd-1670-4486-967f-ff1577f3f9b1", "type":1}, "relationship": 1}]}'
+rundata='{"name":'\""$1-run"\"', "resource_references": [{"key": {"id": '\""$version"\"', "type":4}, "relationship":2}, {"key": {"id": '\""$3"\"', "type":1}, "relationship": 1}]}'
 echo "$rundata"
 curl -H "Content-Type: application/json" -X POST -d "$rundata" http://34.66.193.222:8888/apis/v1beta1/runs
