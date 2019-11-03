@@ -33,16 +33,12 @@ import { ToolbarProps } from '../components/Toolbar';
 import { classes } from 'typestyle';
 import { commonCss, padding } from '../Css';
 import { formatDateString, errorToMessage } from '../lib/Utils';
-<<<<<<< HEAD
-import { Descriptoin } from '../components/Description';
+import { Description } from '../components/Description';
 import produce from 'immer';
 
 interface DisplayPipeline extends ApiPipeline {
   expandState?: ExpandState;
 }
-=======
-import { Description } from '../components/Description';
->>>>>>> origin/master
 
 interface PipelineListState {
   displayPipelines: DisplayPipeline[];
