@@ -42,12 +42,11 @@ import 'brace';
 import 'brace/ext/language_tools';
 import 'brace/mode/yaml';
 import 'brace/theme/github';
+// import { Descriptoin } from '../components/Description';
 import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-
-import { Description } from '../components/Description';
 
 interface PipelineDetailsState {
   graph: dagre.graphlib.Graph | null;
@@ -114,11 +113,13 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     super(props);
 
     this.state = {
+      graph: null,
       pipeline: null,
       selectedNodeId: '',
       selectedNodeInfo: null,
       selectedTab: 0,
       summaryShown: true,
+      versions: [],
     };
   }
 
@@ -208,6 +209,8 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
                             Hide
                           </Button>
                         </div>
+                        <div className={css.summaryKey}>ID</div>
+                        <div>{pipeline.id || 'Unable to obtain Pipeline ID'}</div>
                         {versions.length && (
                           <React.Fragment>
                             <form autoComplete='off'>
@@ -240,11 +243,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
                         <div className={css.summaryKey}>Uploaded on</div>
                         <div>{formatDateString(pipeline.created_at)}</div>
                         <div className={css.summaryKey}>Description</div>
-<<<<<<< HEAD
                         <div>{pipeline.description}</div>
-=======
-                        <Description description={pipeline.description || ''} />
->>>>>>> origin/master
                       </Paper>
                     )}
 
@@ -351,6 +350,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     let pipeline: ApiPipeline | null = null;
     let version: ApiPipelineVersion | null = null;
     let templateString = '';
+    let template: Workflow | undefined;
     let breadcrumbs: Array<{ displayName: string; href: string }> = [];
     const toolbarActions = this.props.toolbarProps.actions;
     let pageTitle = '';
@@ -359,7 +359,6 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
 
     // If fromRunId is specified, load the run and get the pipeline template from it
     if (fromRunId) {
-      console.log('JING 1');
       try {
         const runDetails = await Apis.runServiceApi.getRun(fromRunId);
 
@@ -420,15 +419,11 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
         logger.error('Cannot retrieve run details.', err);
       }
     } else {
-      console.log('JING 2');
       // if fromRunId is not specified, then we have a full pipeline
       const pipelineId = this.props.match.params[RouteParams.pipelineId];
-      console.log('JING pipeline id:' + pipelineId);
-      // let templateResponse: ApiGetTemplateResponse;
 
       try {
         pipeline = await Apis.pipelineServiceApi.getPipeline(pipelineId);
-        pageTitle = pipeline.name!;
       } catch (err) {
         await this.showPageError('Cannot retrieve pipeline details.', err);
         logger.error('Cannot retrieve pipeline details.', err);
@@ -436,29 +431,26 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
       }
 
       const versionId = this.props.match.params[RouteParams.pipelineVersionId];
-      console.log('JING pipeline version id:' + versionId);
 
       try {
-        // templateResponse = await Apis.pipelineServiceApi.getTemplate(pipelineId);
-        // templateString = templateResponse.template || '';
         // TODO(rjbauer): it's possible we might not have a version, even default
         if (versionId) {
           version = await Apis.pipelineServiceApi.getPipelineVersion(versionId);
         }
       } catch (err) {
-        // await this.showPageError('Cannot retrieve pipeline template.', err);
-        // logger.error('Cannot retrieve pipeline details.', err);
         await this.showPageError('Cannot retrieve pipeline version.', err);
         logger.error('Cannot retrieve pipeline version.', err);
         return;
       }
 
-      console.log('JING default version: ' + JSON.stringify(pipeline.default_version));
       selectedVersion = versionId ? version! : pipeline.default_version;
-      console.log('JING selected version: ' + selectedVersion);
+      pageTitle = pipeline.name!.concat(" (", selectedVersion!.name!, ")");
 
       try {
-        versions = (await Apis.pipelineServiceApi.listPipelineVersions(pipelineId)).versions || [];
+        versions =
+          (await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE_VERSION', pipelineId, 50))
+            .versions || [];
+        console.log("versions length: " + versions.length);
       } catch (err) {
         await this.showPageError('Cannot retrieve pipeline versions.', err);
         logger.error('Cannot retrieve pipeline versions.', err);
@@ -471,19 +463,17 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
 
     this.props.updateToolbar({ breadcrumbs, actions: toolbarActions, pageTitle });
 
-    // let g: dagre.graphlib.Graph | undefined;
-    // try {
-    //     template = JsYaml.safeLoad(templateString);
-    //     g = StaticGraphParser.createGraph(template!);
-    // } catch (err) {
-    //     await this.showPageError('Error: failed to generate Pipeline graph.', err);
-    // }
+    let g: dagre.graphlib.Graph | undefined;
+    try {
+      template = JsYaml.safeLoad(templateString);
+      g = StaticGraphParser.createGraph(template!);
+    } catch (err) {
+      await this.showPageError('Error: failed to generate Pipeline graph.', err);
+    }
 
     this.setStateSafe({
-      // graph: g,
       graph: await this._createGraph(templateString),
       pipeline,
-      // template,
       selectedVersion,
       templateString,
       versions,
@@ -522,10 +512,6 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
   }
 
   private _createVersionUrl(): string {
-    // TODO(rjbauer): verify how much we can assume to always be defined here.
-    // const source = this.state.selectedVersion!.code_source!;
-    // TODO(rjbauer): handle non-github cases
-    // const repoParts = source.repo_name!.split('_');
     return this.state.selectedVersion!.code_source_url!;
   }
 

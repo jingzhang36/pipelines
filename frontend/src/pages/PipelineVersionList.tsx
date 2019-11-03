@@ -125,8 +125,8 @@ class PipelineVersionList extends React.PureComponent<
       try {
         console.log(this.props.pipelineId);
         const response = await Apis.pipelineServiceApi.listPipelineVersions(
-          this.props.pipelineId,
           'PIPELINE_VERSION',
+          this.props.pipelineId,
         );
         versions = (response.versions || []).sort((a, b) => {
           if (!b.created_at) {

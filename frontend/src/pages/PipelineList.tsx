@@ -95,7 +95,7 @@ class PipelineList extends Page<{}, PipelineListState> {
       { label: 'Uploaded on', sortKey: PipelineSortKeys.CREATED_AT, flex: 1 },
     ];
 
-    const rows: Row[] = this.state.pipelines.map(p => {
+    const rows: Row[] = this.state.displayPipelines.map(p => {
       return {
         expandState: p.expandState,
         id: p.id!,
