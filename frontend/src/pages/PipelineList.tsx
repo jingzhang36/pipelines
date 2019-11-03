@@ -33,12 +33,12 @@ import { ToolbarProps } from '../components/Toolbar';
 import { classes } from 'typestyle';
 import { commonCss, padding } from '../Css';
 import { formatDateString, errorToMessage } from '../lib/Utils';
+import { Description } from '../components/Description';
 import produce from 'immer';
 
 interface DisplayPipeline extends ApiPipeline {
   expandState?: ExpandState;
 }
-import { Description } from '../components/Description';
 
 interface PipelineListState {
   displayPipelines: DisplayPipeline[];
@@ -113,6 +113,8 @@ class PipelineList extends Page<{}, PipelineListState> {
           updateSelection={this._selectionChanged.bind(this)}
           selectedIds={this.state.selectedIds}
           reload={this._reload.bind(this)}
+          toggleExpansion={this._toggleRowExpand.bind(this)}
+          getExpandComponent={this._getExpandedPipelineComponent.bind(this)}
           filterLabel='Filter pipelines'
           emptyMessage='No pipelines found. Click "Upload pipeline" to start.'
         />
@@ -152,16 +154,17 @@ class PipelineList extends Page<{}, PipelineListState> {
         selectedIds={this.state.selectedIds}
         noFilterBox={true}
         onSelectionChange={this._selectionChanged.bind(this)}
-        disableSorting={true}
-        disablePaging={true}
+        disableSorting={false}
+        disablePaging={false}
       />
     );
   }
 
   private async _reload(request: ListRequest): Promise<string> {
-    let displayPipelines: DisplayPipeline[];
     let response: ApiListPipelinesResponse | null = null;
+    let displayPipelines: DisplayPipeline[];
     try {
+      console.log('list pipeline request: ' + JSON.stringify(request));
       response = await Apis.pipelineServiceApi.listPipelines(
         request.pageToken,
         request.pageSize,
