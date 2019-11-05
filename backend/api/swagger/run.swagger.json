@@ -587,12 +587,8 @@
         "UNKNOWN_RESOURCE_TYPE",
         "EXPERIMENT",
         "JOB",
-<<<<<<< HEAD
         "PIPELINE",
         "PIPELINE_VERSION"
-=======
-        "PIPELINE"
->>>>>>> origin/master
       ],
       "default": "UNKNOWN_RESOURCE_TYPE"
     },

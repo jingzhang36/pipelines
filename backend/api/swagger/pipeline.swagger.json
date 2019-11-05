@@ -470,7 +470,7 @@
         },
         "default_version": {
           "$ref": "#/definitions/apiPipelineVersion",
-          "description": "Output only. The default version of the pipeline. As of now, the latest\nversion is used as default. (In the future, if desired by customers, we\ncan allow them to set default version.)\nTODO(jingzhang36): expose this in API pipeline definition with FE changes.",
+          "title": "Output only. The default version of the pipeline. As of now, the latest\nversion is used as default. (In the future, if desired by customers, we\ncan allow them to set default version.)",
           "readOnly": true
         }
       }
