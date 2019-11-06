@@ -17,17 +17,31 @@
 import * as React from 'react';
 import BusyButton from '../atoms/BusyButton';
 import Button from '@material-ui/core/Button';
+import Buttons from '../lib/Buttons';
 import Input from '../atoms/Input';
-import { ApiPipelineVersion } from '../apis/pipeline';
-import { Apis } from '../lib/Apis';
 import { Page } from './Page';
 import { RoutePage, QUERY_PARAMS } from '../components/Router';
 import { TextFieldProps } from '@material-ui/core/TextField';
 import { ToolbarProps } from '../components/Toolbar';
 import { URLParser } from '../lib/URLParser';
 import { classes, stylesheet } from 'typestyle';
-import { commonCss, padding, fontsize } from '../Css';
+import { commonCss, padding, color, fontsize } from '../Css';
 import { logger, errorToMessage } from '../lib/Utils';
+import ResourceSelector from './ResourceSelector';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import {
+  ApiRun,
+  ApiResourceReference,
+  ApiRelationship,
+  ApiResourceType,
+  ApiRunDetail,
+  ApiPipelineRuntime,
+} from '../apis/run';
+import { Apis, PipelineSortKeys } from '../lib/Apis';
+import { ApiPipeline, ApiParameter, ApiPipelineVersion } from '../apis/pipeline';
 
 interface NewPipelineVersionState {
   description: string;
@@ -36,13 +50,24 @@ interface NewPipelineVersionState {
   pipelineVersionName: string;
   pipelineId?: string;
   pipelineName?: string;
+  pipeline?: ApiPipeline;
+  errorMessage: string;
+
+  // For pipeline selector
+  pipelineSelectorOpen: boolean;
+  unconfirmedSelectedPipeline?: ApiPipeline;
 }
 
 const css = stylesheet({
-  errorMessage: {
-    color: 'red',
+  nonEditableInput: {
+    color: color.secondaryText,
   },
-  // TODO: move to Css.tsx and probably rename.
+  selectorDialog: {
+    // If screen is small, use calc(100% - 120px). If screen is big, use 1200px.
+    maxWidth: 1200, // override default maxWidth to expand this dialog further
+    minWidth: 680,
+    width: 'calc(100% - 120px)',
+  },
   explanation: {
     fontSize: fontsize.small,
   },
@@ -51,6 +76,12 @@ const css = stylesheet({
 class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   private _pipelineVersionNameRef = React.createRef<HTMLInputElement>();
   private _pipelineNameRef = React.createRef<HTMLInputElement>();
+
+  private pipelineSelectorColumns = [
+    { label: 'Pipeline name', flex: 1, sortKey: PipelineSortKeys.NAME },
+    { label: 'Description', flex: 2, customRenderer: descriptionCustomRenderer },
+    { label: 'Uploaded on', flex: 1, sortKey: PipelineSortKeys.CREATED_AT },
+  ];
 
   constructor(props: any) {
     super(props);
@@ -62,6 +93,8 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       pipelineName: '',
       isbeingCreated: false,
       validationError: '',
+      pipelineSelectorOpen: false,
+      errorMessage: '',
     };
   }
 
@@ -76,6 +109,8 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   public render(): JSX.Element {
     const { description, pipelineVersionName, pipelineId, pipelineName, isbeingCreated, validationError } = this.state;
 
+    const buttons = new Buttons(this.props, this.refresh.bind(this));
+
     return (
       <div className={classes(commonCss.page, padding(20, 'lr'))}>
         <div className={classes(commonCss.scrollContainer, padding(20, 'lr'))}>
@@ -84,16 +119,84 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
           <div className={css.explanation}>
             TODO
           </div>
+
+          {/* Pipeline input */}
           <Input
-            id='pipelineName'
-            label='Pipeline name'
-            inputRef={this._pipelineNameRef}
-            required={true}
-            onChange={this.handleChange('pipelineName')}
-            value={pipelineName}
-            autoFocus={true}
-            variant='outlined'
+              value={pipelineName}
+              required={true}
+              label='Pipeline'
+              disabled={true}
+              variant='outlined'
+              inputRef={this._pipelineNameRef}
+              onChange={this.handleChange('pipelineName')}
+              autoFocus={true}
+              InputProps={{
+                classes: { disabled: css.nonEditableInput },
+                endAdornment: (
+                  <InputAdornment position='end'>
+                    <Button
+                      color='secondary'
+                      id='choosePipelineBtn'
+                      onClick={() => this.setStateSafe({ pipelineSelectorOpen: true })}
+                      style={{ padding: '3px 5px', margin: 0 }}
+                    >
+                      Choose
+                    </Button>
+                  </InputAdornment>
+                ),
+                readOnly: true,
+              }}
           />
+          <Dialog
+            open={pipelineSelectorOpen}
+            classes={{ paper: css.selectorDialog }}
+            onClose={() => this._pipelineSelectorClosed(false)}
+            PaperProps={{ id: 'pipelineSelectorDialog' }}
+          >
+            <DialogContent>
+              <ResourceSelector
+                {...this.props}
+                title='Choose a pipeline'
+                filterLabel='Filter pipelines'
+                listApi={async (...args) => {
+                  const response = await Apis.pipelineServiceApi.listPipelines(...args);
+                  return {
+                    nextPageToken: response.next_page_token || '',
+                    resources: response.pipelines || [],
+                  };
+                }}
+                columns={this.pipelineSelectorColumns}
+                emptyMessage='No pipelines found. Upload a pipeline and then try again.'
+                initialSortColumn={PipelineSortKeys.CREATED_AT}
+                selectionChanged={(selectedPipeline: ApiPipeline) =>
+                  this.setStateSafe({ unconfirmedSelectedPipeline: selectedPipeline })
+                }
+                toolbarActionMap={buttons
+                  .upload(() =>
+                    this.setStateSafe({ pipelineSelectorOpen: false }),
+                  )
+                  .getToolbarActionMap()}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button
+                id='cancelPipelineSelectionBtn'
+                onClick={() => this._pipelineSelectorClosed(false)}
+                color='secondary'
+              >
+                Cancel
+              </Button>
+              <Button
+                id='usePipelineBtn'
+                onClick={() => this._pipelineSelectorClosed(true)}
+                color='secondary'
+                disabled={!unconfirmedSelectedPipeline}
+              >
+                Use this pipeline
+              </Button>
+            </DialogActions>
+          </Dialog>
+
           <Input
             id='pipelineVersionName'
             label='Pipeline Version name'
@@ -154,6 +257,22 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     const value = (event.target as TextFieldProps).value;
     this.setState({ [name]: value } as any, this._validate.bind(this));
   };
+
+  protected async _pipelineSelectorClosed(confirmed: boolean): Promise<void> {
+    let { pipeline } = this.state;
+    if (confirmed && this.state.unconfirmedSelectedPipeline) {
+      pipeline = this.state.unconfirmedSelectedPipeline;
+    }
+
+    this.setStateSafe(
+      {
+        pipeline,
+        pipelineName: (pipeline && pipeline.name) || '',
+        pipelineSelectorOpen: false,
+      },
+      () => this._validate(),
+    );
+  }
 
   private _create(): void {
     const newPipelineVersion: ApiPipelineVersion = {
