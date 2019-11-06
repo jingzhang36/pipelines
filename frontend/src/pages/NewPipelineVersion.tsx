@@ -42,6 +42,8 @@ import {
 } from '../apis/run';
 import { Apis, PipelineSortKeys } from '../lib/Apis';
 import { ApiPipeline, ApiParameter, ApiPipelineVersion } from '../apis/pipeline';
+import { CustomRendererProps } from '../components/CustomTable';
+import { Description } from '../components/Description';
 
 interface NewPipelineVersionState {
   description: string;
@@ -72,6 +74,10 @@ const css = stylesheet({
     fontSize: fontsize.small,
   },
 });
+
+const descriptionCustomRenderer: React.FC<CustomRendererProps<string>> = props => {
+  return <Description description={props.value || ''} forceInline={true} />;
+};
 
 class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   private _pipelineVersionNameRef = React.createRef<HTMLInputElement>();
@@ -107,7 +113,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   }
 
   public render(): JSX.Element {
-    const { description, pipelineVersionName, pipelineId, pipelineName, isbeingCreated, validationError } = this.state;
+    const { description, pipelineVersionName, pipelineId, pipelineName, isbeingCreated, validationError, pipelineSelectorOpen, unconfirmedSelectedPipeline } = this.state;
 
     const buttons = new Buttons(this.props, this.refresh.bind(this));
 
