@@ -20,7 +20,7 @@ import Button from '@material-ui/core/Button';
 import Buttons from '../lib/Buttons';
 import Input from '../atoms/Input';
 import { Page } from './Page';
-import { RoutePage, QUERY_PARAMS } from '../components/Router';
+import { RoutePage, QUERY_PARAMS, RouteParams } from '../components/Router';
 import { TextFieldProps } from '@material-ui/core/TextField';
 import { ToolbarProps } from '../components/Toolbar';
 import { URLParser } from '../lib/URLParser';
@@ -41,12 +41,11 @@ import {
   ApiPipelineRuntime,
 } from '../apis/run';
 import { Apis, PipelineSortKeys } from '../lib/Apis';
-import { ApiPipeline, ApiParameter, ApiPipelineVersion } from '../apis/pipeline';
+import { ApiPipeline, ApiParameter, ApiPipelineVersion, ApiUrl } from '../apis/pipeline';
 import { CustomRendererProps } from '../components/CustomTable';
 import { Description } from '../components/Description';
 
 interface NewPipelineVersionState {
-  description: string;
   validationError: string;
   isbeingCreated: boolean;
   pipelineVersionName: string;
@@ -54,6 +53,8 @@ interface NewPipelineVersionState {
   pipelineName?: string;
   pipeline?: ApiPipeline;
   errorMessage: string;
+  packageUrl: string;
+  codeSourceUrl: string;
 
   // For pipeline selector
   pipelineSelectorOpen: boolean;
@@ -72,6 +73,9 @@ const css = stylesheet({
   },
   explanation: {
     fontSize: fontsize.small,
+  },
+  errorMessage: {
+    color: 'red',
   },
 });
 
@@ -93,7 +97,6 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     super(props);
 
     this.state = {
-      description: '',
       pipelineVersionName: '',
       pipelineId: '',
       pipelineName: '',
@@ -101,6 +104,8 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       validationError: '',
       pipelineSelectorOpen: false,
       errorMessage: '',
+      packageUrl: '',
+      codeSourceUrl: '',
     };
   }
 
@@ -113,7 +118,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   }
 
   public render(): JSX.Element {
-    const { description, pipelineVersionName, pipelineId, pipelineName, isbeingCreated, validationError, pipelineSelectorOpen, unconfirmedSelectedPipeline } = this.state;
+    const { pipelineVersionName, packageUrl, pipelineName, isbeingCreated, validationError, pipelineSelectorOpen, unconfirmedSelectedPipeline, errorMessage, codeSourceUrl } = this.state;
 
     const buttons = new Buttons(this.props, this.refresh.bind(this));
 
@@ -126,7 +131,19 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
             TODO
           </div>
 
-          {/* Pipeline input */}
+          {/* Set pipeline version name */}
+          <Input
+            id='pipelineVersionName'
+            label='Pipeline Version name'
+            inputRef={this._pipelineVersionNameRef}
+            required={true}
+            onChange={this.handleChange('pipelineVersionName')}
+            value={pipelineVersionName}
+            autoFocus={true}
+            variant='outlined'
+          />
+
+          {/* Select pipeline */}
           <Input
               value={pipelineName}
               required={true}
@@ -203,32 +220,44 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
             </DialogActions>
           </Dialog>
 
+          {/* Fill pipeline package url */}
           <Input
-            id='pipelineVersionName'
-            label='Pipeline Version name'
-            inputRef={this._pipelineVersionNameRef}
-            required={true}
-            onChange={this.handleChange('pipelineVersionName')}
-            value={pipelineVersionName}
-            autoFocus={true}
+            id='pipelineVersionDescription'
+            label='Package Url'
+            multiline={true}
+            onChange={this.handleChange('packageUrl')}
+            value={packageUrl}
             variant='outlined'
           />
-          <Input
+
+          {/* Fill pipeline version description */}
+          {/* <Input
             id='pipelineVersionDescription'
             label='Description (optional)'
             multiline={true}
             onChange={this.handleChange('description')}
             value={description}
             variant='outlined'
+          /> */}
+
+          {/* Fill pipeline version code source url */}
+          <Input
+            id='pipelineVersionCodeSource'
+            label='Code Source (optional)'
+            multiline={true}
+            onChange={this.handleChange('codeSourceUrl')}
+            value={codeSourceUrl}
+            variant='outlined'
           />
 
+          {/* Create pipeline version */}
           <div className={commonCss.flex}>
             <BusyButton
               id='createPipelineVersionBtn'
               disabled={!!validationError}
               busy={isbeingCreated}
               className={commonCss.buttonAction}
-              title={'Next'}
+              title={'Create'}
               onClick={this._create.bind(this)}
             />
             <Button
@@ -270,9 +299,13 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       pipeline = this.state.unconfirmedSelectedPipeline;
     }
 
+    console.log('JING ' + JSON.stringify(pipeline))
+    console.log('JING ' + JSON.stringify(pipeline!.name))
+
     this.setStateSafe(
       {
         pipeline,
+        pipelineId: (pipeline && pipeline.id) || '',
         pipelineName: (pipeline && pipeline.name) || '',
         pipelineSelectorOpen: false,
       },
@@ -283,27 +316,15 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   private _create(): void {
     const newPipelineVersion: ApiPipelineVersion = {
       name: this.state.pipelineVersionName,
-      // code_source_url:
-      // resource_references
+      package_url: { pipeline_url: this.state.packageUrl },
+      code_source_url: this.state.codeSourceUrl,
+      resource_references: [{ key: { id: this.state.pipelineId!, type: ApiResourceType.PIPELINE }, relationship: 1 }],
     };
 
     this.setState({ isbeingCreated: true }, async () => {
       try {
         const response = await Apis.pipelineServiceApi.createPipelineVersion(newPipelineVersion);
-        // let searchString = '';
-        // if (this.state.pipelineId) {
-        //   searchString = new URLParser(this.props).build({
-        //     [QUERY_PARAMS.experimentId]: response.id || '',
-        //     [QUERY_PARAMS.pipelineId]: this.state.pipelineId,
-        //     [QUERY_PARAMS.firstRunInExperiment]: '1',
-        //   });
-        // } else {
-        //   searchString = new URLParser(this.props).build({
-        //     [QUERY_PARAMS.experimentId]: response.id || '',
-        //     [QUERY_PARAMS.firstRunInExperiment]: '1',
-        //   });
-        // }
-        this.props.history.push(RoutePage.PIPELINE_DETAILS + this.state.pipelineId + '/version/' + response.id);
+        this.props.history.push(RoutePage.PIPELINE_DETAILS.replace(`:${RouteParams.pipelineId}`, this.state.pipelineId!).replace(`:${RouteParams.pipelineVersionId}`, response.id!));
         this.props.updateSnackbar({
           autoHideDuration: 10000,
           message: `Successfully created new pipeline version: ${newPipelineVersion.name}`,
@@ -320,10 +341,16 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
 
   private _validate(): void {
     // Validate state
-    const { pipelineVersionName } = this.state;
+    const { pipeline, pipelineVersionName, packageUrl } = this.state;
     try {
       if (!pipelineVersionName) {
         throw new Error('Pipeline version name is required');
+      }
+      if (!pipeline) {
+        throw new Error('Pipeline is required');
+      }
+      if (!packageUrl) {
+        throw new Error('Please specify a pipeline package in .yaml, .zip, or .tar.gz');
       }
       this.setState({ validationError: '' });
     } catch (err) {

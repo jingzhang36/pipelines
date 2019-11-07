@@ -146,15 +146,18 @@ export default class Buttons {
 
   public delete(
     getSelectedIds: () => string[],
-    resourceName: 'pipeline' | 'recurring run config',
+    resourceName: 'pipeline' | 'recurring run config' | 'pipeline version',
     callback: (selectedIds: string[], success: boolean) => void,
     useCurrentResource: boolean,
   ): Buttons {
+    console.log('JING delete ids: ' + JSON.stringify(getSelectedIds));
     this._map[ButtonKeys.DELETE_RUN] = {
       action: () =>
         resourceName === 'pipeline'
           ? this._deletePipeline(getSelectedIds(), useCurrentResource, callback)
-          : this._deleteRecurringRun(getSelectedIds()[0], useCurrentResource, callback),
+          : (resourceName === 'pipeline version'
+            ? this._deletePipelineVersion(getSelectedIds(), useCurrentResource, callback)
+            : this._deleteRecurringRun(getSelectedIds()[0], useCurrentResource, callback)),
       disabled: !useCurrentResource,
       disabledTitle: useCurrentResource
         ? undefined
@@ -410,6 +413,24 @@ export default class Buttons {
       callback,
       'Delete',
       'pipeline',
+    );
+  }
+
+   private _deletePipelineVersion(
+    selectedIds: string[],
+    useCurrentResource: boolean,
+    callback: (selectedIds: string[], success: boolean) => void,
+  ): void {
+    this._dialogActionHandler(
+      selectedIds,
+      `Do you want to delete ${
+        selectedIds.length === 1 ? 'this Pipeline Version' : 'these Pipeline Versions'
+      }? This action cannot be undone.`,
+      useCurrentResource,
+      id => Apis.pipelineServiceApi.deletePipelineVersion(id),
+      callback,
+      'Delete',
+      'pipeline version',
     );
   }
 
