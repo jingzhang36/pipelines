@@ -446,31 +446,34 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
       }
 
       selectedVersion = versionId ? version! : pipeline.default_version;
-      pageTitle = pipeline.name!.concat(' (', selectedVersion!.name!, ')');
-
-      try {
+      if (!selectedVersion) {
+        // An empty pipeline, which doesn't have any version.
+        pageTitle = pipeline.name!;
+      } else {
+        // Fetch manifest for the selected version under this pipeline.
+        pageTitle = pipeline.name!.concat(' (', selectedVersion!.name!, ')');
+        try {
         // TODO(jingzhang36): pagination not proper here. so if many versions,
         // the page size value should be?
         versions =
           (await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE', pipelineId, 50))
             .versions || [];
         console.log('versions length: ' + versions.length);
-      } catch (err) {
-        await this.showPageError('Cannot retrieve pipeline versions.', err);
-        logger.error('Cannot retrieve pipeline versions.', err);
-        return;
+        } catch (err) {
+          await this.showPageError('Cannot retrieve pipeline versions.', err);
+          logger.error('Cannot retrieve pipeline versions.', err);
+          return;
+        }
+        templateString = await this._getTemplateString(pipelineId, versionId);
       }
 
-      templateString = await this._getTemplateString(pipelineId, versionId);
       breadcrumbs = [{ displayName: 'Pipelines', href: RoutePage.PIPELINES }];
     }
 
     this.props.updateToolbar({ breadcrumbs, actions: toolbarActions, pageTitle });
 
-    let g: dagre.graphlib.Graph | undefined;
     try {
       template = JsYaml.safeLoad(templateString);
-      g = StaticGraphParser.createGraph(template!);
     } catch (err) {
       await this.showPageError('Error: failed to generate Pipeline graph.', err);
     }
