@@ -431,11 +431,13 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
       }
 
       const versionId = this.props.match.params[RouteParams.pipelineVersionId];
+      console.log('JING version id ' + JSON.stringify(versionId));
 
       try {
         // TODO(rjbauer): it's possible we might not have a version, even default
         if (versionId) {
           version = await Apis.pipelineServiceApi.getPipelineVersion(versionId);
+          console.log('JING get version ' + JSON.stringify(version));
         }
       } catch (err) {
         await this.showPageError('Cannot retrieve pipeline version.', err);
@@ -444,13 +446,15 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
       }
 
       selectedVersion = versionId ? version! : pipeline.default_version;
-      pageTitle = pipeline.name!.concat(" (", selectedVersion!.name!, ")");
+      pageTitle = pipeline.name!.concat(' (', selectedVersion!.name!, ')');
 
       try {
+        // TODO(jingzhang36): pagination not proper here. so if many versions,
+        // the page size value should be?
         versions =
-          (await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE_VERSION', pipelineId, 50))
+          (await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE', pipelineId, 50))
             .versions || [];
-        console.log("versions length: " + versions.length);
+        console.log('versions length: ' + versions.length);
       } catch (err) {
         await this.showPageError('Cannot retrieve pipeline versions.', err);
         logger.error('Cannot retrieve pipeline versions.', err);
@@ -484,8 +488,13 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     try {
       let templateResponse: ApiGetTemplateResponse;
       if (versionId) {
+        console.log(
+          'JING get version template ' +
+            JSON.stringify(pipelineId) +
+            ' ' +
+            JSON.stringify(versionId),
+        );
         templateResponse = await Apis.pipelineServiceApi.getPipelineVersionTemplate(
-          pipelineId,
           versionId,
         );
       } else {

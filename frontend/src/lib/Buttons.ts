@@ -17,12 +17,12 @@
 import AddIcon from '@material-ui/icons/Add';
 import CollapseIcon from '@material-ui/icons/UnfoldLess';
 import ExpandIcon from '@material-ui/icons/UnfoldMore';
-import {QUERY_PARAMS, RoutePage} from '../components/Router';
-import {ToolbarActionMap} from '../components/Toolbar';
-import {PageProps} from '../pages/Page';
-import {Apis} from './Apis';
-import {URLParser} from './URLParser';
-import {errorToMessage, s} from './Utils';
+import { QUERY_PARAMS, RoutePage } from '../components/Router';
+import { ToolbarActionMap } from '../components/Toolbar';
+import { PageProps } from '../pages/Page';
+import { Apis } from './Apis';
+import { URLParser } from './URLParser';
+import { errorToMessage, s } from './Utils';
 
 export enum ButtonKeys {
   ARCHIVE = 'archive',
@@ -155,9 +155,9 @@ export default class Buttons {
       action: () =>
         resourceName === 'pipeline'
           ? this._deletePipeline(getSelectedIds(), useCurrentResource, callback)
-          : (resourceName === 'pipeline version'
-            ? this._deletePipelineVersion(getSelectedIds(), useCurrentResource, callback)
-            : this._deleteRecurringRun(getSelectedIds()[0], useCurrentResource, callback)),
+          : resourceName === 'pipeline version'
+          ? this._deletePipelineVersion(getSelectedIds(), useCurrentResource, callback)
+          : this._deleteRecurringRun(getSelectedIds()[0], useCurrentResource, callback),
       disabled: !useCurrentResource,
       disabledTitle: useCurrentResource
         ? undefined
@@ -416,7 +416,7 @@ export default class Buttons {
     );
   }
 
-   private _deletePipelineVersion(
+  private _deletePipelineVersion(
     selectedIds: string[],
     useCurrentResource: boolean,
     callback: (selectedIds: string[], success: boolean) => void,

@@ -36,7 +36,6 @@ export interface PipelineVersionListProps extends RouteComponentProps {
 
 interface PipelineVersionListState {
   pipelineVersions: ApiPipelineVersion[];
-  // createNewVersionDialogOpen: boolean;
 }
 
 class PipelineVersionList extends React.PureComponent<
@@ -127,13 +126,13 @@ class PipelineVersionList extends React.PureComponent<
     if (this.props.pipelineId) {
       try {
         response = await Apis.pipelineServiceApi.listPipelineVersions(
-          'PIPELINE_VERSION',
+          'PIPELINE',
           this.props.pipelineId,
           request.pageSize,
           request.pageToken,
           request.sortBy,
         );
-        console.log("list page version length: " + response.versions!.length);
+        console.log('list page version length: ' + response.versions!.length);
       } catch (err) {
         const error = new Error(await errorToMessage(err));
         this.props.onError('Error: failed to fetch runs.', error);

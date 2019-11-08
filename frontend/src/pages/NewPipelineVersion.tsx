@@ -62,6 +62,12 @@ interface NewPipelineVersionState {
 }
 
 const css = stylesheet({
+  errorMessage: {
+    color: 'red',
+  },
+  explanation: {
+    fontSize: fontsize.small,
+  },
   nonEditableInput: {
     color: color.secondaryText,
   },
@@ -70,12 +76,6 @@ const css = stylesheet({
     maxWidth: 1200, // override default maxWidth to expand this dialog further
     minWidth: 680,
     width: 'calc(100% - 120px)',
-  },
-  explanation: {
-    fontSize: fontsize.small,
-  },
-  errorMessage: {
-    color: 'red',
   },
 });
 
@@ -97,15 +97,15 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     super(props);
 
     this.state = {
-      pipelineVersionName: '',
+      codeSourceUrl: '',
+      errorMessage: '',
+      isbeingCreated: false,
+      packageUrl: '',
       pipelineId: '',
       pipelineName: '',
-      isbeingCreated: false,
-      validationError: '',
       pipelineSelectorOpen: false,
-      errorMessage: '',
-      packageUrl: '',
-      codeSourceUrl: '',
+      pipelineVersionName: '',
+      validationError: '',
     };
   }
 
@@ -118,7 +118,17 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   }
 
   public render(): JSX.Element {
-    const { pipelineVersionName, packageUrl, pipelineName, isbeingCreated, validationError, pipelineSelectorOpen, unconfirmedSelectedPipeline, errorMessage, codeSourceUrl } = this.state;
+    const {
+      pipelineVersionName,
+      packageUrl,
+      pipelineName,
+      isbeingCreated,
+      validationError,
+      pipelineSelectorOpen,
+      unconfirmedSelectedPipeline,
+      errorMessage,
+      codeSourceUrl,
+    } = this.state;
 
     const buttons = new Buttons(this.props, this.refresh.bind(this));
 
@@ -127,9 +137,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
         <div className={classes(commonCss.scrollContainer, padding(20, 'lr'))}>
           <div className={commonCss.header}>Pipeline version details</div>
           {/* TODO: this description needs work. */}
-          <div className={css.explanation}>
-            TODO
-          </div>
+          <div className={css.explanation}>TODO</div>
 
           {/* Set pipeline version name */}
           <Input
@@ -145,30 +153,30 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
 
           {/* Select pipeline */}
           <Input
-              value={pipelineName}
-              required={true}
-              label='Pipeline'
-              disabled={true}
-              variant='outlined'
-              inputRef={this._pipelineNameRef}
-              onChange={this.handleChange('pipelineName')}
-              autoFocus={true}
-              InputProps={{
-                classes: { disabled: css.nonEditableInput },
-                endAdornment: (
-                  <InputAdornment position='end'>
-                    <Button
-                      color='secondary'
-                      id='choosePipelineBtn'
-                      onClick={() => this.setStateSafe({ pipelineSelectorOpen: true })}
-                      style={{ padding: '3px 5px', margin: 0 }}
-                    >
-                      Choose
-                    </Button>
-                  </InputAdornment>
-                ),
-                readOnly: true,
-              }}
+            value={pipelineName}
+            required={true}
+            label='Pipeline'
+            disabled={true}
+            variant='outlined'
+            inputRef={this._pipelineNameRef}
+            onChange={this.handleChange('pipelineName')}
+            autoFocus={true}
+            InputProps={{
+              classes: { disabled: css.nonEditableInput },
+              endAdornment: (
+                <InputAdornment position='end'>
+                  <Button
+                    color='secondary'
+                    id='choosePipelineBtn'
+                    onClick={() => this.setStateSafe({ pipelineSelectorOpen: true })}
+                    style={{ padding: '3px 5px', margin: 0 }}
+                  >
+                    Choose
+                  </Button>
+                </InputAdornment>
+              ),
+              readOnly: true,
+            }}
           />
           <Dialog
             open={pipelineSelectorOpen}
@@ -195,9 +203,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
                   this.setStateSafe({ unconfirmedSelectedPipeline: selectedPipeline })
                 }
                 toolbarActionMap={buttons
-                  .upload(() =>
-                    this.setStateSafe({ pipelineSelectorOpen: false }),
-                  )
+                  .upload(() => this.setStateSafe({ pipelineSelectorOpen: false }))
                   .getToolbarActionMap()}
               />
             </DialogContent>
@@ -282,7 +288,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     const pipelineId = urlParser.get(QUERY_PARAMS.pipelineId);
     if (pipelineId) {
       const apiPipeline = await Apis.pipelineServiceApi.getPipeline(pipelineId);
-      this.setState({ pipelineId, pipelineName : apiPipeline.name });
+      this.setState({ pipelineId, pipelineName: apiPipeline.name });
     }
 
     this._validate();
@@ -299,8 +305,8 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       pipeline = this.state.unconfirmedSelectedPipeline;
     }
 
-    console.log('JING ' + JSON.stringify(pipeline))
-    console.log('JING ' + JSON.stringify(pipeline!.name))
+    console.log('JING ' + JSON.stringify(pipeline));
+    console.log('JING ' + JSON.stringify(pipeline!.name));
 
     this.setStateSafe(
       {
@@ -315,16 +321,23 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
 
   private _create(): void {
     const newPipelineVersion: ApiPipelineVersion = {
+      code_source_url: this.state.codeSourceUrl,
       name: this.state.pipelineVersionName,
       package_url: { pipeline_url: this.state.packageUrl },
-      code_source_url: this.state.codeSourceUrl,
-      resource_references: [{ key: { id: this.state.pipelineId!, type: ApiResourceType.PIPELINE }, relationship: 1 }],
+      resource_references: [
+        { key: { id: this.state.pipelineId!, type: ApiResourceType.PIPELINE }, relationship: 1 },
+      ],
     };
 
     this.setState({ isbeingCreated: true }, async () => {
       try {
         const response = await Apis.pipelineServiceApi.createPipelineVersion(newPipelineVersion);
-        this.props.history.push(RoutePage.PIPELINE_DETAILS.replace(`:${RouteParams.pipelineId}`, this.state.pipelineId!).replace(`:${RouteParams.pipelineVersionId}`, response.id!));
+        this.props.history.push(
+          RoutePage.PIPELINE_DETAILS.replace(
+            `:${RouteParams.pipelineId}`,
+            this.state.pipelineId!,
+          ).replace(`:${RouteParams.pipelineVersionId}`, response.id!),
+        );
         this.props.updateSnackbar({
           autoHideDuration: 10000,
           message: `Successfully created new pipeline version: ${newPipelineVersion.name}`,
