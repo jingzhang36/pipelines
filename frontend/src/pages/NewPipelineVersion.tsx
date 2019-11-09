@@ -305,9 +305,6 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       pipeline = this.state.unconfirmedSelectedPipeline;
     }
 
-    console.log('JING ' + JSON.stringify(pipeline));
-    console.log('JING ' + JSON.stringify(pipeline!.name));
-
     this.setStateSafe(
       {
         pipeline,

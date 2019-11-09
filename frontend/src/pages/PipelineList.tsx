@@ -165,7 +165,6 @@ class PipelineList extends Page<{}, PipelineListState> {
     let response: ApiListPipelinesResponse | null = null;
     let displayPipelines: DisplayPipeline[];
     try {
-      console.log('list pipeline request: ' + JSON.stringify(request));
       response = await Apis.pipelineServiceApi.listPipelines(
         request.pageToken,
         request.pageSize,

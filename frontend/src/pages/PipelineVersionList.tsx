@@ -120,7 +120,6 @@ class PipelineVersionList extends React.PureComponent<
   }
 
   protected async _loadPipelineVersions(request: ListRequest): Promise<string> {
-    console.log('list version request: ' + JSON.stringify(request));
     let response: ApiListPipelineVersionsResponse | null = null;
 
     if (this.props.pipelineId) {
@@ -132,7 +131,6 @@ class PipelineVersionList extends React.PureComponent<
           request.pageToken,
           request.sortBy,
         );
-        console.log('list page version length: ' + response.versions!.length);
       } catch (err) {
         const error = new Error(await errorToMessage(err));
         this.props.onError('Error: failed to fetch runs.', error);

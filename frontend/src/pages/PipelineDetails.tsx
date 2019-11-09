@@ -18,7 +18,7 @@ import * as JsYaml from 'js-yaml';
 import * as React from 'react';
 import * as StaticGraphParser from '../lib/StaticGraphParser';
 import Button from '@material-ui/core/Button';
-import Buttons from '../lib/Buttons';
+import Buttons, { ButtonKeys } from '../lib/Buttons';
 import Graph from '../components/Graph';
 import InfoIcon from '@material-ui/icons/InfoOutlined';
 import MD2Tabs from '../atoms/MD2Tabs';
@@ -431,13 +431,11 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
       }
 
       const versionId = this.props.match.params[RouteParams.pipelineVersionId];
-      console.log('JING version id ' + JSON.stringify(versionId));
 
       try {
         // TODO(rjbauer): it's possible we might not have a version, even default
         if (versionId) {
           version = await Apis.pipelineServiceApi.getPipelineVersion(versionId);
-          console.log('JING get version ' + JSON.stringify(version));
         }
       } catch (err) {
         await this.showPageError('Cannot retrieve pipeline version.', err);
@@ -446,9 +444,13 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
       }
 
       selectedVersion = versionId ? version! : pipeline.default_version;
+
       if (!selectedVersion) {
         // An empty pipeline, which doesn't have any version.
         pageTitle = pipeline.name!;
+        const actions = this.props.toolbarProps.actions;
+        actions[ButtonKeys.DELETE_RUN].disabled = true;
+        this.props.updateToolbar({ actions });
       } else {
         // Fetch manifest for the selected version under this pipeline.
         pageTitle = pipeline.name!.concat(' (', selectedVersion!.name!, ')');
@@ -491,12 +493,6 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     try {
       let templateResponse: ApiGetTemplateResponse;
       if (versionId) {
-        console.log(
-          'JING get version template ' +
-            JSON.stringify(pipelineId) +
-            ' ' +
-            JSON.stringify(versionId),
-        );
         templateResponse = await Apis.pipelineServiceApi.getPipelineVersionTemplate(
           versionId,
         );

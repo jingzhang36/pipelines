@@ -674,20 +674,20 @@ func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 	// version of that pipeline. Then we'll have 3 operations in a single
 	// transactions: (1) delete version (2) get new default version id (3) use
 	// new default version id to update pipeline.
-	tx, err := s.db.Begin()
-	if err != nil {
-		return util.NewInternalServerError(
-			err,
-			"Failed to start an transaction while trying to delete pipeline version: %v",
-			err.Error())
-	}
+	// tx, err := s.db.Begin()
+	// if err != nil {
+	// 	return util.NewInternalServerError(
+	// 		err,
+	// 		"Failed to start an transaction while trying to delete pipeline version: %v",
+	// 		err.Error())
+	// }
 
 	// (1) delete version.
-	_, err = tx.Exec(
+	_, err := s.db.Exec(
 		"delete from pipeline_versions where UUID = ?",
 		versionId)
 	if err != nil {
-		tx.Rollback()
+		// tx.Rollback()
 		return util.NewInternalServerError(
 			err,
 			"Failed to delete pipeline version: %v",
@@ -695,11 +695,11 @@ func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 	}
 
 	// (2) check whether this version is used as default version.
-	r, err := tx.Query(
+	r, err := s.db.Query(
 		"select UUID from pipelines where DefaultVersionId = ?",
 		versionId)
 	if err != nil {
-		tx.Rollback()
+		// tx.Rollback()
 		return util.NewInternalServerError(
 			err,
 			`Failed to query pipelines table while deleting pipeline version:
@@ -709,7 +709,7 @@ func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 	var pipelineId = ""
 	if r.Next() {
 		if err := r.Scan(&pipelineId); err != nil {
-			tx.Rollback()
+			// tx.Rollback()
 			return util.NewInternalServerError(
 				err,
 				"Failed to get pipeline id for version id: %v",
@@ -719,16 +719,16 @@ func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 	if len(pipelineId) == 0 {
 		// The deleted version is not used as a default version. So no extra
 		// work is needed. We commit the deletion now.
-		if err := tx.Commit(); err != nil {
-			return util.NewInternalServerError(
-				err,
-				"Failed to delete pipeline version: %v",
-				err.Error())
-		}
+		// if err := tx.Commit(); err != nil {
+		// 	return util.NewInternalServerError(
+		// 		err,
+		// 		"Failed to delete pipeline version: %v",
+		// 		err.Error())
+		// }
 	}
 
 	// (3) find a new default version.
-	r, err = tx.Query(
+	r, err = s.db.Query(
 		`select UUID from pipeline_versions
 		where PipelineId = ? and Status = ?
 		order by CreatedAtInSec DESC
@@ -736,7 +736,7 @@ func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 		pipelineId,
 		model.PipelineVersionReady)
 	if err != nil {
-		tx.Rollback()
+		// tx.Rollback()
 		return util.NewInternalServerError(
 			err,
 			"Failed to get a new default version id: %v",
@@ -745,7 +745,7 @@ func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 	var newDefaultVersionId = ""
 	if r.Next() {
 		if err := r.Scan(&newDefaultVersionId); err != nil {
-			tx.Rollback()
+			// tx.Rollback()
 			return util.NewInternalServerError(
 				err,
 				"Failed to get a new default version id: %v",
@@ -755,22 +755,22 @@ func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 	if len(newDefaultVersionId) == 0 {
 		// No new default version. The pipeline's default version id will be
 		// null.
-		_, err = tx.Exec(
-			"update pipelines set DefaultVerionId = null where UUID = ?",
+		_, err = s.db.Exec(
+			"update pipelines set DefaultVersionId = null where UUID = ?",
 			pipelineId)
 		if err != nil {
-			tx.Rollback()
+			// tx.Rollback()
 			return util.NewInternalServerError(
 				err,
 				"Failed to update pipeline's default version id: %v",
 				err.Error())
 		}
 	} else {
-		_, err = tx.Exec(
+		_, err = s.db.Exec(
 			"update pipelines set DefaultVersionId = ? where UUID = ?",
 			newDefaultVersionId, pipelineId)
 		if err != nil {
-			tx.Rollback()
+			// tx.Rollback()
 			return util.NewInternalServerError(
 				err,
 				"Failed to update pipeline's default version id: %v",
@@ -778,12 +778,12 @@ func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 		}
 	}
 
-	if err := tx.Commit(); err != nil {
-		return util.NewInternalServerError(
-			err,
-			"Failed to delete pipeline version: %v",
-			err.Error())
-	}
+	// if err := tx.Commit(); err != nil {
+	// 	return util.NewInternalServerError(
+	// 		err,
+	// 		"Failed to delete pipeline version: %v",
+	// 		err.Error())
+	// }
 	return nil
 }
 
