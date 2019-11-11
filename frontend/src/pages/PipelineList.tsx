@@ -81,7 +81,7 @@ class PipelineList extends Page<{}, PipelineListState> {
         .delete(
           () => this.state.selectedIds,
           'pipeline',
-          ids => this._selectionChanged(ids),
+          ids => this._selectionChanged(undefined, ids),
           false /* useCurrentResource */,
         )
         .getToolbarActionMap(),
@@ -117,7 +117,7 @@ class PipelineList extends Page<{}, PipelineListState> {
           columns={columns}
           rows={rows}
           initialSortColumn={PipelineSortKeys.CREATED_AT}
-          updateSelection={this._selectionChanged.bind(this)}
+          updateSelection={this._selectionChanged.bind(this, undefined)}
           selectedIds={this.state.selectedIds}
           reload={this._reload.bind(this)}
           toggleExpansion={this._toggleRowExpand.bind(this)}
@@ -153,6 +153,7 @@ class PipelineList extends Page<{}, PipelineListState> {
 
   private _getExpandedPipelineComponent(rowIndex: number): JSX.Element {
     const pipeline = this.state.displayPipelines[rowIndex];
+    console.log('(pipeline)JING expand pipeline: ' + pipeline.id!);
     return (
       <PipelineVersionList
         pipelineId={pipeline.id}
@@ -160,7 +161,7 @@ class PipelineList extends Page<{}, PipelineListState> {
         {...this.props}
         selectedIds={this.state.selectedVersionIds[pipeline.id!] || []}
         noFilterBox={true}
-        onSelectionChange={this._selectionChanged.bind(this)}
+        onSelectionChange={this._selectionChanged.bind(this, pipeline.id)}
         disableSorting={false}
         disablePaging={false}
         errorMessage={'(pipeline_of_index_' + JSON.stringify(rowIndex) + ')'}
@@ -204,12 +205,16 @@ class PipelineList extends Page<{}, PipelineListState> {
     );
   };
 
-  private _selectionChanged(selectedIds: string[]): void {
+  private _selectionChanged(pipelineId: string | undefined, selectedIds: string[]): void {
     console.log('(pipeline)JING selection changed: ' + JSON.stringify(selectedIds));
     const actions = this.props.toolbarProps.actions;
     actions[ButtonKeys.DELETE_RUN].disabled = selectedIds.length < 1;
     this.props.updateToolbar({ actions });
     this.setStateSafe({ selectedIds });
+    // this.state.selectedVersionIds["82766fb8-c7fb-4793-b7eb-34384daf5bcc"] = selectedIds;
+    if (!!pipelineId) {
+      this.state.selectedVersionIds[pipelineId!] = selectedIds;
+    }
   }
 
   private async _uploadDialogClosed(
