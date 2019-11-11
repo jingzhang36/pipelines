@@ -30,8 +30,9 @@ export interface PipelineVersionListProps extends RouteComponentProps {
   disableSorting?: boolean;
   noFilterBox?: boolean;
   onError: (message: string, error: Error) => void;
-  onSelectionChange?: (selectedRunIds: string[]) => void;
+  onSelectionChange?: (selectedIds: string[]) => void;
   selectedIds?: string[];
+  errorMessage: string;
 }
 
 interface PipelineVersionListState {
@@ -114,6 +115,7 @@ class PipelineVersionList extends React.PureComponent<
           disableSorting={this.props.disableSorting}
           disableSelection={this.props.disableSelection}
           noFilterBox={this.props.noFilterBox}
+          emptyMessage={this.props.errorMessage}
         />
       </div>
     );

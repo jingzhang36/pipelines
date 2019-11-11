@@ -44,6 +44,8 @@ interface PipelineListState {
   displayPipelines: DisplayPipeline[];
   selectedIds: string[];
   uploadDialogOpen: boolean;
+
+  miscSelectedIds: Map<string, string[]>;
 }
 
 const descriptionCustomRenderer: React.FC<CustomRendererProps<string>> = (
@@ -62,6 +64,8 @@ class PipelineList extends Page<{}, PipelineListState> {
       displayPipelines: [],
       selectedIds: [],
       uploadDialogOpen: false,
+
+      miscSelectedIds: new Map<string, string[]>(),
     };
   }
 
@@ -117,7 +121,7 @@ class PipelineList extends Page<{}, PipelineListState> {
           toggleExpansion={this._toggleRowExpand.bind(this)}
           getExpandComponent={this._getExpandedPipelineComponent.bind(this)}
           filterLabel='Filter pipelines'
-          emptyMessage='No pipelines found. Click "Upload pipeline" to start.'
+          emptyMessage='(pipeline)' // 'No pipelines found. Click "Upload pipeline" to start.'
         />
 
         <UploadPipelineDialog
@@ -147,16 +151,18 @@ class PipelineList extends Page<{}, PipelineListState> {
 
   private _getExpandedPipelineComponent(rowIndex: number): JSX.Element {
     const pipeline = this.state.displayPipelines[rowIndex];
+    this.state.miscSelectedIds[rowIndex] = [];
     return (
       <PipelineVersionList
         pipelineId={pipeline.id}
         onError={() => null}
         {...this.props}
-        selectedIds={this.state.selectedIds}
+        selectedIds={this.state.miscSelectedIds[rowIndex]} // {this.state.selectedIds}
         noFilterBox={true}
         onSelectionChange={this._selectionChanged.bind(this)}
         disableSorting={false}
         disablePaging={false}
+        errorMessage={'(pipeline_of_index_' + JSON.stringify(rowIndex) + ')'}
       />
     );
   }
@@ -198,6 +204,7 @@ class PipelineList extends Page<{}, PipelineListState> {
   };
 
   private _selectionChanged(selectedIds: string[]): void {
+    console.log('(pipeline)JING selection changed: ' + JSON.stringify(selectedIds));
     const actions = this.props.toolbarProps.actions;
     actions[ButtonKeys.DELETE_RUN].disabled = selectedIds.length < 1;
     this.props.updateToolbar({ actions });
