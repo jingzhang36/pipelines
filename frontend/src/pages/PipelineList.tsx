@@ -45,7 +45,9 @@ interface PipelineListState {
   selectedIds: string[];
   uploadDialogOpen: boolean;
 
-  miscSelectedIds: Map<string, string[]>;
+  // selectedVersionIds is a map from string to string array.
+  // For each pipeline, there is a list of selected version ids.
+  selectedVersionIds: {[pipelineId: string] : string[]}
 }
 
 const descriptionCustomRenderer: React.FC<CustomRendererProps<string>> = (
@@ -65,7 +67,7 @@ class PipelineList extends Page<{}, PipelineListState> {
       selectedIds: [],
       uploadDialogOpen: false,
 
-      miscSelectedIds: new Map<string, string[]>(),
+      selectedVersionIds: {},
     };
   }
 
@@ -151,13 +153,12 @@ class PipelineList extends Page<{}, PipelineListState> {
 
   private _getExpandedPipelineComponent(rowIndex: number): JSX.Element {
     const pipeline = this.state.displayPipelines[rowIndex];
-    this.state.miscSelectedIds[rowIndex] = [];
     return (
       <PipelineVersionList
         pipelineId={pipeline.id}
         onError={() => null}
         {...this.props}
-        selectedIds={this.state.miscSelectedIds[rowIndex]} // {this.state.selectedIds}
+        selectedIds={this.state.selectedVersionIds[pipeline.id!] || []}
         noFilterBox={true}
         onSelectionChange={this._selectionChanged.bind(this)}
         disableSorting={false}
