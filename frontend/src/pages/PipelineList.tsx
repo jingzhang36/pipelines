@@ -81,7 +81,7 @@ class PipelineList extends Page<{}, PipelineListState> {
         .deletePipelinesAndPipelineVersions(
           () => this.state.selectedIds,
           () => this.state.selectedVersionIds,
-          ids => this._selectionChanged(undefined, ids),
+          (pipelineId, ids) => this._selectionChanged(pipelineId, ids),
           false /* useCurrentResource */,
         )
         .getToolbarActionMap(),
@@ -212,8 +212,10 @@ class PipelineList extends Page<{}, PipelineListState> {
     this.props.updateToolbar({ actions });
     // this.setStateSafe({ selectedIds });
     if (!!pipelineId) {
+      // Update selected pipeline version ids.
       this.state.selectedVersionIds[pipelineId!] = selectedIds;
     } else {
+      // Update selected pipeline ids.
       this.setStateSafe({ selectedIds });
     }
   }
