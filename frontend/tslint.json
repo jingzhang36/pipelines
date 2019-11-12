@@ -21,7 +21,7 @@
     "jsx-no-lambda": false,
     "max-classes-per-file": false,
     "ordered-imports": false,
-    "semicolon": [false, "always", "ignore-bound-class-methods"],
+    "semicolon": [true, "always", "ignore-bound-class-methods"],
     "typedef": [true, "call-signature"],
     "no-unused-variable": false,
     "variable-name": [

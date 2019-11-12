@@ -47,7 +47,7 @@ interface PipelineListState {
 
   // selectedVersionIds is a map from string to string array.
   // For each pipeline, there is a list of selected version ids.
-  selectedVersionIds: {[pipelineId: string] : string[]}
+  selectedVersionIds: { [pipelineId: string]: string[] };
 }
 
 const descriptionCustomRenderer: React.FC<CustomRendererProps<string>> = (
@@ -78,9 +78,9 @@ class PipelineList extends Page<{}, PipelineListState> {
         .upload(() => this.setStateSafe({ uploadDialogOpen: true }))
         .newPipelineVersion()
         .refresh(this.refresh.bind(this))
-        .delete(
+        .deletePipelinesAndPipelineVersions(
           () => this.state.selectedIds,
-          'pipeline',
+          () => this.state.selectedVersionIds,
           ids => this._selectionChanged(undefined, ids),
           false /* useCurrentResource */,
         )
@@ -210,10 +210,11 @@ class PipelineList extends Page<{}, PipelineListState> {
     const actions = this.props.toolbarProps.actions;
     actions[ButtonKeys.DELETE_RUN].disabled = selectedIds.length < 1;
     this.props.updateToolbar({ actions });
-    this.setStateSafe({ selectedIds });
-    // this.state.selectedVersionIds["82766fb8-c7fb-4793-b7eb-34384daf5bcc"] = selectedIds;
+    // this.setStateSafe({ selectedIds });
     if (!!pipelineId) {
       this.state.selectedVersionIds[pipelineId!] = selectedIds;
+    } else {
+      this.setStateSafe({ selectedIds });
     }
   }
 

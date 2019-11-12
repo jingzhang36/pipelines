@@ -144,6 +144,8 @@ export default class Buttons {
     return this;
   }
 
+  // Delete resources of a single type, which can be pipeline, pipeline version
+  // or recurring run config.
   public delete(
     getSelectedIds: () => string[],
     resourceName: 'pipeline' | 'recurring run config' | 'pipeline version',
@@ -163,6 +165,30 @@ export default class Buttons {
         ? undefined
         : `Select at least one ${resourceName} to delete`,
       id: 'deleteBtn',
+      title: 'Delete',
+      tooltip: 'Delete',
+    };
+    return this;
+  }
+
+  // Delete pipelines and pipeline versions simultaneously.
+  public deletePipelinesAndPipelineVersions(
+    getSelectedIds: () => string[],
+    getSelectedVersionIds: () => { [pipelineId: string]: string[] },
+    callback: (selectedIds: string[], success: boolean) => void,
+    useCurrentResource: boolean,
+  ): Buttons {
+    this._map[ButtonKeys.DELETE_RUN] = {
+      action: () => {
+        this._deletePipeline(getSelectedIds(), useCurrentResource, callback);
+        Object.keys(getSelectedVersionIds()).map(k =>
+          this._deletePipelineVersion(getSelectedVersionIds()[k], useCurrentResource, callback));
+      },
+      disabled: !useCurrentResource,
+      disabledTitle: useCurrentResource
+        ? undefined
+        : `Select at least one pipeline and/or pipeline version to delete`,
+      id: 'deletePipelinesAndPipelineVersionsBtn',
       title: 'Delete',
       tooltip: 'Delete',
     };
@@ -403,6 +429,7 @@ export default class Buttons {
     useCurrentResource: boolean,
     callback: (selectedIds: string[], success: boolean) => void,
   ): void {
+    console.log('Delete pipeline ids: ' + JSON.stringify(selectedIds));
     this._dialogActionHandler(
       selectedIds,
       `Do you want to delete ${
@@ -421,6 +448,7 @@ export default class Buttons {
     useCurrentResource: boolean,
     callback: (selectedIds: string[], success: boolean) => void,
   ): void {
+    console.log('Delete pipeline version ids: ' + JSON.stringify(selectedIds));
     this._dialogActionHandler(
       selectedIds,
       `Do you want to delete ${
@@ -447,6 +475,26 @@ export default class Buttons {
       callback,
       'Delete',
       'recurring run config',
+    );
+  }
+
+  private _deletePipelineAndPipelineVersion(
+    selectedIds: string[],
+    selectedVersionIds: { [pipelineId: string]: string[] },
+    useCurrentResource: boolean,
+    callback: (selectedIds: string[], success: boolean) => void,
+  ): void {
+    console.log('Delete pipeline ids: ' + JSON.stringify(selectedIds));
+    this._dialogActionHandler(
+      selectedIds,
+      `Do you want to delete ${
+        selectedIds.length === 1 ? 'this Pipeline' : 'these Pipelines'
+      }? This action cannot be undone.`,
+      useCurrentResource,
+      id => Apis.pipelineServiceApi.deletePipeline(id),
+      callback,
+      'Delete',
+      'pipeline',
     );
   }
 
