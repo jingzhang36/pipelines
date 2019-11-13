@@ -35,6 +35,7 @@ import { commonCss, padding } from '../Css';
 import { formatDateString, errorToMessage } from '../lib/Utils';
 import { Description } from '../components/Description';
 import produce from 'immer';
+import {thresholdFreedmanDiaconis} from 'd3';
 
 interface DisplayPipeline extends ApiPipeline {
   expandState?: ExpandState;
@@ -205,27 +206,24 @@ class PipelineList extends Page<{}, PipelineListState> {
     );
   };
 
-  // selection changes passed in via selectedIds can be
+  // selection changes passed in via "selectedIds" can be
   // (1) changes of selected pipeline ids, and will be stored in "this.state.selectedIds" or
   // (2) changes of selected pipeline version ids, and will be stored in "selectedVersionIds" with key "pipelineId"
   private _selectionChanged(pipelineId: string | undefined, selectedIds: string[]): void {
     if (!!pipelineId) {
       // Update selected pipeline version ids.
-      this.state.selectedVersionIds[pipelineId!] = selectedIds;
+      this.setStateSafe( { selectedVersionIds: { ...this.state.selectedVersionIds, ...{ [pipelineId!]: selectedIds } }} );
+      const actions = this.props.toolbarProps.actions;
+      actions[ButtonKeys.DELETE_RUN].disabled = this.state.selectedIds.length < 1 && selectedIds.length < 1;
+      this.props.updateToolbar({ actions });
     } else {
       // Update selected pipeline ids.
       this.setStateSafe({ selectedIds });
+      const numVersionIds = Object.keys(this.state.selectedVersionIds).reduce((numVersionIds, pipelineId) => numVersionIds + this.state.selectedVersionIds[pipelineId].length, 0);
+      const actions = this.props.toolbarProps.actions;
+      actions[ButtonKeys.DELETE_RUN].disabled = selectedIds.length < 1 && numVersionIds < 1;
+      this.props.updateToolbar({ actions });
     }
-    this._updateToolbarStatus();
-  }
-
-  private _updateToolbarStatus(): void {
-    console.log('JING delete disable? ' + JSON.stringify(this.state.selectedVersionIds));
-    console.log('JING delete disable? ' + JSON.stringify(this.state.selectedIds));
-    const numVersionIds = Object.keys(this.state.selectedVersionIds).reduce((numVersionIds, pipelineId) => numVersionIds + this.state.selectedVersionIds[pipelineId].length, 0);
-    const actions = this.props.toolbarProps.actions;
-    this.props.updateToolbar({ actions });
-    actions[ButtonKeys.DELETE_RUN].disabled = this.state.selectedIds.length < 1 && numVersionIds < 1;
   }
 
   private async _uploadDialogClosed(
