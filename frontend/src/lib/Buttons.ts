@@ -701,6 +701,9 @@ export default class Buttons {
 
     // Since confirmed, delete pipelines first and then pipeline versions from
     // (other) pipelines.
+
+    // Delete pipelines.
+    const succeededfulIds: Set<string> = new Set<string>(selectedIds);
     const unsuccessfulIds: string[] = [];
     const errorMessages: string[] = [];
     await Promise.all(
@@ -709,6 +712,7 @@ export default class Buttons {
           await Apis.pipelineServiceApi.deletePipeline(id);
         } catch (err) {
           unsuccessfulIds.push(id);
+          succeededfulIds.delete(id);
           const errorMessage = await errorToMessage(err);
           errorMessages.push(
             `Failed to delete pipeline: ${id} with error: "${errorMessage}"`,
@@ -716,53 +720,57 @@ export default class Buttons {
         }
       }),
     );
-    console.log('JING un ids: ' + JSON.stringify(unsuccessfulIds));
-    // TODO: Remove deleted pipeline from selectedVersionIds if exists
+
+    // Remove successfully deleted pipelines from selectedVersionIds if exists.
+    const toBeDeletedVersionIds = Object.fromEntries(Object.entries(selectedVersionIds).filter(([pipelineId, _]) => !succeededfulIds.has(pipelineId)));
+
+    // Delete pipeline versions.
     const unsuccessfulVersionIds: { [pipelineId: string]: string[] } = {};
+    var unsuccessfulVersionIdsCt = 0;
     await Promise.all(
-      Object.keys(selectedVersionIds).map(pipelineId => {
-        selectedVersionIds[pipelineId].map(async versionId => {
-          // try {
-          //   await Apis.pipelineServiceApi.deletePipelineVersion(versionId);
-          // } catch (err) {
+      Object.keys(toBeDeletedVersionIds).map(pipelineId => {
+        toBeDeletedVersionIds[pipelineId].map(async versionId => {
+          try {
+            await Apis.pipelineServiceApi.deletePipelineVersion(versionId);
+          } catch (err) {
             if (!unsuccessfulVersionIds[pipelineId]) {
               unsuccessfulVersionIds[pipelineId] = [];
             }
             unsuccessfulVersionIds[pipelineId].push(versionId);
-            // const errorMessage = await errorToMessage(err);
-            // errorMessages.push(
-            //   `Failed to delete pipeline version: ${versionId} with error: "${errorMessage}"`,
-            // );
-          // }
+            unsuccessfulVersionIdsCt++;
+            const errorMessage = await errorToMessage(err);
+            errorMessages.push(
+              `Failed to delete pipeline version: ${versionId} with error: "${errorMessage}"`,
+            );
+          }
         });
       })
     );
-    console.log('JING un version ids: ' + JSON.stringify(unsuccessfulVersionIds));
 
+    // Display successful and/or unsuccessful messages.
+    const pipelineMessage = succeededfulIds.size? `${succeededfulIds.size} pipelines` : ``;
+    const successfulVersionIdsCt = Object.keys(selectedVersionIds).reduce((successfulVersionIdsCt, pipelineId) => successfulVersionIdsCt + selectedVersionIds[pipelineId].length, 0);
+    const pipelineVersionMessage = (successfulVersionIdsCt - unsuccessfulVersionIdsCt) > 0 ? `${successfulVersionIdsCt - unsuccessfulVersionIdsCt} pipeline versions` : ``;
 
-    if (selectedIds.length - unsuccessfulIds.length > 0) {
+    if (pipelineMessage != `` || pipelineVersionMessage != ``) {
       this._props.updateSnackbar({
-        message: `Deletion succeeded for ${selectedIds.length - unsuccessfulIds.length} pipelines and pipeline versions`,
+        message: `Deletion succeeded for ` + pipelineMessage + (pipelineVersionMessage != `` && pipelineMessage != `` ? ` and ` : ``) + pipelineVersionMessage,
         open: true,
       });
-      // if (!useCurrentResource) {
-        this._refresh();
-      // }
+      this._refresh();
     }
 
+    if (unsuccessfulIds.length > 0 || unsuccessfulVersionIdsCt > 0) {
+      this._props.updateDialog({
+        buttons: [{ text: 'Dismiss' }],
+        content: errorMessages.join('\n\n'),
+        title: `Failed to delete some pipelines and/or some pipeline versions`,
+      });
+    }
 
-
-    // if (unsuccessfulIds.length > 0) {
-    //   this._props.updateDialog({
-    //     buttons: [{ text: 'Dismiss' }],
-    //     content: errorMessages.join('\n\n'),
-    //     title: `Failed to delete some pipelines and/or pipeline versions`,
-    //   });
-    // }
-
-    // update yet-to-be-deleted pipeline ids.
+    // pipelines and pipeline versions that failed deletion will keep to be
+    // checked.
     callback(undefined, unsuccessfulIds);
-    // update yet-to-be-deleted pipeline version ids.
     Object.keys(unsuccessfulVersionIds).map(pipelineId => callback(pipelineId, unsuccessfulVersionIds[pipelineId]));
     this._refresh();
   }

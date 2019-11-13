@@ -211,6 +211,7 @@ class PipelineList extends Page<{}, PipelineListState> {
   // (2) changes of selected pipeline version ids, and will be stored in "selectedVersionIds" with key "pipelineId"
   private _selectionChanged(pipelineId: string | undefined, selectedIds: string[]): void {
     if (!!pipelineId) {
+      this.setStateSafe({ selectedVersionIds: produce(this.state.selectedVersionIds, draft => { draft[pipelineId!] = selectedIds; }) });
       // Update selected pipeline version ids.
       this.setStateSafe( { selectedVersionIds: { ...this.state.selectedVersionIds, ...{ [pipelineId!]: selectedIds } }} );
       const actions = this.props.toolbarProps.actions;
