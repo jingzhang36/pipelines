@@ -462,12 +462,12 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
         // Fetch manifest for the selected version under this pipeline.
         pageTitle = pipeline.name!.concat(' (', selectedVersion!.name!, ')');
         try {
-        // TODO(jingzhang36): pagination not proper here. so if many versions,
-        // the page size value should be?
-        versions =
-          (await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE', pipelineId, 50))
-            .versions || [];
-        console.log('versions length: ' + versions.length);
+          // TODO(jingzhang36): pagination not proper here. so if many versions,
+          // the page size value should be?
+          versions =
+            (await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE', pipelineId, 50))
+              .versions || [];
+          console.log('versions length: ' + versions.length);
         } catch (err) {
           await this.showPageError('Cannot retrieve pipeline versions.', err);
           logger.error('Cannot retrieve pipeline versions.', err);
@@ -500,9 +500,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     try {
       let templateResponse: ApiGetTemplateResponse;
       if (versionId) {
-        templateResponse = await Apis.pipelineServiceApi.getPipelineVersionTemplate(
-          versionId,
-        );
+        templateResponse = await Apis.pipelineServiceApi.getPipelineVersionTemplate(versionId);
       } else {
         templateResponse = await Apis.pipelineServiceApi.getTemplate(pipelineId);
       }

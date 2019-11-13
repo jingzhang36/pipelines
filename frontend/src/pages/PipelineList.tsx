@@ -35,7 +35,7 @@ import { commonCss, padding } from '../Css';
 import { formatDateString, errorToMessage } from '../lib/Utils';
 import { Description } from '../components/Description';
 import produce from 'immer';
-import {thresholdFreedmanDiaconis} from 'd3';
+import { thresholdFreedmanDiaconis } from 'd3';
 
 interface DisplayPipeline extends ApiPipeline {
   expandState?: ExpandState;
@@ -154,7 +154,6 @@ class PipelineList extends Page<{}, PipelineListState> {
 
   private _getExpandedPipelineComponent(rowIndex: number): JSX.Element {
     const pipeline = this.state.displayPipelines[rowIndex];
-    console.log('(pipeline)JING expand pipeline: ' + pipeline.id!);
     return (
       <PipelineVersionList
         pipelineId={pipeline.id}
@@ -211,16 +210,18 @@ class PipelineList extends Page<{}, PipelineListState> {
   // (2) changes of selected pipeline version ids, and will be stored in "selectedVersionIds" with key "pipelineId"
   private _selectionChanged(pipelineId: string | undefined, selectedIds: string[]): void {
     if (!!pipelineId) {
-      this.setStateSafe({ selectedVersionIds: produce(this.state.selectedVersionIds, draft => { draft[pipelineId!] = selectedIds; }) });
       // Update selected pipeline version ids.
-      this.setStateSafe( { selectedVersionIds: { ...this.state.selectedVersionIds, ...{ [pipelineId!]: selectedIds } }} );
+      this.setStateSafe({
+        selectedVersionIds: { ...this.state.selectedVersionIds, ...{ [pipelineId!]: selectedIds } },
+      });
       const actions = this.props.toolbarProps.actions;
-      actions[ButtonKeys.DELETE_RUN].disabled = this.state.selectedIds.length < 1 && selectedIds.length < 1;
+      actions[ButtonKeys.DELETE_RUN].disabled =
+        this.state.selectedIds.length < 1 && selectedIds.length < 1;
       this.props.updateToolbar({ actions });
     } else {
       // Update selected pipeline ids.
       this.setStateSafe({ selectedIds });
-      const numVersionIds = Object.keys(this.state.selectedVersionIds).reduce((numVersionIds, pipelineId) => numVersionIds + this.state.selectedVersionIds[pipelineId].length, 0);
+      const numVersionIds = this._deepCountDictionary(this.state.selectedVersionIds);
       const actions = this.props.toolbarProps.actions;
       actions[ButtonKeys.DELETE_RUN].disabled = selectedIds.length < 1 && numVersionIds < 1;
       this.props.updateToolbar({ actions });
@@ -256,6 +257,10 @@ class PipelineList extends Page<{}, PipelineListState> {
       this.showErrorDialog('Failed to upload pipeline', errorMessage);
       return false;
     }
+  }
+
+  private _deepCountDictionary(dict: { [pipelineId: string]: string[] }): number {
+    return Object.keys(dict).reduce((count, pipelineId) => count + dict[pipelineId].length, 0);
   }
 }
 

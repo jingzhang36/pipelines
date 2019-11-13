@@ -17,12 +17,12 @@
 import AddIcon from '@material-ui/icons/Add';
 import CollapseIcon from '@material-ui/icons/UnfoldLess';
 import ExpandIcon from '@material-ui/icons/UnfoldMore';
-import {QUERY_PARAMS, RoutePage} from '../components/Router';
-import {ToolbarActionMap} from '../components/Toolbar';
-import {PageProps} from '../pages/Page';
-import {Apis} from './Apis';
-import {URLParser} from './URLParser';
-import {errorToMessage, s} from './Utils';
+import { QUERY_PARAMS, RoutePage } from '../components/Router';
+import { ToolbarActionMap } from '../components/Toolbar';
+import { PageProps } from '../pages/Page';
+import { Apis } from './Apis';
+import { URLParser } from './URLParser';
+import { errorToMessage, s } from './Utils';
 
 export enum ButtonKeys {
   ARCHIVE = 'archive',
@@ -179,7 +179,11 @@ export default class Buttons {
   ): Buttons {
     this._map[ButtonKeys.DELETE_RUN] = {
       action: () => {
-        this._dialogDeletePipelinesAndPipelineVersions(getSelectedIds(), getSelectedVersionIds(), callback);
+        this._dialogDeletePipelinesAndPipelineVersions(
+          getSelectedIds(),
+          getSelectedVersionIds(),
+          callback,
+        );
       },
       disabled: !useCurrentResource,
       disabledTitle: useCurrentResource
@@ -426,7 +430,6 @@ export default class Buttons {
     useCurrentResource: boolean,
     callback: (selectedIds: string[], success: boolean) => void,
   ): void {
-    console.log('Delete pipeline ids: ' + JSON.stringify(selectedIds));
     this._dialogActionHandler(
       selectedIds,
       `Do you want to delete ${
@@ -445,7 +448,6 @@ export default class Buttons {
     useCurrentResource: boolean,
     callback: (selectedIds: string[], success: boolean) => void,
   ): void {
-    console.log('Delete pipeline version ids: ' + JSON.stringify(selectedIds));
     this._dialogActionHandler(
       selectedIds,
       `Do you want to delete ${
@@ -670,22 +672,45 @@ export default class Buttons {
     selectedVersionIds: { [pipelineId: string]: string[] },
     callback: (pipelineId: string | undefined, selectedIds: string[]) => void,
   ): void {
-    const numVersionIds = Object.keys(selectedVersionIds).reduce((numVersionIds, pipelineId) => numVersionIds + selectedVersionIds[pipelineId].length, 0);
-    const deletePipelineMessage = selectedIds.length === 0 ? `` : (selectedIds.length === 1 ? `${selectedIds.length} pipeline` : `${selectedIds.length} pipelines`);
-    const deletePipelineVersionMessage = numVersionIds === 0 ? `` : (numVersionIds === 1 ? ` and ${numVersionIds} pipeline version` : ` and ${numVersionIds} pipeline versions`);
+    const numVersionIds = this._deepCountDictionary(selectedVersionIds);
+    const pipelineMessage = this._nouns(selectedIds.length, `pipeline`, `pipelines`);
+    const pipelineVersionMessage = this._nouns(
+      numVersionIds,
+      `pipeline version`,
+      `pipeline versions`,
+    );
+    const andMessage = pipelineMessage !== `` && pipelineVersionMessage !== `` ? ` and ` : ``;
     this._props.updateDialog({
       buttons: [
         {
-          onClick: async () => this._deletePipelinesAndPipelineVersions.bind(false, selectedIds, selectedVersionIds, callback),
+          onClick: async () =>
+            await this._deletePipelinesAndPipelineVersions(
+              false,
+              selectedIds,
+              selectedVersionIds,
+              callback,
+            ),
           text: 'Cancel',
         },
         {
-          onClick: async () => this._deletePipelinesAndPipelineVersions.bind(true, selectedIds, selectedVersionIds, callback),
+          onClick: async () =>
+            await this._deletePipelinesAndPipelineVersions(
+              true,
+              selectedIds,
+              selectedVersionIds,
+              callback,
+            ),
           text: 'Delete',
         },
       ],
-      onClose: async () => this._deletePipelinesAndPipelineVersions.bind(false, selectedIds, selectedVersionIds, callback),
-      title: `Delete ` + deletePipelineMessage + deletePipelineVersionMessage + `?`,
+      onClose: async () =>
+        await this._deletePipelinesAndPipelineVersions(
+          false,
+          selectedIds,
+          selectedVersionIds,
+          callback,
+        ),
+      title: `Delete ` + pipelineMessage + andMessage + pipelineVersionMessage + `?`,
     });
   }
 
@@ -714,19 +739,20 @@ export default class Buttons {
           unsuccessfulIds.push(id);
           succeededfulIds.delete(id);
           const errorMessage = await errorToMessage(err);
-          errorMessages.push(
-            `Failed to delete pipeline: ${id} with error: "${errorMessage}"`,
-          );
+          errorMessages.push(`Failed to delete pipeline: ${id} with error: "${errorMessage}"`);
         }
       }),
     );
 
     // Remove successfully deleted pipelines from selectedVersionIds if exists.
-    const toBeDeletedVersionIds = Object.fromEntries(Object.entries(selectedVersionIds).filter(([pipelineId, _]) => !succeededfulIds.has(pipelineId)));
+    const toBeDeletedVersionIds = Object.fromEntries(
+      Object.entries(selectedVersionIds).filter(
+        ([pipelineId, _]) => !succeededfulIds.has(pipelineId),
+      ),
+    );
 
     // Delete pipeline versions.
     const unsuccessfulVersionIds: { [pipelineId: string]: string[] } = {};
-    var unsuccessfulVersionIdsCt = 0;
     await Promise.all(
       Object.keys(toBeDeletedVersionIds).map(pipelineId => {
         toBeDeletedVersionIds[pipelineId].map(async versionId => {
@@ -737,29 +763,31 @@ export default class Buttons {
               unsuccessfulVersionIds[pipelineId] = [];
             }
             unsuccessfulVersionIds[pipelineId].push(versionId);
-            unsuccessfulVersionIdsCt++;
             const errorMessage = await errorToMessage(err);
             errorMessages.push(
               `Failed to delete pipeline version: ${versionId} with error: "${errorMessage}"`,
             );
           }
         });
-      })
+      }),
     );
+    const selectedVersionIdsCt = this._deepCountDictionary(selectedVersionIds);
+    const unsuccessfulVersionIdsCt = this._deepCountDictionary(unsuccessfulVersionIds);
 
     // Display successful and/or unsuccessful messages.
-    const pipelineMessage = succeededfulIds.size? `${succeededfulIds.size} pipelines` : ``;
-    const successfulVersionIdsCt = Object.keys(selectedVersionIds).reduce((successfulVersionIdsCt, pipelineId) => successfulVersionIdsCt + selectedVersionIds[pipelineId].length, 0);
-    const pipelineVersionMessage = (successfulVersionIdsCt - unsuccessfulVersionIdsCt) > 0 ? `${successfulVersionIdsCt - unsuccessfulVersionIdsCt} pipeline versions` : ``;
-
-    if (pipelineMessage != `` || pipelineVersionMessage != ``) {
+    const pipelineMessage = this._nouns(succeededfulIds.size, `pipeline`, `pipelines`);
+    const pipelineVersionMessage = this._nouns(
+      selectedVersionIdsCt - unsuccessfulVersionIdsCt,
+      `pipeline version`,
+      `pipeline versions`,
+    );
+    const andMessage = pipelineMessage !== `` && pipelineVersionMessage !== `` ? ` and ` : ``;
+    if (pipelineMessage !== `` || pipelineVersionMessage !== ``) {
       this._props.updateSnackbar({
-        message: `Deletion succeeded for ` + pipelineMessage + (pipelineVersionMessage != `` && pipelineMessage != `` ? ` and ` : ``) + pipelineVersionMessage,
+        message: `Deletion succeeded for ` + pipelineMessage + andMessage + pipelineVersionMessage,
         open: true,
       });
-      this._refresh();
     }
-
     if (unsuccessfulIds.length > 0 || unsuccessfulVersionIdsCt > 0) {
       this._props.updateDialog({
         buttons: [{ text: 'Dismiss' }],
@@ -771,8 +799,25 @@ export default class Buttons {
     // pipelines and pipeline versions that failed deletion will keep to be
     // checked.
     callback(undefined, unsuccessfulIds);
-    Object.keys(unsuccessfulVersionIds).map(pipelineId => callback(pipelineId, unsuccessfulVersionIds[pipelineId]));
+    Object.keys(unsuccessfulVersionIds).map(pipelineId =>
+      callback(pipelineId, unsuccessfulVersionIds[pipelineId]),
+    );
+
+    // Refresh
     this._refresh();
   }
 
+  private _nouns(count: number, singularNoun: string, pluralNoun: string): string {
+    if (count <= 0) {
+      return ``;
+    } else if (count === 1) {
+      return `${count} ` + singularNoun;
+    } else {
+      return `${count} ` + pluralNoun;
+    }
+  }
+
+  private _deepCountDictionary(dict: { [pipelineId: string]: string[] }): number {
+    return Object.keys(dict).reduce((count, pipelineId) => count + dict[pipelineId].length, 0);
+  }
 }

@@ -320,7 +320,6 @@ export default class CustomTable extends React.Component<CustomTableProps, Custo
         {/* Header */}
         <div className={classes(css.header, this.props.disableSelection && padding(20, 'l'))}>
           {console.log(this.props.emptyMessage + 'JING numSelected:' + JSON.stringify(numSelected))}
-          {console.log(this.props.emptyMessage + 'JING numSelected source: ' + JSON.stringify((this.props.selectedIds || []).length))}
           {// Called as function to avoid breaking shallow rendering tests.
           HeaderRowSelectionSection({
             disableSelection: this.props.disableSelection,
