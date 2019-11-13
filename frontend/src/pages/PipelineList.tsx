@@ -221,9 +221,9 @@ class PipelineList extends Page<{}, PipelineListState> {
     } else {
       // Update selected pipeline ids.
       this.setStateSafe({ selectedIds });
-      const numVersionIds = this._deepCountDictionary(this.state.selectedVersionIds);
+      const selectedVersionIdsCt = this._deepCountDictionary(this.state.selectedVersionIds);
       const actions = this.props.toolbarProps.actions;
-      actions[ButtonKeys.DELETE_RUN].disabled = selectedIds.length < 1 && numVersionIds < 1;
+      actions[ButtonKeys.DELETE_RUN].disabled = selectedIds.length < 1 && selectedVersionIdsCt < 1;
       this.props.updateToolbar({ actions });
     }
   }

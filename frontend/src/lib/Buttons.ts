@@ -600,7 +600,7 @@ export default class Buttons {
           [QUERY_PARAMS.pipelineId]: pipelineId,
         })
       : '';
-    console.log('search string: ' + JSON.stringify(searchString));
+    console.log('JING search string: ' + JSON.stringify(searchString));
     this._props.history.push(RoutePage.NEW_EXPERIMENT + searchString);
   }
 
@@ -663,7 +663,7 @@ export default class Buttons {
           [QUERY_PARAMS.pipelineId]: pipelineId,
         })
       : '';
-    console.log('search string: ' + JSON.stringify(searchString));
+    console.log('JING search string: ' + JSON.stringify(searchString));
     this._props.history.push(RoutePage.NEW_PIPELINE_VERSION + searchString);
   }
 
@@ -757,11 +757,9 @@ export default class Buttons {
       Object.keys(toBeDeletedVersionIds).map(pipelineId => {
         toBeDeletedVersionIds[pipelineId].map(async versionId => {
           try {
+            unsuccessfulVersionIds[pipelineId] = [];
             await Apis.pipelineServiceApi.deletePipelineVersion(versionId);
           } catch (err) {
-            if (!unsuccessfulVersionIds[pipelineId]) {
-              unsuccessfulVersionIds[pipelineId] = [];
-            }
             unsuccessfulVersionIds[pipelineId].push(versionId);
             const errorMessage = await errorToMessage(err);
             errorMessages.push(
@@ -799,7 +797,7 @@ export default class Buttons {
     // pipelines and pipeline versions that failed deletion will keep to be
     // checked.
     callback(undefined, unsuccessfulIds);
-    Object.keys(unsuccessfulVersionIds).map(pipelineId =>
+    Object.keys(selectedVersionIds).map(pipelineId =>
       callback(pipelineId, unsuccessfulVersionIds[pipelineId]),
     );
 
