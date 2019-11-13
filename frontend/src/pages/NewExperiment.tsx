@@ -171,7 +171,6 @@ class NewExperiment extends Page<{}, NewExperimentState> {
             [QUERY_PARAMS.firstRunInExperiment]: '1',
           });
         }
-        console.log('search string: ' + JSON.stringify(searchString));
         this.props.history.push(RoutePage.NEW_RUN + searchString);
         this.props.updateSnackbar({
           autoHideDuration: 10000,

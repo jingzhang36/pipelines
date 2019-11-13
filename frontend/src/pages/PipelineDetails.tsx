@@ -467,7 +467,6 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
           versions =
             (await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE', pipelineId, 50))
               .versions || [];
-          console.log('versions length: ' + versions.length);
         } catch (err) {
           await this.showPageError('Cannot retrieve pipeline versions.', err);
           logger.error('Cannot retrieve pipeline versions.', err);

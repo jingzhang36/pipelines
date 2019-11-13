@@ -600,7 +600,6 @@ export default class Buttons {
           [QUERY_PARAMS.pipelineId]: pipelineId,
         })
       : '';
-    console.log('JING search string: ' + JSON.stringify(searchString));
     this._props.history.push(RoutePage.NEW_EXPERIMENT + searchString);
   }
 
@@ -663,7 +662,6 @@ export default class Buttons {
           [QUERY_PARAMS.pipelineId]: pipelineId,
         })
       : '';
-    console.log('JING search string: ' + JSON.stringify(searchString));
     this._props.history.push(RoutePage.NEW_PIPELINE_VERSION + searchString);
   }
 

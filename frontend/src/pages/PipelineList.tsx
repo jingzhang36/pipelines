@@ -124,7 +124,7 @@ class PipelineList extends Page<{}, PipelineListState> {
           toggleExpansion={this._toggleRowExpand.bind(this)}
           getExpandComponent={this._getExpandedPipelineComponent.bind(this)}
           filterLabel='Filter pipelines'
-          emptyMessage='(pipeline)' // 'No pipelines found. Click "Upload pipeline" to start.'
+          emptyMessage='No pipelines found. Click "Upload pipeline" to start.'
         />
 
         <UploadPipelineDialog
