@@ -152,7 +152,6 @@ export default class Buttons {
     callback: (selectedIds: string[], success: boolean) => void,
     useCurrentResource: boolean,
   ): Buttons {
-    console.log('JING only pipelines delete: ' + JSON.stringify(getSelectedIds()));
     this._map[ButtonKeys.DELETE_RUN] = {
       action: () =>
         resourceName === 'pipeline'
@@ -324,6 +323,28 @@ export default class Buttons {
       style: { minWidth: 160 },
       title: 'Upload pipeline',
       tooltip: 'Upload pipeline',
+    };
+    return this;
+  }
+
+// Delete pipelines and pipeline versions simultaneously.
+  public deletePipelinesAndPipelineVersions(
+    getSelectedIds: () => string[],
+    getSelectedVersionIds: () => { [pipelineId: string]: string[] },
+    callback: (pipelineId: string | undefined, selectedIds: string[]) => void,
+    useCurrentResource: boolean,
+  ): Buttons {
+    this._map[ButtonKeys.DELETE_RUN] = {
+      action: () => {
+        this._deletePipelinesAndPipelineVersions(getSelectedIds(), getSelectedVersionIds(), callback);
+      },
+      disabled: !useCurrentResource,
+      disabledTitle: useCurrentResource
+        ? undefined
+        : `Select at least one pipeline and/or pipeline version to delete`,
+      id: 'deletePipelinesAndPipelineVersionsBtn',
+      title: 'Delete',
+      tooltip: 'Delete',
     };
     return this;
   }
@@ -644,36 +665,11 @@ export default class Buttons {
     this._props.history.push(RoutePage.NEW_PIPELINE_VERSION + searchString);
   }
 
-  // Delete pipelines and pipeline versions simultaneously.
-  public deletePipelinesAndPipelineVersions(
-    getSelectedIds: () => string[],
-    getSelectedVersionIds: () => { [pipelineId: string]: string[] },
-    callback: (pipelineId: string | undefined, selectedIds: string[]) => void,
-    useCurrentResource: boolean,
-  ): Buttons {
-    this._map[ButtonKeys.DELETE_RUN] = {
-      action: () => {
-        this._deletePipelinesAndPipelineVersions(getSelectedIds(), getSelectedVersionIds(), useCurrentResource, callback);
-      },
-      disabled: !useCurrentResource,
-      disabledTitle: useCurrentResource
-        ? undefined
-        : `Select at least one pipeline and/or pipeline version to delete`,
-      id: 'deletePipelinesAndPipelineVersionsBtn',
-      title: 'Delete',
-      tooltip: 'Delete',
-    };
-    return this;
-  }
-
   private _deletePipelinesAndPipelineVersions(
     selectedIds: string[],
     selectedVersionIds: { [pipelineId: string]: string[] },
-    useCurrentResource: boolean,
     callback: (pipelineId: string | undefined, selectedIds: string[]) => void,
   ): void {
-    const numVersionIds = Object.keys(selectedVersionIds).reduce((numVersionIds, pipelineId) => numVersionIds + selectedVersionIds[pipelineId].length, 0);
-    console.log('Delete version ids: ' + JSON.stringify(numVersionIds));
     const dialogClosedHandler = (confirmed: boolean) =>
       this._dialogOfDeletePipelinesAndPipelineVersionsClosed(
         confirmed,
@@ -682,8 +678,9 @@ export default class Buttons {
         callback,
       );
 
-    const deletePipelineMessage = selectedIds.length == 0 ? `` : (selectedIds.length == 1 ? `${selectedIds.length} pipeline` : `${selectedIds.length} pipelines`);
-    const deletePipelineVersionMessage = numVersionIds == 0 ? `` : (numVersionIds == 1 ? `${numVersionIds} pipeline version` : `${numVersionIds} pipeline versions`);
+    const numVersionIds = Object.keys(selectedVersionIds).reduce((numVersionIds, pipelineId) => numVersionIds + selectedVersionIds[pipelineId].length, 0);
+    const deletePipelineMessage = selectedIds.length === 0 ? `` : (selectedIds.length === 1 ? `${selectedIds.length} pipeline` : `${selectedIds.length} pipelines`);
+    const deletePipelineVersionMessage = numVersionIds === 0 ? `` : (numVersionIds === 1 ? ` and ${numVersionIds} pipeline version` : ` and ${numVersionIds} pipeline versions`);
     this._props.updateDialog({
       buttons: [
         {
@@ -696,7 +693,7 @@ export default class Buttons {
         },
       ],
       onClose: async () => await dialogClosedHandler(false),
-      title: `Delete ` + deletePipelineMessage + ` and ` +  deletePipelineVersionMessage + `?`,
+      title: `Delete ` + deletePipelineMessage + deletePipelineVersionMessage + `?`,
     });
   }
 
@@ -777,45 +774,5 @@ export default class Buttons {
     Object.keys(unsuccessfulVersionIds).map(pipelineId => callback(pipelineId, unsuccessfulVersionIds[pipelineId]));
     this._refresh();
   }
-
-  private _dialogPipelinesAndPipelineVersionsActionHandler(
-    selectedIds: string[],
-    content: string,
-    useCurrentResource: boolean,
-    api: (id: string) => Promise<void>,
-    callback: (selectedIds: string[], success: boolean) => void,
-    actionName: string,
-    resourceName: string,
-  ): void {
-    const dialogClosedHandler = (confirmed: boolean) =>
-      this._dialogClosed(
-        confirmed,
-        selectedIds,
-        actionName,
-        resourceName,
-        useCurrentResource,
-        api,
-        callback,
-      );
-
-    this._props.updateDialog({
-      buttons: [
-        {
-          onClick: async () => await dialogClosedHandler(false),
-          text: 'Cancel',
-        },
-        {
-          onClick: async () => await dialogClosedHandler(true),
-          text: actionName,
-        },
-      ],
-      content,
-      onClose: async () => await dialogClosedHandler(false),
-      title: `${actionName} ${useCurrentResource ? 'this' : selectedIds.length} ${resourceName}${
-        useCurrentResource ? '' : s(selectedIds.length)
-      }?`,
-    });
-  }
-
 
 }

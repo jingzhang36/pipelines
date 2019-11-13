@@ -236,14 +236,12 @@ export default class CustomTable extends React.Component<CustomTableProps, Custo
       // This should be impossible to reach
       return;
     }
-    console.log(this.props.emptyMessage + 'JING handle select all click:' + JSON.stringify((event.target as CheckboxProps).checked));
     const selectedIds = (event.target as CheckboxProps).checked
       ? this.props.rows.map(v => v.id)
       : [];
     if (this.props.updateSelection) {
       this.props.updateSelection(selectedIds);
     }
-    console.log(this.props.emptyMessage + 'JING handle select all click selected ids:' + JSON.stringify(selectedIds));
   }
 
   public handleClick(e: React.MouseEvent, id: string): void {
@@ -267,7 +265,6 @@ export default class CustomTable extends React.Component<CustomTableProps, Custo
       this.props.updateSelection(newSelected);
     }
 
-    console.log(this.props.emptyMessage + 'JING single select:' +  JSON.stringify(newSelected));
     e.stopPropagation();
   }
 
