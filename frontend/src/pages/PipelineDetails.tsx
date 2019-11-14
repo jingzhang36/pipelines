@@ -148,7 +148,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
         pageTitle: 'Pipeline details',
       };
     } else {
-      // Add buttons for creating experiment and deleting pipeline
+      // Add buttons for creating experiment and deleting pipeline version
       buttons
         .newExperiment(() =>
           this.state.pipeline
