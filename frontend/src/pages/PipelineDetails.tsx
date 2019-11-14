@@ -126,8 +126,9 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
   public getInitialToolbarState(): ToolbarProps {
     const buttons = new Buttons(this.props, this.refresh.bind(this));
     const fromRunId = new URLParser(this.props).get(QUERY_PARAMS.fromRunId);
+    const pipelineIdFromParams = this.props.match.params[RouteParams.pipelineId];
+    const pipelineVersionIdFromParams = this.props.match.params[RouteParams.pipelineVersionId];
     buttons.newRunFromPipeline(() => {
-      const pipelineIdFromParams = this.props.match.params[RouteParams.pipelineId];
       return this.state.pipeline
         ? this.state.pipeline.id!
         : pipelineIdFromParams
@@ -149,9 +150,20 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     } else {
       // Add buttons for creating experiment and deleting pipeline
       buttons
-        .newExperiment(() => (this.state.pipeline ? this.state.pipeline.id! : ''))
+        .newExperiment(() =>
+          this.state.pipeline
+            ? this.state.pipeline.id!
+            : pipelineIdFromParams
+            ? pipelineIdFromParams
+            : '',
+        )
         .delete(
-          () => (this.state.selectedVersion ? [this.state.selectedVersion.id!] : []),
+          () =>
+            this.state.selectedVersion
+              ? [this.state.selectedVersion.id!]
+              : pipelineVersionIdFromParams
+                ? [pipelineVersionIdFromParams]
+                :[],
           'pipeline version',
           this._deleteCallback.bind(this),
           true /* useCurrentResource */,
