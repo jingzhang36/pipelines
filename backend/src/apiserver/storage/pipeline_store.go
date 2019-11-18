@@ -705,7 +705,6 @@ func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 			%v`,
 			err.Error())
 	}
-
 	var pipelineId = ""
 	if r.Next() {
 		if err := r.Scan(&pipelineId); err != nil {
