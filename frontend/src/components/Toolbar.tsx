@@ -121,6 +121,11 @@ export interface ToolbarProps {
 class Toolbar extends React.Component<ToolbarProps> {
   public render(): JSX.Element | null {
     const { actions, breadcrumbs, pageTitle, pageTitleTooltip } = { ...this.props };
+    Object.keys(actions).map((buttonKey, i) => {
+      // console.log('render button key: ' + JSON.stringify(buttonKey));
+      const button = actions[buttonKey];
+      // console.log('render button: ' + JSON.stringify(button));
+    });
 
     if (!actions.length && !breadcrumbs.length && !pageTitle) {
       return null;
