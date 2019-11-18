@@ -611,7 +611,6 @@ func (s *PipelineStore) ListPipelineVersions(pipelineId string, opts *list.Optio
 	// SQL for pipeline version list
 	rowsSql, rowsArgs, err := opts.AddPaginationToSelect(
 		buildQuery(sq.Select(pipelineVersionColumns...))).ToSql()
-	fmt.Printf("list pipeline versions request: %+v", rowsSql)
 	if err != nil {
 		return errorF(err)
 	}
@@ -688,15 +687,14 @@ func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 		versionId)
 	if err != nil {
 		tx.Rollback()
-		fmt.Printf("JING delete %+v\n", err)
 		return util.NewInternalServerError(
 			err,
 			"Failed to delete pipeline version: %v",
 			err.Error())
 	}
 
-	// // (2) check whether this version is used as default version.
-	_, err = tx.Query(
+	// (2) check whether this version is used as default version.
+	r, err := tx.Query(
 		"select UUID from pipelines where DefaultVersionId = ?",
 		versionId)
 	if err != nil {
@@ -707,80 +705,83 @@ func (s *PipelineStore) DeletePipelineVersion(versionId string) error {
 			%v`,
 			err.Error())
 	}
-	// var pipelineId = ""
-	// if r.Next() {
-	// 	if err := r.Scan(&pipelineId); err != nil {
-	// 		tx.Rollback()
-	// 		return util.NewInternalServerError(
-	// 			err,
-	// 			"Failed to get pipeline id for version id: %v",
-	// 			err.Error())
-	// 	}
-	// }
-	// if len(pipelineId) == 0 {
-	// 	// The deleted version is not used as a default version. So no extra
-	// 	// work is needed. We commit the deletion now.
-	// 	if err := tx.Commit(); err != nil {
-	// 		return util.NewInternalServerError(
-	// 			err,
-	// 			"Failed to delete pipeline version: %v",
-	// 			err.Error())
-	// 	}
-	// }
 
-	// // (3) find a new default version.
-	// r, err = tx.Query(
-	// 	`select UUID from pipeline_versions
-	// 	where PipelineId = ? and Status = ?
-	// 	order by CreatedAtInSec DESC
-	// 	limit 1`,
-	// 	pipelineId,
-	// 	model.PipelineVersionReady)
-	// if err != nil {
-	// 	tx.Rollback()
-	// 	return util.NewInternalServerError(
-	// 		err,
-	// 		"Failed to get a new default version id: %v",
-	// 		err.Error())
-	// }
-	// var newDefaultVersionId = ""
-	// if r.Next() {
-	// 	if err := r.Scan(&newDefaultVersionId); err != nil {
-	// 		tx.Rollback()
-	// 		return util.NewInternalServerError(
-	// 			err,
-	// 			"Failed to get a new default version id: %v",
-	// 			err.Error())
-	// 	}
-	// }
-	// if len(newDefaultVersionId) == 0 {
-	// 	// No new default version. The pipeline's default version id will be
-	// 	// null.
-	// 	_, err = tx.Exec(
-	// 		"update pipelines set DefaultVersionId = null where UUID = ?",
-	// 		pipelineId)
-	// 	if err != nil {
-	// 		tx.Rollback()
-	// 		return util.NewInternalServerError(
-	// 			err,
-	// 			"Failed to update pipeline's default version id: %v",
-	// 			err.Error())
-	// 	}
-	// } else {
-	// 	_, err = tx.Exec(
-	// 		"update pipelines set DefaultVersionId = ? where UUID = ?",
-	// 		newDefaultVersionId, pipelineId)
-	// 	if err != nil {
-	// 		tx.Rollback()
-	// 		return util.NewInternalServerError(
-	// 			err,
-	// 			"Failed to update pipeline's default version id: %v",
-	// 			err.Error())
-	// 	}
-	// }
+	var pipelineId = ""
+	if r.Next() {
+		if err := r.Scan(&pipelineId); err != nil {
+			tx.Rollback()
+			return util.NewInternalServerError(
+				err,
+				"Failed to get pipeline id for version id: %v",
+				err.Error())
+		}
+	}
+	r.Close()
+	if len(pipelineId) == 0 {
+		// The deleted version is not used as a default version. So no extra
+		// work is needed. We commit the deletion now.
+		if err := tx.Commit(); err != nil {
+			return util.NewInternalServerError(
+				err,
+				"Failed to delete pipeline version: %v",
+				err.Error())
+		}
+		return nil
+	}
+
+	// (3) find a new default version.
+	r, err = tx.Query(
+		`select UUID from pipeline_versions
+		where PipelineId = ? and Status = ?
+		order by CreatedAtInSec DESC
+		limit 1`,
+		pipelineId,
+		model.PipelineVersionReady)
+	if err != nil {
+		tx.Rollback()
+		return util.NewInternalServerError(
+			err,
+			"Failed to get a new default version id: %v",
+			err.Error())
+	}
+	var newDefaultVersionId = ""
+	if r.Next() {
+		if err := r.Scan(&newDefaultVersionId); err != nil {
+			tx.Rollback()
+			return util.NewInternalServerError(
+				err,
+				"Failed to get a new default version id: %v",
+				err.Error())
+		}
+	}
+	r.Close()
+	if len(newDefaultVersionId) == 0 {
+		// No new default version. The pipeline's default version id will be
+		// null.
+		_, err = tx.Exec(
+			"update pipelines set DefaultVersionId = null where UUID = ?",
+			pipelineId)
+		if err != nil {
+			tx.Rollback()
+			return util.NewInternalServerError(
+				err,
+				"Failed to update pipeline's default version id: %v",
+				err.Error())
+		}
+	} else {
+		_, err = tx.Exec(
+			"update pipelines set DefaultVersionId = ? where UUID = ?",
+			newDefaultVersionId, pipelineId)
+		if err != nil {
+			tx.Rollback()
+			return util.NewInternalServerError(
+				err,
+				"Failed to update pipeline's default version id: %v",
+				err.Error())
+		}
+	}
 
 	if err := tx.Commit(); err != nil {
-		fmt.Printf("JING commit %+v\n", err)
 		return util.NewInternalServerError(
 			err,
 			"Failed to delete pipeline version: %v",
