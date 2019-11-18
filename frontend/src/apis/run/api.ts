@@ -555,6 +555,7 @@ export const RunServiceApiFetchParamCreator = function(configuration?: Configura
   return {
     /**
      *
+     * @summary Archives a run.
      * @param {string} id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -602,6 +603,7 @@ export const RunServiceApiFetchParamCreator = function(configuration?: Configura
     },
     /**
      *
+     * @summary Creates a new run.
      * @param {ApiRun} body
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -652,6 +654,7 @@ export const RunServiceApiFetchParamCreator = function(configuration?: Configura
     },
     /**
      *
+     * @summary Deletes a run.
      * @param {string} id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -699,6 +702,7 @@ export const RunServiceApiFetchParamCreator = function(configuration?: Configura
     },
     /**
      *
+     * @summary Finds a specific run by ID.
      * @param {string} run_id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -746,12 +750,13 @@ export const RunServiceApiFetchParamCreator = function(configuration?: Configura
     },
     /**
      *
+     * @summary Finds all runs.
      * @param {string} [page_token]
      * @param {number} [page_size]
-     * @param {string} [sort_by] Can be format of \&quot;field_name\&quot;, \&quot;field_name asc\&quot; or \&quot;field_name des\&quot; Ascending by default.
+     * @param {string} [sort_by] Can be format of \&quot;field_name\&quot;, \&quot;field_name asc\&quot; or \&quot;field_name des\&quot; (Example, \&quot;name asc\&quot; or \&quot;id des\&quot;). Ascending by default.
      * @param {'UNKNOWN_RESOURCE_TYPE' | 'EXPERIMENT' | 'JOB' | 'PIPELINE' | 'PIPELINE_VERSION'} [resource_reference_key_type] The type of the resource that referred to.
      * @param {string} [resource_reference_key_id] The ID of the resource that referred to.
-     * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see filter.proto).
+     * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see [filter.proto](https://github.com/kubeflow/pipelines/ blob/master/backend/api/filter.proto)).
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -825,6 +830,7 @@ export const RunServiceApiFetchParamCreator = function(configuration?: Configura
     },
     /**
      *
+     * @summary Finds a run's artifact data.
      * @param {string} run_id The ID of the run.
      * @param {string} node_id The ID of the running node.
      * @param {string} artifact_name The name of the artifact.
@@ -959,6 +965,7 @@ export const RunServiceApiFetchParamCreator = function(configuration?: Configura
     },
     /**
      *
+     * @summary Re-initiates a failed or terminated run.
      * @param {string} run_id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1006,6 +1013,7 @@ export const RunServiceApiFetchParamCreator = function(configuration?: Configura
     },
     /**
      *
+     * @summary Terminates an active run.
      * @param {string} run_id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1053,6 +1061,7 @@ export const RunServiceApiFetchParamCreator = function(configuration?: Configura
     },
     /**
      *
+     * @summary Restores an archived run.
      * @param {string} id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1109,6 +1118,7 @@ export const RunServiceApiFp = function(configuration?: Configuration) {
   return {
     /**
      *
+     * @summary Archives a run.
      * @param {string} id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1130,6 +1140,7 @@ export const RunServiceApiFp = function(configuration?: Configuration) {
     },
     /**
      *
+     * @summary Creates a new run.
      * @param {ApiRun} body
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1154,6 +1165,7 @@ export const RunServiceApiFp = function(configuration?: Configuration) {
     },
     /**
      *
+     * @summary Deletes a run.
      * @param {string} id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1175,6 +1187,7 @@ export const RunServiceApiFp = function(configuration?: Configuration) {
     },
     /**
      *
+     * @summary Finds a specific run by ID.
      * @param {string} run_id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1199,12 +1212,13 @@ export const RunServiceApiFp = function(configuration?: Configuration) {
     },
     /**
      *
+     * @summary Finds all runs.
      * @param {string} [page_token]
      * @param {number} [page_size]
-     * @param {string} [sort_by] Can be format of \&quot;field_name\&quot;, \&quot;field_name asc\&quot; or \&quot;field_name des\&quot; Ascending by default.
+     * @param {string} [sort_by] Can be format of \&quot;field_name\&quot;, \&quot;field_name asc\&quot; or \&quot;field_name des\&quot; (Example, \&quot;name asc\&quot; or \&quot;id des\&quot;). Ascending by default.
      * @param {'UNKNOWN_RESOURCE_TYPE' | 'EXPERIMENT' | 'JOB' | 'PIPELINE' | 'PIPELINE_VERSION'} [resource_reference_key_type] The type of the resource that referred to.
      * @param {string} [resource_reference_key_id] The ID of the resource that referred to.
-     * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see filter.proto).
+     * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see [filter.proto](https://github.com/kubeflow/pipelines/ blob/master/backend/api/filter.proto)).
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -1243,6 +1257,7 @@ export const RunServiceApiFp = function(configuration?: Configuration) {
     },
     /**
      *
+     * @summary Finds a run's artifact data.
      * @param {string} run_id The ID of the run.
      * @param {string} node_id The ID of the running node.
      * @param {string} artifact_name The name of the artifact.
@@ -1301,6 +1316,7 @@ export const RunServiceApiFp = function(configuration?: Configuration) {
     },
     /**
      *
+     * @summary Re-initiates a failed or terminated run.
      * @param {string} run_id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1322,6 +1338,7 @@ export const RunServiceApiFp = function(configuration?: Configuration) {
     },
     /**
      *
+     * @summary Terminates an active run.
      * @param {string} run_id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1346,6 +1363,7 @@ export const RunServiceApiFp = function(configuration?: Configuration) {
     },
     /**
      *
+     * @summary Restores an archived run.
      * @param {string} id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1380,6 +1398,7 @@ export const RunServiceApiFactory = function(
   return {
     /**
      *
+     * @summary Archives a run.
      * @param {string} id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1389,6 +1408,7 @@ export const RunServiceApiFactory = function(
     },
     /**
      *
+     * @summary Creates a new run.
      * @param {ApiRun} body
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1398,6 +1418,7 @@ export const RunServiceApiFactory = function(
     },
     /**
      *
+     * @summary Deletes a run.
      * @param {string} id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1407,6 +1428,7 @@ export const RunServiceApiFactory = function(
     },
     /**
      *
+     * @summary Finds a specific run by ID.
      * @param {string} run_id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1416,12 +1438,13 @@ export const RunServiceApiFactory = function(
     },
     /**
      *
+     * @summary Finds all runs.
      * @param {string} [page_token]
      * @param {number} [page_size]
-     * @param {string} [sort_by] Can be format of \&quot;field_name\&quot;, \&quot;field_name asc\&quot; or \&quot;field_name des\&quot; Ascending by default.
+     * @param {string} [sort_by] Can be format of \&quot;field_name\&quot;, \&quot;field_name asc\&quot; or \&quot;field_name des\&quot; (Example, \&quot;name asc\&quot; or \&quot;id des\&quot;). Ascending by default.
      * @param {'UNKNOWN_RESOURCE_TYPE' | 'EXPERIMENT' | 'JOB' | 'PIPELINE' | 'PIPELINE_VERSION'} [resource_reference_key_type] The type of the resource that referred to.
      * @param {string} [resource_reference_key_id] The ID of the resource that referred to.
-     * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see filter.proto).
+     * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see [filter.proto](https://github.com/kubeflow/pipelines/ blob/master/backend/api/filter.proto)).
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -1451,6 +1474,7 @@ export const RunServiceApiFactory = function(
     },
     /**
      *
+     * @summary Finds a run's artifact data.
      * @param {string} run_id The ID of the run.
      * @param {string} node_id The ID of the running node.
      * @param {string} artifact_name The name of the artifact.
@@ -1479,6 +1503,7 @@ export const RunServiceApiFactory = function(
     },
     /**
      *
+     * @summary Re-initiates a failed or terminated run.
      * @param {string} run_id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1488,6 +1513,7 @@ export const RunServiceApiFactory = function(
     },
     /**
      *
+     * @summary Terminates an active run.
      * @param {string} run_id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1497,6 +1523,7 @@ export const RunServiceApiFactory = function(
     },
     /**
      *
+     * @summary Restores an archived run.
      * @param {string} id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1516,6 +1543,7 @@ export const RunServiceApiFactory = function(
 export class RunServiceApi extends BaseAPI {
   /**
    *
+   * @summary Archives a run.
    * @param {string} id
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -1527,6 +1555,7 @@ export class RunServiceApi extends BaseAPI {
 
   /**
    *
+   * @summary Creates a new run.
    * @param {ApiRun} body
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -1538,6 +1567,7 @@ export class RunServiceApi extends BaseAPI {
 
   /**
    *
+   * @summary Deletes a run.
    * @param {string} id
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -1549,6 +1579,7 @@ export class RunServiceApi extends BaseAPI {
 
   /**
    *
+   * @summary Finds a specific run by ID.
    * @param {string} run_id
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -1560,12 +1591,13 @@ export class RunServiceApi extends BaseAPI {
 
   /**
    *
+   * @summary Finds all runs.
    * @param {string} [page_token]
    * @param {number} [page_size]
-   * @param {string} [sort_by] Can be format of \&quot;field_name\&quot;, \&quot;field_name asc\&quot; or \&quot;field_name des\&quot; Ascending by default.
+   * @param {string} [sort_by] Can be format of \&quot;field_name\&quot;, \&quot;field_name asc\&quot; or \&quot;field_name des\&quot; (Example, \&quot;name asc\&quot; or \&quot;id des\&quot;). Ascending by default.
    * @param {'UNKNOWN_RESOURCE_TYPE' | 'EXPERIMENT' | 'JOB' | 'PIPELINE' | 'PIPELINE_VERSION'} [resource_reference_key_type] The type of the resource that referred to.
    * @param {string} [resource_reference_key_id] The ID of the resource that referred to.
-   * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see filter.proto).
+   * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see [filter.proto](https://github.com/kubeflow/pipelines/ blob/master/backend/api/filter.proto)).
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    * @memberof RunServiceApi
@@ -1597,6 +1629,7 @@ export class RunServiceApi extends BaseAPI {
 
   /**
    *
+   * @summary Finds a run's artifact data.
    * @param {string} run_id The ID of the run.
    * @param {string} node_id The ID of the running node.
    * @param {string} artifact_name The name of the artifact.
@@ -1631,6 +1664,7 @@ export class RunServiceApi extends BaseAPI {
 
   /**
    *
+   * @summary Re-initiates a failed or terminated run.
    * @param {string} run_id
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -1642,6 +1676,7 @@ export class RunServiceApi extends BaseAPI {
 
   /**
    *
+   * @summary Terminates an active run.
    * @param {string} run_id
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -1656,6 +1691,7 @@ export class RunServiceApi extends BaseAPI {
 
   /**
    *
+   * @summary Restores an archived run.
    * @param {string} id
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}

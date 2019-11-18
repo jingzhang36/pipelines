@@ -340,7 +340,7 @@ export const ExperimentServiceApiFetchParamCreator = function(configuration?: Co
      * @param {string} [page_token]
      * @param {number} [page_size]
      * @param {string} [sort_by] Can be format of \&quot;field_name\&quot;, \&quot;field_name asc\&quot; or \&quot;field_name des\&quot; Ascending by default.
-     * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see filter.proto).
+     * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see [filter.proto](https://github.com/kubeflow/pipelines/ blob/master/backend/api/filter.proto)).
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -481,7 +481,7 @@ export const ExperimentServiceApiFp = function(configuration?: Configuration) {
      * @param {string} [page_token]
      * @param {number} [page_size]
      * @param {string} [sort_by] Can be format of \&quot;field_name\&quot;, \&quot;field_name asc\&quot; or \&quot;field_name des\&quot; Ascending by default.
-     * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see filter.proto).
+     * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see [filter.proto](https://github.com/kubeflow/pipelines/ blob/master/backend/api/filter.proto)).
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -554,7 +554,7 @@ export const ExperimentServiceApiFactory = function(
      * @param {string} [page_token]
      * @param {number} [page_size]
      * @param {string} [sort_by] Can be format of \&quot;field_name\&quot;, \&quot;field_name asc\&quot; or \&quot;field_name des\&quot; Ascending by default.
-     * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see filter.proto).
+     * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see [filter.proto](https://github.com/kubeflow/pipelines/ blob/master/backend/api/filter.proto)).
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -630,7 +630,7 @@ export class ExperimentServiceApi extends BaseAPI {
    * @param {string} [page_token]
    * @param {number} [page_size]
    * @param {string} [sort_by] Can be format of \&quot;field_name\&quot;, \&quot;field_name asc\&quot; or \&quot;field_name des\&quot; Ascending by default.
-   * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see filter.proto).
+   * @param {string} [filter] A url-encoded, JSON-serialized Filter protocol buffer (see [filter.proto](https://github.com/kubeflow/pipelines/ blob/master/backend/api/filter.proto)).
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    * @memberof ExperimentServiceApi

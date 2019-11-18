@@ -162,8 +162,8 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
             this.state.selectedVersion
               ? [this.state.selectedVersion.id!]
               : pipelineVersionIdFromParams
-                ? [pipelineVersionIdFromParams]
-                :[],
+              ? [pipelineVersionIdFromParams]
+              : [],
           'pipeline version',
           this._deleteCallback.bind(this),
           true /* useCurrentResource */,
