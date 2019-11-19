@@ -41,7 +41,7 @@ import {
   ApiPipelineRuntime,
 } from '../apis/run';
 import { ApiTrigger, ApiJob } from '../apis/job';
-import { Apis, PipelineVersionSortKeys, ExperimentSortKeys } from '../lib/Apis';
+import { Apis, PipelineSortKeys, PipelineVersionSortKeys, ExperimentSortKeys } from '../lib/Apis';
 import { Link } from 'react-router-dom';
 import { Page } from './Page';
 import { RoutePage, RouteParams, QUERY_PARAMS } from '../components/Router';
@@ -80,6 +80,7 @@ interface NewRunState {
   pipelineName: string;
   pipelineVersionName: string;
   pipelineSelectorOpen: boolean;
+  pipelineVersionSelectorOpen: boolean;
   runName: string;
   trigger?: ApiTrigger;
   unconfirmedSelectedExperiment?: ApiExperiment;
@@ -107,6 +108,12 @@ const descriptionCustomRenderer: React.FC<CustomRendererProps<string>> = props =
 };
 
 class NewRun extends Page<{}, NewRunState> {
+  private pipelineSelectorColumns = [
+    { label: 'Pipeline name', flex: 1, sortKey: PipelineSortKeys.NAME },
+    { label: 'Description', flex: 2, customRenderer: descriptionCustomRenderer },
+    { label: 'Uploaded on', flex: 1, sortKey: PipelineSortKeys.CREATED_AT },
+  ];
+
   private pipelineVersionSelectorColumns = [
     { label: 'Version name', flex: 1, sortKey: PipelineVersionSortKeys.NAME },
     { label: 'Description', flex: 2, customRenderer: descriptionCustomRenderer },
@@ -136,6 +143,7 @@ class NewRun extends Page<{}, NewRunState> {
       pipelineName: '',
       pipelineSelectorOpen: false,
       pipelineVersionName: '',
+      pipelineVersionSelectorOpen: false,
       runName: '',
       uploadDialogOpen: false,
       usePipelineFromRunLabel: 'Using pipeline from cloned run',
@@ -162,12 +170,13 @@ class NewRun extends Page<{}, NewRunState> {
       isFirstRunInExperiment,
       isRecurringRun,
       parameters,
-      // pipelineName,
+      pipelineName,
       pipelineVersionName,
       pipelineSelectorOpen,
+      pipelineVersionSelectorOpen,
       runName,
       unconfirmedSelectedExperiment,
-      // unconfirmedSelectedPipeline,
+      unconfirmedSelectedPipeline,
       unconfirmedSelectedPipelineVersion,
       usePipelineFromRunLabel,
       useWorkflowFromRun,
@@ -198,6 +207,31 @@ class NewRun extends Page<{}, NewRunState> {
           )}
           {!useWorkflowFromRun && (
             <Input
+              value={pipelineName}
+              required={true}
+              label='Pipeline'
+              disabled={true}
+              variant='outlined'
+              InputProps={{
+                classes: { disabled: css.nonEditableInput },
+                endAdornment: (
+                  <InputAdornment position='end'>
+                    <Button
+                      color='secondary'
+                      id='choosePipelineBtn'
+                      onClick={() => this.setStateSafe({ pipelineSelectorOpen: true })}
+                      style={{ padding: '3px 5px', margin: 0 }}
+                    >
+                      Choose
+                    </Button>
+                  </InputAdornment>
+                ),
+                readOnly: true,
+              }}
+            />
+          )}
+          {!useWorkflowFromRun && (
+            <Input
               value={pipelineVersionName}
               required={true}
               label='Pipeline Version'
@@ -209,8 +243,8 @@ class NewRun extends Page<{}, NewRunState> {
                   <InputAdornment position='end'>
                     <Button
                       color='secondary'
-                      id='choosePipelineBtn'
-                      onClick={() => this.setStateSafe({ pipelineSelectorOpen: true })}
+                      id='choosePipelineVersionBtn'
+                      onClick={() => this.setStateSafe({ pipelineVersionSelectorOpen: true })}
                       style={{ padding: '3px 5px', margin: 0 }}
                     >
                       Choose
@@ -232,20 +266,20 @@ class NewRun extends Page<{}, NewRunState> {
             <DialogContent>
               <ResourceSelector
                 {...this.props}
-                title='Choose a pipeline version'
-                filterLabel='Filter pipeline versions'
+                title='Choose a pipeline'
+                filterLabel='Filter pipelines'
                 listApi={async (...args) => {
-                  const response = await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE', urlParser.get(QUERY_PARAMS.pipelineId)!, args[1] /* page size */, args[0] /* page token*/, args[2] /* sort by */, args[3] /* filter */);
+                  const response = await Apis.pipelineServiceApi.listPipelines(...args);
                   return {
                     nextPageToken: response.next_page_token || '',
-                    resources: response.versions || [],
+                    resources: response.pipelines || [],
                   };
                 }}
-                columns={this.pipelineVersionSelectorColumns}
-                emptyMessage='No pipeline versions found. Upload a pipeline and a pipeline version and then try again.'
-                initialSortColumn={PipelineVersionSortKeys.CREATED_AT}
-                selectionChanged={(selectedPipelineVersion: ApiPipelineVersion) =>
-                  this.setStateSafe({ unconfirmedSelectedPipelineVersion: selectedPipelineVersion })
+                columns={this.pipelineSelectorColumns}
+                emptyMessage='No pipelines found. Upload a pipeline and then try again.'
+                initialSortColumn={PipelineSortKeys.CREATED_AT}
+                selectionChanged={(selectedPipeline: ApiPipeline) =>
+                  this.setStateSafe({ unconfirmedSelectedPipeline: selectedPipeline })
                 }
                 toolbarActionMap={buttons
                   .upload(() =>
@@ -265,6 +299,57 @@ class NewRun extends Page<{}, NewRunState> {
               <Button
                 id='usePipelineBtn'
                 onClick={() => this._pipelineSelectorClosed(true)}
+                color='secondary'
+                disabled={!unconfirmedSelectedPipeline}
+              >
+                Use this pipeline
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {/* Pipeline version selector dialog */}
+          <Dialog
+            open={pipelineVersionSelectorOpen}
+            classes={{ paper: css.selectorDialog }}
+            onClose={() => this._pipelineVersionSelectorClosed(false)}
+            PaperProps={{ id: 'pipelineVersionSelectorDialog' }}
+          >
+            <DialogContent>
+              <ResourceSelector
+                {...this.props}
+                title='Choose a pipeline version'
+                filterLabel='Filter pipeline versions'
+                listApi={async (...args) => {
+                  const response = await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE', this.state.pipeline ? this.state.pipeline!.id! : '', args[1] /* page size */, args[0] /* page token*/, args[2] /* sort by */, args[3] /* filter */);
+                  return {
+                    nextPageToken: response.next_page_token || '',
+                    resources: response.versions || [],
+                  };
+                }}
+                columns={this.pipelineVersionSelectorColumns}
+                emptyMessage='No pipeline versions found. Select or upload a pipeline then try again.'
+                initialSortColumn={PipelineVersionSortKeys.CREATED_AT}
+                selectionChanged={(selectedPipelineVersion: ApiPipelineVersion) =>
+                  this.setStateSafe({ unconfirmedSelectedPipelineVersion: selectedPipelineVersion })
+                }
+                toolbarActionMap={buttons
+                  .upload(() =>
+                    this.setStateSafe({ pipelineVersionSelectorOpen: false, uploadDialogOpen: true }),
+                  )
+                  .getToolbarActionMap()}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button
+                id='cancelPipelineVersionSelectionBtn'
+                onClick={() => this._pipelineVersionSelectorClosed(false)}
+                color='secondary'
+              >
+                Cancel
+              </Button>
+              <Button
+                id='usePipelineVersionBtn'
+                onClick={() => this._pipelineVersionSelectorClosed(true)}
                 color='secondary'
                 disabled={!unconfirmedSelectedPipelineVersion}
               >
@@ -510,11 +595,30 @@ class NewRun extends Page<{}, NewRunState> {
       }
     } else if (embeddedRunId) {
       console.log('JING 3');
+      // If we create run from a workflow manifest that is acquried from an existing run.
       this._prepareFormFromEmbeddedPipeline(embeddedRunId);
     } else {
       console.log('JING 4');
-      // Get pipeline version id from querystring if any
-      // const possiblePipelineId = urlParser.get(QUERY_PARAMS.pipelineId);
+      // If we create a run from an existing pipeline version.
+      // Get pipeline and pipeline version id from querystring if any
+      const possiblePipelineId = urlParser.get(QUERY_PARAMS.pipelineId);
+      if (possiblePipelineId) {
+        try {
+          const pipeline = await Apis.pipelineServiceApi.getPipeline(possiblePipelineId);
+          this.setStateSafe({
+            parameters: pipeline.parameters || [],
+            pipeline,
+            pipelineName: (pipeline && pipeline.name) || '',
+          });
+        } catch (err) {
+          urlParser.clear(QUERY_PARAMS.pipelineId);
+          await this.showPageError(
+            `Error: failed to retrieve pipeline version: ${possiblePipelineId}.`,
+            err,
+          );
+          logger.error(`Failed to retrieve pipeline version: ${possiblePipelineId}`, err);
+        }
+      }
       const possiblePipelineVersionId = urlParser.get(QUERY_PARAMS.pipelineVersionId);
       if (possiblePipelineVersionId) {
         try {
@@ -592,6 +696,24 @@ class NewRun extends Page<{}, NewRunState> {
   }
 
   protected async _pipelineSelectorClosed(confirmed: boolean): Promise<void> {
+    let { parameters, pipeline } = this.state;
+    if (confirmed && this.state.unconfirmedSelectedPipeline) {
+      pipeline = this.state.unconfirmedSelectedPipeline;
+      parameters = pipeline.parameters || [];
+    }
+
+    this.setStateSafe(
+      {
+        parameters,
+        pipeline,
+        pipelineName: (pipeline && pipeline.name) || '',
+        pipelineSelectorOpen: false,
+      },
+      () => this._validate(),
+    );
+  }
+
+  protected async _pipelineVersionSelectorClosed(confirmed: boolean): Promise<void> {
     let { parameters, pipelineVersion } = this.state;
     if (confirmed && this.state.unconfirmedSelectedPipelineVersion) {
       pipelineVersion = this.state.unconfirmedSelectedPipelineVersion;
@@ -601,9 +723,9 @@ class NewRun extends Page<{}, NewRunState> {
     this.setStateSafe(
       {
         parameters,
-        pipelineSelectorOpen: false,
         pipelineVersion,
         pipelineVersionName: (pipelineVersion && pipelineVersion.name) || '',
+        pipelineVersionSelectorOpen: false,
       },
       () => this._validate(),
     );
@@ -825,7 +947,7 @@ class NewRun extends Page<{}, NewRunState> {
           p.value = (p.value || '').trim();
           return p;
         }),
-        pipeline_id: this.state.pipeline ? this.state.pipeline.id : undefined,
+        // pipeline_id: this.state.pipeline ? this.state.pipeline.id : undefined,
         workflow_manifest: this.state.useWorkflowFromRun
           ? JSON.stringify(this.state.workflowFromRun)
           : undefined,
@@ -839,6 +961,7 @@ class NewRun extends Page<{}, NewRunState> {
         trigger: this.state.trigger,
       });
     }
+    console.log('JING creating run with: ' + JSON.stringify(newRun));
 
     this.setStateSafe({ isBeingStarted: true }, async () => {
       // TODO: there was previously a bug here where the await wasn't being applied to the API
