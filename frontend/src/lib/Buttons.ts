@@ -39,6 +39,7 @@ export enum ButtonKeys {
   NEW_RUN = 'newRun',
   NEW_RECURRING_RUN = 'newRecurringRun',
   NEW_RUN_FROM_PIPELINE = 'newRunFromPipeline',
+  NEW_RUN_FROM_PIPELINE_VERSION = 'newRunFromPipelineVersion',
   REFRESH = 'refresh',
   RESTORE = 'restore',
   TERMINATE_RUN = 'terminateRun',
@@ -261,6 +262,20 @@ export default class Buttons {
   public newRunFromPipeline(getPipelineId: () => string): Buttons {
     this._map[ButtonKeys.NEW_RUN_FROM_PIPELINE] = {
       action: () => this._createNewRunFromPipeline(getPipelineId()),
+      icon: AddIcon,
+      id: 'createNewRunBtn',
+      outlined: true,
+      primary: true,
+      style: { minWidth: 130 },
+      title: 'Create run',
+      tooltip: 'Create a new run',
+    };
+    return this;
+  }
+
+  public newRunFromPipelineVersion(getPipelineVersionId: () => string): Buttons {
+    this._map[ButtonKeys.NEW_RUN_FROM_PIPELINE] = {
+      action: () => this._createNewRunFromPipelineVersion(getPipelineVersionId()),
       icon: AddIcon,
       id: 'createNewRunBtn',
       outlined: true,
@@ -622,6 +637,21 @@ export default class Buttons {
     } else {
       searchString = this._urlParser.build(
         Object.assign({ [QUERY_PARAMS.pipelineId]: pipelineId || '' }),
+      );
+    }
+
+    this._props.history.push(RoutePage.NEW_RUN + searchString);
+  }
+
+  private _createNewRunFromPipelineVersion(pipelineVersionId?: string): void {
+    let searchString = '';
+    const fromRunId = this._urlParser.get(QUERY_PARAMS.fromRunId);
+
+    if (fromRunId) {
+      searchString = this._urlParser.build(Object.assign({ [QUERY_PARAMS.fromRunId]: fromRunId }));
+    } else {
+      searchString = this._urlParser.build(
+        Object.assign({ [QUERY_PARAMS.pipelineVersionId]: pipelineVersionId || '' }),
       );
     }
 

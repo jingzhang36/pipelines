@@ -31,7 +31,7 @@ import RunUtils from '../lib/RunUtils';
 import { TextFieldProps } from '@material-ui/core/TextField';
 import Trigger from '../components/Trigger';
 import { ApiExperiment } from '../apis/experiment';
-import { ApiPipeline, ApiParameter } from '../apis/pipeline';
+import { ApiPipeline, ApiParameter, ApiPipelineVersion } from '../apis/pipeline';
 import {
   ApiRun,
   ApiResourceReference,
@@ -68,6 +68,7 @@ interface NewRunState {
   maxConcurrentRuns?: string;
   parameters: ApiParameter[];
   pipeline?: ApiPipeline;
+  pipelineVersion?: ApiPipelineVersion;
   // This represents a pipeline from a run that is being cloned, or if a user is creating a run from
   // a pipeline that was not uploaded to the system (as in the case of runs created from notebooks).
   workflowFromRun?: Workflow;
@@ -470,6 +471,7 @@ class NewRun extends Page<{}, NewRunState> {
     // 3. Click Create run
     const embeddedPipelineRunId = urlParser.get(QUERY_PARAMS.fromRunId);
     if (originalRunId) {
+      console.log('JING 1');
       // If we are cloning a run, fetch the original
       try {
         const originalRun = await Apis.runServiceApi.getRun(originalRunId);
@@ -483,6 +485,7 @@ class NewRun extends Page<{}, NewRunState> {
         logger.error(`Failed to retrieve original run: ${originalRunId}`, err);
       }
     } else if (originalRecurringRunId) {
+      console.log('JING 2');
       // If we are cloning a recurring run, fetch the original
       try {
         const originalRun = await Apis.jobServiceApi.getJob(originalRecurringRunId);
@@ -498,25 +501,28 @@ class NewRun extends Page<{}, NewRunState> {
         logger.error(`Failed to retrieve original recurring run: ${originalRunId}`, err);
       }
     } else if (embeddedPipelineRunId) {
+      console.log('JING 3');
       this._prepareFormFromEmbeddedPipeline(embeddedPipelineRunId);
     } else {
+      console.log('JING 4');
       // Get pipeline id from querystring if any
       const possiblePipelineId = urlParser.get(QUERY_PARAMS.pipelineId);
-      if (possiblePipelineId) {
+      const possiblePipelineVersionId = urlParser.get(QUERY_PARAMS.pipelineVersionId);
+      if (possiblePipelineVersionId) {
         try {
-          const pipeline = await Apis.pipelineServiceApi.getPipeline(possiblePipelineId);
+          const pipelineVersion = await Apis.pipelineServiceApi.getPipelineVersion(possiblePipelineVersionId);
           this.setStateSafe({
-            parameters: pipeline.parameters || [],
-            pipeline,
-            pipelineName: (pipeline && pipeline.name) || '',
+            parameters: pipelineVersion.parameters || [],
+            pipelineVersion,
+            pipelineVersionName: (pipelineVersion && pipelineVersion.name) || '',
           });
         } catch (err) {
-          urlParser.clear(QUERY_PARAMS.pipelineId);
+          urlParser.clear(QUERY_PARAMS.pipelineVersionId);
           await this.showPageError(
-            `Error: failed to retrieve pipeline: ${possiblePipelineId}.`,
+            `Error: failed to retrieve pipeline version: ${possiblePipelineVersionId}.`,
             err,
           );
-          logger.error(`Failed to retrieve pipeline: ${possiblePipelineId}`, err);
+          logger.error(`Failed to retrieve pipeline version: ${possiblePipelineVersionId}`, err);
         }
       }
     }
