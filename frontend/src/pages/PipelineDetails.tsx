@@ -128,11 +128,11 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     const fromRunId = new URLParser(this.props).get(QUERY_PARAMS.fromRunId);
     const pipelineIdFromParams = this.props.match.params[RouteParams.pipelineId];
     const pipelineVersionIdFromParams = this.props.match.params[RouteParams.pipelineVersionId];
-    buttons.newRunFromPipeline(() => {
-      return this.state.pipeline
-        ? this.state.pipeline.id!
-        : pipelineIdFromParams
-        ? pipelineIdFromParams
+    buttons.newRunFromPipelineVersion(() => {
+      return this.state.selectedVersion
+        ? this.state.selectedVersion.id!
+        : pipelineVersionIdFromParams
+        ? pipelineVersionIdFromParams
         : '';
     });
 
