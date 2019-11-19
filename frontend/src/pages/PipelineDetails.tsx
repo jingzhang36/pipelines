@@ -42,7 +42,6 @@ import 'brace';
 import 'brace/ext/language_tools';
 import 'brace/mode/yaml';
 import 'brace/theme/github';
-// import { Descriptoin } from '../components/Description';
 import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -129,6 +128,12 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     const pipelineIdFromParams = this.props.match.params[RouteParams.pipelineId];
     const pipelineVersionIdFromParams = this.props.match.params[RouteParams.pipelineVersionId];
     buttons.newRunFromPipelineVersion(() => {
+      return this.state.pipeline
+        ? this.state.pipeline.id!
+        : pipelineIdFromParams
+        ? pipelineIdFromParams
+        : '';
+    }, () => {
       return this.state.selectedVersion
         ? this.state.selectedVersion.id!
         : pipelineVersionIdFromParams
@@ -369,7 +374,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     let pipeline: ApiPipeline | null = null;
     let version: ApiPipelineVersion | null = null;
     let templateString = '';
-    let template: Workflow | undefined;
+    // let template: Workflow | undefined;
     let breadcrumbs: Array<{ displayName: string; href: string }> = [];
     const toolbarActions = this.props.toolbarProps.actions;
     let pageTitle = '';
@@ -380,6 +385,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     if (fromRunId) {
       try {
         const runDetails = await Apis.runServiceApi.getRun(fromRunId);
+        console.log('JING pipelien details page: run details: ' + JSON.stringify(runDetails));
 
         // Convert the run's pipeline spec to YAML to be displayed as the pipeline's source.
         try {
@@ -492,11 +498,11 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
 
     this.props.updateToolbar({ breadcrumbs, actions: toolbarActions, pageTitle });
 
-    try {
-      template = JsYaml.safeLoad(templateString);
-    } catch (err) {
-      await this.showPageError('Error: failed to generate Pipeline graph.', err);
-    }
+    // try {
+    //   template = JsYaml.safeLoad(templateString);
+    // } catch (err) {
+    //   await this.showPageError('Error: failed to generate Pipeline graph.', err);
+    // }
 
     this.setStateSafe({
       graph: await this._createGraph(templateString),

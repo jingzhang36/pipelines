@@ -35,7 +35,6 @@ import { commonCss, padding } from '../Css';
 import { formatDateString, errorToMessage } from '../lib/Utils';
 import { Description } from '../components/Description';
 import produce from 'immer';
-import { thresholdFreedmanDiaconis } from 'd3';
 
 interface DisplayPipeline extends ApiPipeline {
   expandState?: ExpandState;

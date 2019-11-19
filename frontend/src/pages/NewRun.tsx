@@ -41,7 +41,7 @@ import {
   ApiPipelineRuntime,
 } from '../apis/run';
 import { ApiTrigger, ApiJob } from '../apis/job';
-import { Apis, PipelineSortKeys, ExperimentSortKeys } from '../lib/Apis';
+import { Apis, PipelineVersionSortKeys, ExperimentSortKeys } from '../lib/Apis';
 import { Link } from 'react-router-dom';
 import { Page } from './Page';
 import { RoutePage, RouteParams, QUERY_PARAMS } from '../components/Router';
@@ -54,6 +54,7 @@ import { logger, errorToMessage } from '../lib/Utils';
 import UploadPipelineDialog, { ImportMethod } from '../components/UploadPipelineDialog';
 import { CustomRendererProps } from '../components/CustomTable';
 import { Description } from '../components/Description';
+// import produce from 'immer';
 
 interface NewRunState {
   description: string;
@@ -77,11 +78,13 @@ interface NewRunState {
   // Note: this cannot be undefined/optional or the label animation for the input field will not
   // work properly.
   pipelineName: string;
+  pipelineVersionName: string;
   pipelineSelectorOpen: boolean;
   runName: string;
   trigger?: ApiTrigger;
   unconfirmedSelectedExperiment?: ApiExperiment;
   unconfirmedSelectedPipeline?: ApiPipeline;
+  unconfirmedSelectedPipelineVersion?: ApiPipelineVersion;
   useWorkflowFromRun: boolean;
   uploadDialogOpen: boolean;
   usePipelineFromRunLabel: string;
@@ -104,10 +107,11 @@ const descriptionCustomRenderer: React.FC<CustomRendererProps<string>> = props =
 };
 
 class NewRun extends Page<{}, NewRunState> {
-  private pipelineSelectorColumns = [
-    { label: 'Pipeline name', flex: 1, sortKey: PipelineSortKeys.NAME },
+  private pipelineVersionSelectorColumns = [
+    { label: 'Version name', flex: 1, sortKey: PipelineVersionSortKeys.NAME },
     { label: 'Description', flex: 2, customRenderer: descriptionCustomRenderer },
-    { label: 'Uploaded on', flex: 1, sortKey: PipelineSortKeys.CREATED_AT },
+    // { label: 'Pipeline name', flex: 1, sortKey: PipelineSortKeys.NAME },
+    { label: 'Uploaded on', flex: 1, sortKey: PipelineVersionSortKeys.CREATED_AT },
   ];
 
   private experimentSelectorColumns = [
@@ -131,6 +135,7 @@ class NewRun extends Page<{}, NewRunState> {
       parameters: [],
       pipelineName: '',
       pipelineSelectorOpen: false,
+      pipelineVersionName: '',
       runName: '',
       uploadDialogOpen: false,
       usePipelineFromRunLabel: 'Using pipeline from cloned run',
@@ -157,11 +162,13 @@ class NewRun extends Page<{}, NewRunState> {
       isFirstRunInExperiment,
       isRecurringRun,
       parameters,
-      pipelineName,
+      // pipelineName,
+      pipelineVersionName,
       pipelineSelectorOpen,
       runName,
       unconfirmedSelectedExperiment,
-      unconfirmedSelectedPipeline,
+      // unconfirmedSelectedPipeline,
+      unconfirmedSelectedPipelineVersion,
       usePipelineFromRunLabel,
       useWorkflowFromRun,
     } = this.state;
@@ -169,6 +176,7 @@ class NewRun extends Page<{}, NewRunState> {
     const urlParser = new URLParser(this.props);
     const originalRunId =
       urlParser.get(QUERY_PARAMS.cloneFromRun) || urlParser.get(QUERY_PARAMS.fromRunId);
+    console.log('JING origin run id ' + JSON.stringify(originalRunId));
     const pipelineDetailsUrl = originalRunId
       ? RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId + '?', '') +
         urlParser.build({ [QUERY_PARAMS.fromRunId]: originalRunId })
@@ -185,14 +193,14 @@ class NewRun extends Page<{}, NewRunState> {
           {!!workflowFromRun && (
             <div>
               <span>{usePipelineFromRunLabel} </span>
-              {!!originalRunId && <Link to={pipelineDetailsUrl}>[View pipeline]</Link>}
+              {!!originalRunId && <Link to={pipelineDetailsUrl}>[View pipeline specification]</Link>}
             </div>
           )}
           {!useWorkflowFromRun && (
             <Input
-              value={pipelineName}
+              value={pipelineVersionName}
               required={true}
-              label='Pipeline'
+              label='Pipeline Version'
               disabled={true}
               variant='outlined'
               InputProps={{
@@ -224,20 +232,20 @@ class NewRun extends Page<{}, NewRunState> {
             <DialogContent>
               <ResourceSelector
                 {...this.props}
-                title='Choose a pipeline'
-                filterLabel='Filter pipelines'
+                title='Choose a pipeline version'
+                filterLabel='Filter pipeline versions'
                 listApi={async (...args) => {
-                  const response = await Apis.pipelineServiceApi.listPipelines(...args);
+                  const response = await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE', urlParser.get(QUERY_PARAMS.pipelineId)!, args[1] /* page size */, args[0] /* page token*/, args[2] /* sort by */, args[3] /* filter */);
                   return {
                     nextPageToken: response.next_page_token || '',
-                    resources: response.pipelines || [],
+                    resources: response.versions || [],
                   };
                 }}
-                columns={this.pipelineSelectorColumns}
-                emptyMessage='No pipelines found. Upload a pipeline and then try again.'
-                initialSortColumn={PipelineSortKeys.CREATED_AT}
-                selectionChanged={(selectedPipeline: ApiPipeline) =>
-                  this.setStateSafe({ unconfirmedSelectedPipeline: selectedPipeline })
+                columns={this.pipelineVersionSelectorColumns}
+                emptyMessage='No pipeline versions found. Upload a pipeline and a pipeline version and then try again.'
+                initialSortColumn={PipelineVersionSortKeys.CREATED_AT}
+                selectionChanged={(selectedPipelineVersion: ApiPipelineVersion) =>
+                  this.setStateSafe({ unconfirmedSelectedPipelineVersion: selectedPipelineVersion })
                 }
                 toolbarActionMap={buttons
                   .upload(() =>
@@ -258,9 +266,9 @@ class NewRun extends Page<{}, NewRunState> {
                 id='usePipelineBtn'
                 onClick={() => this._pipelineSelectorClosed(true)}
                 color='secondary'
-                disabled={!unconfirmedSelectedPipeline}
+                disabled={!unconfirmedSelectedPipelineVersion}
               >
-                Use this pipeline
+                Use this pipeline version
               </Button>
             </DialogActions>
           </Dialog>
@@ -466,10 +474,10 @@ class NewRun extends Page<{}, NewRunState> {
     // If we are not cloning from an existing run, we may have an embedded pipeline from a run from
     // a notebook. This is a somewhat hidden path that can be reached via the following steps:
     // 1. Create a pipeline and run it from a notebook
-    // 2. Click [View Pipeline] for this run from one of the list pages
-    //    (Now you will be viewing a pipeline details page for a pipeline that hasn't been uploaded)
+    // 2. Click [View Pipeline Version] for this run from one of the list pages
+    //    (Now you will be viewing a pipeline details page for a pipeline version that hasn't been uploaded)
     // 3. Click Create run
-    const embeddedPipelineRunId = urlParser.get(QUERY_PARAMS.fromRunId);
+    const embeddedRunId = urlParser.get(QUERY_PARAMS.fromRunId);
     if (originalRunId) {
       console.log('JING 1');
       // If we are cloning a run, fetch the original
@@ -500,13 +508,13 @@ class NewRun extends Page<{}, NewRunState> {
         );
         logger.error(`Failed to retrieve original recurring run: ${originalRunId}`, err);
       }
-    } else if (embeddedPipelineRunId) {
+    } else if (embeddedRunId) {
       console.log('JING 3');
-      this._prepareFormFromEmbeddedPipeline(embeddedPipelineRunId);
+      this._prepareFormFromEmbeddedPipeline(embeddedRunId);
     } else {
       console.log('JING 4');
-      // Get pipeline id from querystring if any
-      const possiblePipelineId = urlParser.get(QUERY_PARAMS.pipelineId);
+      // Get pipeline version id from querystring if any
+      // const possiblePipelineId = urlParser.get(QUERY_PARAMS.pipelineId);
       const possiblePipelineVersionId = urlParser.get(QUERY_PARAMS.pipelineVersionId);
       if (possiblePipelineVersionId) {
         try {
@@ -584,21 +592,23 @@ class NewRun extends Page<{}, NewRunState> {
   }
 
   protected async _pipelineSelectorClosed(confirmed: boolean): Promise<void> {
-    let { parameters, pipeline } = this.state;
-    if (confirmed && this.state.unconfirmedSelectedPipeline) {
-      pipeline = this.state.unconfirmedSelectedPipeline;
-      parameters = pipeline.parameters || [];
+    let { parameters, pipelineVersion } = this.state;
+    if (confirmed && this.state.unconfirmedSelectedPipelineVersion) {
+      pipelineVersion = this.state.unconfirmedSelectedPipelineVersion;
+      parameters = pipelineVersion.parameters || [];
     }
 
     this.setStateSafe(
       {
         parameters,
-        pipeline,
-        pipelineName: (pipeline && pipeline.name) || '',
         pipelineSelectorOpen: false,
+        pipelineVersion,
+        pipelineVersionName: (pipelineVersion && pipelineVersion.name) || '',
       },
       () => this._validate(),
     );
+
+    console.log(this.state.errorMessage);
   }
 
   protected _updateRecurringRunState(isRecurringRun: boolean): void {
@@ -653,25 +663,25 @@ class NewRun extends Page<{}, NewRunState> {
     }
   }
 
-  private async _prepareFormFromEmbeddedPipeline(embeddedPipelineRunId: string): Promise<void> {
+  private async _prepareFormFromEmbeddedPipeline(embeddedRunId: string): Promise<void> {
     let embeddedPipelineSpec: string | null;
     let runWithEmbeddedPipeline: ApiRunDetail;
 
     try {
-      runWithEmbeddedPipeline = await Apis.runServiceApi.getRun(embeddedPipelineRunId);
+      runWithEmbeddedPipeline = await Apis.runServiceApi.getRun(embeddedRunId);
       embeddedPipelineSpec = RunUtils.getWorkflowManifest(runWithEmbeddedPipeline.run);
     } catch (err) {
       await this.showPageError(
-        `Error: failed to retrieve the specified run: ${embeddedPipelineRunId}.`,
+        `Error: failed to retrieve the specified run: ${embeddedRunId}.`,
         err,
       );
-      logger.error(`Failed to retrieve the specified run: ${embeddedPipelineRunId}`, err);
+      logger.error(`Failed to retrieve the specified run: ${embeddedRunId}`, err);
       return;
     }
 
     if (!embeddedPipelineSpec) {
       await this.showPageError(
-        `Error: somehow the run provided in the query params: ${embeddedPipelineRunId} had no embedded pipeline.`,
+        `Error: somehow the run provided in the query params: ${embeddedRunId} had no embedded pipeline.`,
       );
       return;
     }
@@ -691,7 +701,7 @@ class NewRun extends Page<{}, NewRunState> {
         err,
       );
       logger.error(
-        `Failed to parse the embedded pipeline's spec from run: ${embeddedPipelineRunId}`,
+        `Failed to parse the embedded pipeline's spec from run: ${embeddedRunId}`,
         err,
       );
       return;
@@ -782,9 +792,9 @@ class NewRun extends Page<{}, NewRunState> {
   }
 
   private _start(): void {
-    if (!this.state.pipeline && !this.state.workflowFromRun) {
-      this.showErrorDialog('Run creation failed', 'Cannot start run without pipeline');
-      logger.error('Cannot start run without pipeline');
+    if (!this.state.pipelineVersion && !this.state.workflowFromRun) {
+      this.showErrorDialog('Run creation failed', 'Cannot start run without pipeline version');
+      logger.error('Cannot start run without pipeline version');
       return;
     }
     const references: ApiResourceReference[] = [];
@@ -795,6 +805,15 @@ class NewRun extends Page<{}, NewRunState> {
           type: ApiResourceType.EXPERIMENT,
         },
         relationship: ApiRelationship.OWNER,
+      });
+    }
+    if (this.state.pipelineVersion) {
+      references.push({
+        key: {
+          id: this.state.pipelineVersion!.id,
+          type: ApiResourceType.PIPELINEVERSION,
+        },
+        relationship: ApiRelationship.CREATOR,
       });
     }
 
@@ -869,10 +888,10 @@ class NewRun extends Page<{}, NewRunState> {
 
   private _validate(): void {
     // Validate state
-    const { pipeline, workflowFromRun, maxConcurrentRuns, runName, trigger } = this.state;
+    const { pipelineVersion, workflowFromRun, maxConcurrentRuns, runName, trigger } = this.state;
     try {
-      if (!pipeline && !workflowFromRun) {
-        throw new Error('A pipeline must be selected');
+      if (!pipelineVersion && !workflowFromRun) {
+        throw new Error('A pipeline version must be selected');
       }
       if (!runName) {
         throw new Error('Run name is required');

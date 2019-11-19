@@ -23,7 +23,7 @@
     "ordered-imports": false,
     "semicolon": [true, "always", "ignore-bound-class-methods"],
     "typedef": [true, "call-signature"],
-    "no-unused-variable": false,
+    "no-unused-variable": true,
     "variable-name": [
       true,
       "check-format",

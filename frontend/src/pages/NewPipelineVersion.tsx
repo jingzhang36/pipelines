@@ -32,16 +32,9 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import {
-  ApiRun,
-  ApiResourceReference,
-  ApiRelationship,
-  ApiResourceType,
-  ApiRunDetail,
-  ApiPipelineRuntime,
-} from '../apis/run';
+import { ApiResourceType } from '../apis/run';
 import { Apis, PipelineSortKeys } from '../lib/Apis';
-import { ApiPipeline, ApiParameter, ApiPipelineVersion, ApiUrl } from '../apis/pipeline';
+import { ApiPipeline, ApiPipelineVersion } from '../apis/pipeline';
 import { CustomRendererProps } from '../components/CustomTable';
 import { Description } from '../components/Description';
 
@@ -126,7 +119,6 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       validationError,
       pipelineSelectorOpen,
       unconfirmedSelectedPipeline,
-      errorMessage,
       codeSourceUrl,
     } = this.state;
 
@@ -136,8 +128,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       <div className={classes(commonCss.page, padding(20, 'lr'))}>
         <div className={classes(commonCss.scrollContainer, padding(20, 'lr'))}>
           <div className={commonCss.header}>Pipeline version details</div>
-          {/* TODO: this description needs work. */}
-          <div className={css.explanation}>TODO</div>
+          <div className={css.explanation}>Create a new pipeline version under a choosen pipeline with the specified pipeline package.</div>
 
           {/* Set pipeline version name */}
           <Input
@@ -235,16 +226,6 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
             value={packageUrl}
             variant='outlined'
           />
-
-          {/* Fill pipeline version description */}
-          {/* <Input
-            id='pipelineVersionDescription'
-            label='Description (optional)'
-            multiline={true}
-            onChange={this.handleChange('description')}
-            value={description}
-            variant='outlined'
-          /> */}
 
           {/* Fill pipeline version code source url */}
           <Input
