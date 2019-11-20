@@ -696,10 +696,15 @@ class NewRun extends Page<{}, NewRunState> {
   }
 
   protected async _pipelineSelectorClosed(confirmed: boolean): Promise<void> {
-    let { parameters, pipeline } = this.state;
+    let { parameters, pipeline, pipelineVersion } = this.state;
     if (confirmed && this.state.unconfirmedSelectedPipeline) {
       pipeline = this.state.unconfirmedSelectedPipeline;
-      parameters = pipeline.parameters || [];
+      // Get the default version of selected pipeline to auto-fill the version
+      // input field.
+      if (pipeline.default_version) {
+        pipelineVersion = await Apis.pipelineServiceApi.getPipelineVersion(pipeline.default_version.id!);
+        parameters = pipelineVersion.parameters || [];
+      }
     }
 
     this.setStateSafe(
@@ -708,6 +713,8 @@ class NewRun extends Page<{}, NewRunState> {
         pipeline,
         pipelineName: (pipeline && pipeline.name) || '',
         pipelineSelectorOpen: false,
+        pipelineVersion,
+        pipelineVersionName: (pipelineVersion && pipelineVersion.name) || '',
       },
       () => this._validate(),
     );
