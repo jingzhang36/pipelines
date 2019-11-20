@@ -44,6 +44,7 @@ export enum ButtonKeys {
   RESTORE = 'restore',
   TERMINATE_RUN = 'terminateRun',
   UPLOAD_PIPELINE = 'uploadPipeline',
+  NEW_PIPELINE = 'newPipeline',
   NEW_PIPELINE_VERSION = 'newPipelineVersion',
 }
 
@@ -301,6 +302,19 @@ export default class Buttons {
   }
 
   public newPipelineVersion(getPipelineId?: () => string): Buttons {
+    this._map[ButtonKeys.NEW_PIPELINE_VERSION] = {
+      action: () => this._createNewPipelineVersion(getPipelineId ? getPipelineId() : ''),
+      icon: AddIcon,
+      id: 'createPipelineVersionBtn',
+      outlined: true,
+      style: { minWidth: 160 },
+      title: 'Create pipeline version',
+      tooltip: 'Create pipeline version',
+    };
+    return this;
+  }
+
+  public newPipeline(getPipelineId?: () => string): Buttons {
     this._map[ButtonKeys.NEW_PIPELINE_VERSION] = {
       action: () => this._createNewPipelineVersion(getPipelineId ? getPipelineId() : ''),
       icon: AddIcon,
