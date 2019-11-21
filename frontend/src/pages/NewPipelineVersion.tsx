@@ -37,6 +37,8 @@ import { Apis, PipelineSortKeys } from '../lib/Apis';
 import { ApiPipeline, ApiPipelineVersion } from '../apis/pipeline';
 import { CustomRendererProps } from '../components/CustomTable';
 import { Description } from '../components/Description';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Radio from '@material-ui/core/Radio';
 
 interface NewPipelineVersionState {
   validationError: string;
@@ -49,9 +51,22 @@ interface NewPipelineVersionState {
   packageUrl: string;
   codeSourceUrl: string;
 
-  // For pipeline selector
+  //
+  newPipeline: boolean;
+
+  // For pipeline selector to select existing pipeline
   pipelineSelectorOpen: boolean;
   unconfirmedSelectedPipeline?: ApiPipeline;
+
+  // For new pipeline
+  importMethod: ImportMethod;
+
+
+}
+
+export enum ImportMethod {
+  LOCAL = 'local',
+  URL = 'url',
 }
 
 const css = stylesheet({
@@ -99,6 +114,8 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       pipelineSelectorOpen: false,
       pipelineVersionName: '',
       validationError: '',
+      newPipeline: false,
+      importMethod: ImportMethod.URL,
     };
   }
 
@@ -120,6 +137,8 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       pipelineSelectorOpen,
       unconfirmedSelectedPipeline,
       codeSourceUrl,
+      importMethod,
+      newPipeline,
     } = this.state;
 
     const buttons = new Buttons(this.props, this.refresh.bind(this));
@@ -130,112 +149,182 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
           <div className={commonCss.header}>Pipeline version details</div>
           <div className={css.explanation}>Create a new pipeline version under a choosen pipeline with the specified pipeline package.</div>
 
-          {/* Set pipeline version name */}
-          <Input
-            id='pipelineVersionName'
-            label='Pipeline Version name'
-            inputRef={this._pipelineVersionNameRef}
-            required={true}
-            onChange={this.handleChange('pipelineVersionName')}
-            value={pipelineVersionName}
-            autoFocus={true}
-            variant='outlined'
-          />
+          {/* Two subpages: one for creating version under existing pipeline and one for creating version under new pipeline */}
+          <div className={classes(commonCss.flex, padding(10, 'b'))}>
+            <FormControlLabel
+              id='createPipelineVersionUnderExistingPipelineBtn'
+              label='Create a new pipeline version under an existing pipeline.'
+              checked={newPipeline === false}
+              control={<Radio color='primary' />}
+              onChange={() => this.setState({ newPipeline: false })}
+            />
+            <FormControlLabel
+              id='createPipelineVersionUnderNewPipelineBtn'
+              label='Create a new pipeline version under a new pipeline.'
+              checked={newPipeline === true}
+              control={<Radio color='primary' />}
+              onChange={() => this.setState({ newPipeline: true })}
+            />
+          </div>
 
-          {/* Select pipeline */}
-          <Input
-            value={pipelineName}
-            required={true}
-            label='Pipeline'
-            disabled={true}
-            variant='outlined'
-            inputRef={this._pipelineNameRef}
-            onChange={this.handleChange('pipelineName')}
-            autoFocus={true}
-            InputProps={{
-              classes: { disabled: css.nonEditableInput },
-              endAdornment: (
-                <InputAdornment position='end'>
-                  <Button
-                    color='secondary'
-                    id='choosePipelineBtn'
-                    onClick={() => this.setStateSafe({ pipelineSelectorOpen: true })}
-                    style={{ padding: '3px 5px', margin: 0 }}
-                  >
-                    Choose
-                  </Button>
-                </InputAdornment>
-              ),
-              readOnly: true,
-            }}
-          />
-          <Dialog
-            open={pipelineSelectorOpen}
-            classes={{ paper: css.selectorDialog }}
-            onClose={() => this._pipelineSelectorClosed(false)}
-            PaperProps={{ id: 'pipelineSelectorDialog' }}
-          >
-            <DialogContent>
-              <ResourceSelector
-                {...this.props}
-                title='Choose a pipeline'
-                filterLabel='Filter pipelines'
-                listApi={async (...args) => {
-                  const response = await Apis.pipelineServiceApi.listPipelines(...args);
-                  return {
-                    nextPageToken: response.next_page_token || '',
-                    resources: response.pipelines || [],
-                  };
-                }}
-                columns={this.pipelineSelectorColumns}
-                emptyMessage='No pipelines found. Upload a pipeline and then try again.'
-                initialSortColumn={PipelineSortKeys.CREATED_AT}
-                selectionChanged={(selectedPipeline: ApiPipeline) =>
-                  this.setStateSafe({ unconfirmedSelectedPipeline: selectedPipeline })
-                }
-                toolbarActionMap={buttons
-                  .upload(() => this.setStateSafe({ pipelineSelectorOpen: false }))
-                  .getToolbarActionMap()}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button
-                id='cancelPipelineSelectionBtn'
-                onClick={() => this._pipelineSelectorClosed(false)}
-                color='secondary'
-              >
-                Cancel
-              </Button>
-              <Button
-                id='usePipelineBtn'
-                onClick={() => this._pipelineSelectorClosed(true)}
-                color='secondary'
-                disabled={!unconfirmedSelectedPipeline}
-              >
-                Use this pipeline
-              </Button>
-            </DialogActions>
-          </Dialog>
+          {newPipeline === false  && (
+            <React.Fragment>
+            {/* Select pipeline */}
+            <Input
+              value={pipelineName}
+              required={true}
+              label='Pipeline'
+              disabled={true}
+              variant='outlined'
+              inputRef={this._pipelineNameRef}
+              onChange={this.handleChange('pipelineName')}
+              autoFocus={true}
+              InputProps={{
+                classes: { disabled: css.nonEditableInput },
+                endAdornment: (
+                  <InputAdornment position='end'>
+                    <Button
+                      color='secondary'
+                      id='choosePipelineBtn'
+                      onClick={() => this.setStateSafe({ pipelineSelectorOpen: true })}
+                      style={{ padding: '3px 5px', margin: 0 }}
+                    >
+                      Choose
+                    </Button>
+                  </InputAdornment>
+                ),
+                readOnly: true,
+              }}
+            />
+            <Dialog
+              open={pipelineSelectorOpen}
+              classes={{ paper: css.selectorDialog }}
+              onClose={() => this._pipelineSelectorClosed(false)}
+              PaperProps={{ id: 'pipelineSelectorDialog' }}
+            >
+              <DialogContent>
+                <ResourceSelector
+                  {...this.props}
+                  title='Choose a pipeline'
+                  filterLabel='Filter pipelines'
+                  listApi={async (...args) => {
+                    const response = await Apis.pipelineServiceApi.listPipelines(...args);
+                    return {
+                      nextPageToken: response.next_page_token || '',
+                      resources: response.pipelines || [],
+                    };
+                  }}
+                  columns={this.pipelineSelectorColumns}
+                  emptyMessage='No pipelines found. Upload a pipeline and then try again.'
+                  initialSortColumn={PipelineSortKeys.CREATED_AT}
+                  selectionChanged={(selectedPipeline: ApiPipeline) =>
+                    this.setStateSafe({ unconfirmedSelectedPipeline: selectedPipeline })
+                  }
+                  toolbarActionMap={buttons
+                    .upload(() => this.setStateSafe({ pipelineSelectorOpen: false }))
+                    .getToolbarActionMap()}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button
+                  id='cancelPipelineSelectionBtn'
+                  onClick={() => this._pipelineSelectorClosed(false)}
+                  color='secondary'
+                >
+                  Cancel
+                </Button>
+                <Button
+                  id='usePipelineBtn'
+                  onClick={() => this._pipelineSelectorClosed(true)}
+                  color='secondary'
+                  disabled={!unconfirmedSelectedPipeline}
+                >
+                  Use this pipeline
+                </Button>
+              </DialogActions>
+            </Dialog>
 
-          {/* Fill pipeline package url */}
-          <Input
-            id='pipelineVersionDescription'
-            label='Package Url'
-            multiline={true}
-            onChange={this.handleChange('packageUrl')}
-            value={packageUrl}
-            variant='outlined'
-          />
+            {/* Set pipeline version name */}
+            <Input
+              id='pipelineVersionName'
+              label='Pipeline Version name'
+              inputRef={this._pipelineVersionNameRef}
+              required={true}
+              onChange={this.handleChange('pipelineVersionName')}
+              value={pipelineVersionName}
+              autoFocus={true}
+              variant='outlined'
+            />
 
-          {/* Fill pipeline version code source url */}
-          <Input
-            id='pipelineVersionCodeSource'
-            label='Code Source (optional)'
-            multiline={true}
-            onChange={this.handleChange('codeSourceUrl')}
-            value={codeSourceUrl}
-            variant='outlined'
-          />
+            {/* Fill pipeline package url */}
+            <Input
+              id='pipelineVersionDescription'
+              label='Package Url'
+              multiline={true}
+              onChange={this.handleChange('packageUrl')}
+              value={packageUrl}
+              variant='outlined'
+            />
+
+            {/* Fill pipeline version code source url */}
+            <Input
+              id='pipelineVersionCodeSource'
+              label='Code Source (optional)'
+              multiline={true}
+              onChange={this.handleChange('codeSourceUrl')}
+              value={codeSourceUrl}
+              variant='outlined'
+            />
+            </React.Fragment>
+          )}
+
+          {newPipeline === true && (
+            <React.Fragment>
+            {/* Create a new pipeline for the uploaded pipeline version*/}
+            <Input
+              id='newPipelineName'
+              value={pipelineName}
+              required={true}
+              label='Pipeline Name'
+              variant='outlined'
+              inputRef={this._pipelineNameRef}
+              onChange={this.handleChange('pipelineName')}
+              autoFocus={true}
+            />
+
+            {/* Set pipeline version name */}
+            <Input
+              id='pipelineVersionName'
+              label='Pipeline Version name'
+              inputRef={this._pipelineVersionNameRef}
+              required={true}
+              onChange={this.handleChange('pipelineVersionName')}
+              value={pipelineVersionName}
+              autoFocus={true}
+              variant='outlined'
+            />
+
+            {/* Fill pipeline package url */}
+            <Input
+              id='pipelineVersionDescription'
+              label='Package Url'
+              multiline={true}
+              onChange={this.handleChange('packageUrl')}
+              value={packageUrl}
+              variant='outlined'
+            />
+
+            {/* Fill pipeline version code source url */}
+            <Input
+              id='pipelineVersionCodeSource'
+              label='Code Source (optional)'
+              multiline={true}
+              onChange={this.handleChange('codeSourceUrl')}
+              value={codeSourceUrl}
+              variant='outlined'
+            />
+            </React.Fragment>
+          )}
 
           {/* Create pipeline version */}
           <div className={commonCss.flex}>
@@ -298,14 +387,14 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   }
 
   private _create(): void {
-    const newPipelineVersion: ApiPipelineVersion = {
-      code_source_url: this.state.codeSourceUrl,
-      name: this.state.pipelineVersionName,
-      package_url: { pipeline_url: this.state.packageUrl },
-      resource_references: [
-        { key: { id: this.state.pipelineId!, type: ApiResourceType.PIPELINE }, relationship: 1 },
-      ],
-    };
+      const newPipelineVersion: ApiPipelineVersion = {
+        code_source_url: this.state.codeSourceUrl,
+        name: this.state.pipelineVersionName,
+        package_url: { pipeline_url: this.state.packageUrl },
+        resource_references: [
+          { key: { id: this.state.pipelineId!, type: ApiResourceType.PIPELINE }, relationship: 1 },
+        ],
+      };
 
     this.setState({ isbeingCreated: true }, async () => {
       try {
