@@ -309,23 +309,23 @@ export default class Buttons {
       outlined: true,
       style: { minWidth: 160 },
       title: 'Create pipeline version',
-      tooltip: 'Create pipeline version',
+      tooltip: 'Create pipeline version under an existing pipeline',
     };
     return this;
   }
 
-  public newPipeline(getPipelineId?: () => string): Buttons {
-    this._map[ButtonKeys.NEW_PIPELINE_VERSION] = {
-      action: () => this._createNewPipelineVersion(getPipelineId ? getPipelineId() : ''),
-      icon: AddIcon,
-      id: 'createPipelineVersionBtn',
-      outlined: true,
-      style: { minWidth: 160 },
-      title: 'Create pipeline version',
-      tooltip: 'Create pipeline version',
-    };
-    return this;
-  }
+  // public newPipeline(): Buttons {
+  //   this._map[ButtonKeys.NEW_PIPELINE] = {
+  //     action: () => this._createNewPipelineVersion(getPipelineId ? getPipelineId() : ''),
+  //     icon: AddIcon,
+  //     id: 'createPipelineBtn',
+  //     outlined: true,
+  //     style: { minWidth: 160 },
+  //     title: 'Create pipeline',
+  //     tooltip: 'Create pipeline',
+  //   };
+  //   return this;
+  // }
 
   public refresh(action: () => void): Buttons {
     this._map[ButtonKeys.REFRESH] = {
@@ -377,7 +377,7 @@ export default class Buttons {
       outlined: true,
       style: { minWidth: 160 },
       title: 'Upload pipeline',
-      tooltip: 'Upload pipeline',
+      tooltip: 'Create a new pipeline and its first version',
     };
     return this;
   }
