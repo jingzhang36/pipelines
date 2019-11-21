@@ -43,9 +43,10 @@ import Radio from '@material-ui/core/Radio';
 interface NewPipelineVersionState {
   validationError: string;
   isbeingCreated: boolean;
-  pipelineVersionName: string;
+  pipelineDescription: string;
   pipelineId?: string;
   pipelineName?: string;
+  pipelineVersionName: string;
   pipeline?: ApiPipeline;
   errorMessage: string;
   packageUrl: string;
@@ -94,6 +95,7 @@ const descriptionCustomRenderer: React.FC<CustomRendererProps<string>> = props =
 class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   private _pipelineVersionNameRef = React.createRef<HTMLInputElement>();
   private _pipelineNameRef = React.createRef<HTMLInputElement>();
+  private _pipelineDescriptionRef = React.createRef<HTMLInputElement>();
 
   private pipelineSelectorColumns = [
     { label: 'Pipeline name', flex: 1, sortKey: PipelineSortKeys.NAME },
@@ -109,6 +111,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       errorMessage: '',
       isbeingCreated: false,
       packageUrl: '',
+      pipelineDescription: '',
       pipelineId: '',
       pipelineName: '',
       pipelineSelectorOpen: false,
@@ -139,6 +142,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       codeSourceUrl,
       importMethod,
       newPipeline,
+      pipelineDescription,
     } = this.state;
 
     const buttons = new Buttons(this.props, this.refresh.bind(this));
@@ -280,15 +284,25 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
 
           {newPipeline === true && (
             <React.Fragment>
-            {/* Create a new pipeline for the uploaded pipeline version*/}
             <Input
               id='newPipelineName'
               value={pipelineName}
               required={true}
-              label='Pipeline Name'
+              label='New Pipeline Name'
               variant='outlined'
               inputRef={this._pipelineNameRef}
               onChange={this.handleChange('pipelineName')}
+              autoFocus={true}
+            />
+
+            <Input
+              id='pipelineDescription'
+              value={pipelineDescription}
+              required={true}
+              label='New Pipeline Description'
+              variant='outlined'
+              inputRef={this._pipelineDescriptionRef}
+              onChange={this.handleChange('pipelineDescription')}
               autoFocus={true}
             />
 
@@ -387,14 +401,37 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   }
 
   private _create(): void {
-      const newPipelineVersion: ApiPipelineVersion = {
-        code_source_url: this.state.codeSourceUrl,
-        name: this.state.pipelineVersionName,
-        package_url: { pipeline_url: this.state.packageUrl },
-        resource_references: [
-          { key: { id: this.state.pipelineId!, type: ApiResourceType.PIPELINE }, relationship: 1 },
-        ],
-      };
+    const getPipelineId = () => {
+      // Get existing pipeline's id or get the new pipeline's id.
+      if (this.state.pipelineId) {
+        return this.state.pipelineId;
+      } else {
+        // The new pipeline version is going to be put under a new pipeline instead
+        // an eixsting pipeline. So create the new pipeline first.
+        try {
+          const newPipeline: ApiPipeline = {
+            name: this.state.pipelineName,
+            description: this.state.pipelineDescription,
+          };
+          Apis.pipelineServiceApi.createPipeline(newPipeline).then(response => { return response.id!; });
+        } catch (err) {
+          this.showErrorDialog('Pipeline version creation failed', err.message);
+          logger.error('Error creating pipeline version:', err.message);
+          this.setState({ isbeingCreated: false });
+        } finally {
+          return '';
+        }
+      }
+    };
+
+    const newPipelineVersion: ApiPipelineVersion = {
+      code_source_url: this.state.codeSourceUrl,
+      name: this.state.pipelineVersionName,
+      package_url: { pipeline_url: this.state.packageUrl },
+      resource_references: [
+        { key: { id: getPipelineId(), type: ApiResourceType.PIPELINE }, relationship: 1 },
+      ],
+    };
 
     this.setState({ isbeingCreated: true }, async () => {
       try {
