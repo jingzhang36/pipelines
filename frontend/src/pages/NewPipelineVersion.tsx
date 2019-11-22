@@ -546,7 +546,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
         );
         this.props.updateSnackbar({
           autoHideDuration: 10000,
-          message: `Successfully created new pipeline version: ${newPipelineVersion.name}`,
+          message: `Successfully created new pipeline version: ${response.name}`,
           open: true,
         });
       } catch (err) {
@@ -579,16 +579,12 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
 
     this.setState({ isbeingCreated: true }, async () => {
       try {
-        const newPipelineVersion: ApiPipelineVersion = {
-          code_source_url: this.state.codeSourceUrl,
-          name: this.state.pipelineVersionName,
-          package_url: { pipeline_url: this.state.packageUrl },
-          resource_references: [
-            { key: { id: await getPipelineId(), type: ApiResourceType.PIPELINE }, relationship: 1 },
-          ],
-        };
-        console.log('JING create version with: ' + JSON.stringify(newPipelineVersion));
-        const response = await Apis.pipelineServiceApi.createPipelineVersion(newPipelineVersion);
+        const response = await Apis.uploadPipelineVersion(
+          this.state.pipelineVersionName,
+          this.state.file!,
+          await getPipelineId(),
+          this.state.pipelineName || '',
+          this.state.codeSourceUrl);
         this.props.history.push(
           RoutePage.PIPELINE_DETAILS.replace(
             `:${RouteParams.pipelineId}`,
@@ -597,7 +593,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
         );
         this.props.updateSnackbar({
           autoHideDuration: 10000,
-          message: `Successfully created new pipeline version: ${newPipelineVersion.name}`,
+          message: `Successfully created new pipeline version: ${response.name}`,
           open: true,
         });
       } catch (err) {
