@@ -124,6 +124,9 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   constructor(props: any) {
     super(props);
 
+    const urlParser = new URLParser(props);
+    const pipelineId = urlParser.get(QUERY_PARAMS.pipelineId);
+
     this.state = {
       codeSourceUrl: '',
       dropzoneActive: false,
@@ -132,7 +135,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       fileName: '',
       importMethod: ImportMethod.URL,
       isbeingCreated: false,
-      newPipeline: true,
+      newPipeline: pipelineId ? false : true,
       packageUrl: '',
       pipelineDescription: '',
       pipelineId: '',
@@ -471,6 +474,9 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     if (pipelineId) {
       const apiPipeline = await Apis.pipelineServiceApi.getPipeline(pipelineId);
       this.setState({ pipelineId, pipelineName: apiPipeline.name });
+      // Suggest a version name based on pipeline name
+      const currDate = new Date();
+      this.setState( { pipelineVersionName: apiPipeline.name + '_version_at_' + currDate.toISOString() });
     }
 
     this._validate();

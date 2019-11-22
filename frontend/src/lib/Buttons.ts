@@ -301,14 +301,14 @@ export default class Buttons {
     return this;
   }
 
-  public newPipelineVersion(getPipelineId?: () => string): Buttons {
+  public newPipelineVersion(label: string, getPipelineId?: () => string): Buttons {
     this._map[ButtonKeys.NEW_PIPELINE_VERSION] = {
       action: () => this._createNewPipelineVersion(getPipelineId ? getPipelineId() : ''),
       icon: AddIcon,
       id: 'createPipelineVersionBtn',
       outlined: true,
       style: { minWidth: 160 },
-      title: 'Upload pipeline',
+      title: label,
       tooltip: 'Upload pipeline or pipeline version',
     };
     return this;
