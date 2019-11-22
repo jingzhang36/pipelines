@@ -308,24 +308,11 @@ export default class Buttons {
       id: 'createPipelineVersionBtn',
       outlined: true,
       style: { minWidth: 160 },
-      title: 'Create pipeline version',
-      tooltip: 'Create pipeline version under an existing pipeline',
+      title: 'Upload pipeline',
+      tooltip: 'Upload pipeline or pipeline version',
     };
     return this;
   }
-
-  // public newPipeline(): Buttons {
-  //   this._map[ButtonKeys.NEW_PIPELINE] = {
-  //     action: () => this._createNewPipelineVersion(getPipelineId ? getPipelineId() : ''),
-  //     icon: AddIcon,
-  //     id: 'createPipelineBtn',
-  //     outlined: true,
-  //     style: { minWidth: 160 },
-  //     title: 'Create pipeline',
-  //     tooltip: 'Create pipeline',
-  //   };
-  //   return this;
-  // }
 
   public refresh(action: () => void): Buttons {
     this._map[ButtonKeys.REFRESH] = {

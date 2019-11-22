@@ -40,7 +40,7 @@ import { CustomRendererProps } from '../components/CustomTable';
 import { Description } from '../components/Description';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Radio from '@material-ui/core/Radio';
-import {runInThisContext} from 'vm';
+import { ExternalLink } from '../atoms/ExternalLink';
 
 interface NewPipelineVersionState {
   validationError: string;
@@ -126,9 +126,10 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
 
     this.state = {
       codeSourceUrl: '',
+      dropzoneActive: false,
       errorMessage: '',
-      fileName: '',
       file: null,
+      fileName: '',
       importMethod: ImportMethod.URL,
       isbeingCreated: false,
       newPipeline: true,
@@ -139,7 +140,6 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       pipelineSelectorOpen: false,
       pipelineVersionName: '',
       validationError: '',
-      dropzoneActive: false,
     };
   }
 
@@ -147,7 +147,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     return {
       actions: {},
       breadcrumbs: [{ displayName: 'Pipeline Versions', href: RoutePage.PIPELINE_DETAILS }],
-      pageTitle: 'New pipeline version',
+      pageTitle: 'Upload Pipeline or Pipeline Version',
     };
   }
 
@@ -165,7 +165,6 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       newPipeline,
       pipelineDescription,
       fileName,
-      file,
       dropzoneActive,
     } = this.state;
 
@@ -174,8 +173,6 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     return (
       <div className={classes(commonCss.page, padding(20, 'lr'))}>
         <div className={classes(commonCss.scrollContainer, padding(20, 'lr'))}>
-          <div className={commonCss.header}>Pipeline version details</div>
-          <div className={css.explanation}>Create a new pipeline version under a choosen pipeline with the specified pipeline package.</div>
 
           {/* Two subpages: one for creating version under existing pipeline and one for creating version under new pipeline */}
           <div className={classes(commonCss.flex, padding(10, 'b'))}>
@@ -197,11 +194,12 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
 
           {newPipeline === true && (
             <React.Fragment>
+            <div className={css.explanation}>Upload pipeline with the specified package.</div>
             <Input
               id='newPipelineName'
               value={pipelineName}
               required={true}
-              label='New Pipeline Name'
+              label='Pipeline Name'
               variant='outlined'
               inputRef={this._pipelineNameRef}
               onChange={this.handleChange('pipelineName')}
@@ -212,7 +210,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
               id='pipelineDescription'
               value={pipelineDescription}
               required={true}
-              label='New Pipeline Description'
+              label='Pipeline Description'
               variant='outlined'
               inputRef={this._pipelineDescriptionRef}
               onChange={this.handleChange('pipelineDescription')}
@@ -222,6 +220,27 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
             {/* TODO(jingzhang36) allow setting pipeline version name when createing pipeline*/}
 
             {/* Choose a local file for package or specify a url for package */}
+
+            {/* Different package explanation based on import method*/}
+            {this.state.importMethod === ImportMethod.LOCAL && (
+             <React.Fragment>
+               <div className={padding(10, 'b')}>
+              Choose a pipeline package file from your computer, and give the pipeline a unique
+              name.
+              <br />
+              You can also drag and drop the file here.
+            </div>
+            <DocumentationCompilePipeline />
+            </React.Fragment>
+            )}
+            {this.state.importMethod === ImportMethod.URL && (
+            <React.Fragment>
+            <div className={padding(10, 'b')}>URL must be publicly accessible.</div>
+            <DocumentationCompilePipeline />
+            </React.Fragment>
+            )}
+
+            {/* Different package input field based on import method*/}
             <div className={classes(commonCss.flex, padding(10, 'b'))}>
               <FormControlLabel
                 id='localPackageBtn'
@@ -251,10 +270,6 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
                   disabled={ importMethod === ImportMethod.URL }
                   // Find a better to align this input box with others
                   InputProps={{
-                    style: {
-                      maxWidth: 2000,
-                      width: 455,
-                    },
                     endAdornment: (
                       <InputAdornment position='end'>
                         <Button
@@ -268,6 +283,10 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
                       </InputAdornment>
                     ),
                     readOnly: true,
+                    style: {
+                      maxWidth: 2000,
+                      width: 455,
+                    },
                   }}
                 />
               </Dropzone>
@@ -295,7 +314,6 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
                 }}
               />
             </div>
-
             {/* Fill pipeline version code source url */}
             <Input
               id='pipelineVersionCodeSource'
@@ -518,7 +536,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
         logger.error('Error creating pipeline version:', err);
         this.setState({ isbeingCreated: false });
       }
-    })
+    });
   }
 
   private async _createPipelineVersion(): Promise<ApiPipelineVersion> {
@@ -558,11 +576,11 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     // (1) new pipeline (and a default version) from local file
     // (2) new pipeline (and a default version) from url
     // (3) new pipeline version (under an existing pipeline) from url
-    const { file, pipeline, pipelineVersionName, packageUrl, newPipeline } = this.state;
+    const { fileName, pipeline, pipelineVersionName, packageUrl, newPipeline } = this.state;
     try {
       if (newPipeline) {
-        if (!packageUrl && !file) {
-          throw new Error('Must specify either Package url  or file');
+        if (!packageUrl && !fileName) {
+          throw new Error('Must specify either package url  or file');
         }
       } else {
         if (!pipeline) {
@@ -590,14 +608,25 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   }
 
   private _onDrop(files: File[]): void {
-    this.setState({
+    this.setStateSafe({
       dropzoneActive: false,
       file: files[0],
       fileName: files[0].name,
-      // Suggest all characters left of first . as pipeline name
-      // uploadPipelineName: files[0].name.split('.')[0],
-    });
+      pipelineName: this.state.pipelineName || files[0].name.split('.')[0],
+    },
+      () => { this._validate();},
+    );
   }
 }
 
 export default NewPipelineVersion;
+
+const DocumentationCompilePipeline: React.FC = () => (
+  <div className={padding(10, 'b')}>
+    For expected file format, refer to{' '}
+    <ExternalLink href='https://www.kubeflow.org/docs/pipelines/sdk/build-component/#compile-the-pipeline'>
+      Compile Pipeline Documentation
+    </ExternalLink>
+    .
+  </div>
+);

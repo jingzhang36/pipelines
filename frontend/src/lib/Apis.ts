@@ -16,7 +16,7 @@ import * as portableFetch from 'portable-fetch';
 import {HTMLViewerConfig} from 'src/components/viewers/HTMLViewer';
 import {ExperimentServiceApi, FetchAPI} from '../apis/experiment';
 import {JobServiceApi} from '../apis/job';
-import {ApiPipeline, ApiPipelineVersion, PipelineServiceApi} from '../apis/pipeline';
+import {ApiPipeline, PipelineServiceApi} from '../apis/pipeline';
 import {RunServiceApi} from '../apis/run';
 import {ApiVisualization, VisualizationServiceApi} from '../apis/visualization';
 import {PlotType} from '../components/viewers/Viewer';
