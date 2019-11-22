@@ -109,7 +109,9 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     this.state = {
       codeSourceUrl: '',
       errorMessage: '',
+      importMethod: ImportMethod.URL,
       isbeingCreated: false,
+      newPipeline: false,
       packageUrl: '',
       pipelineDescription: '',
       pipelineId: '',
@@ -117,8 +119,6 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       pipelineSelectorOpen: false,
       pipelineVersionName: '',
       validationError: '',
-      newPipeline: false,
-      importMethod: ImportMethod.URL,
     };
   }
 
@@ -400,41 +400,36 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     );
   }
 
-  private _create(): void {
-    const getPipelineId = () => {
-      // Get existing pipeline's id or get the new pipeline's id.
+  private async _create(): Promise<void> {
+    const getPipelineId = async () => {
       if (this.state.pipelineId) {
+        // Get existing pipeline's id.
         return this.state.pipelineId;
       } else {
-        // The new pipeline version is going to be put under a new pipeline instead
-        // an eixsting pipeline. So create the new pipeline first.
-        try {
-          const newPipeline: ApiPipeline = {
-            name: this.state.pipelineName,
-            description: this.state.pipelineDescription,
-          };
-          Apis.pipelineServiceApi.createPipeline(newPipeline).then(response => { return response.id!; });
-        } catch (err) {
-          this.showErrorDialog('Pipeline version creation failed', err.message);
-          logger.error('Error creating pipeline version:', err.message);
-          this.setState({ isbeingCreated: false });
-        } finally {
-          return '';
-        }
+        // Get the new pipeline's id.
+        // The new pipeline version is going to be put under this new pipeline
+        // instead of an eixsting pipeline. So create this new pipeline first.
+        const newPipeline: ApiPipeline = {
+          description: this.state.pipelineDescription,
+          name: this.state.pipelineName,
+          url: { pipeline_url: this.state.packageUrl },
+        };
+        const response = await Apis.pipelineServiceApi.createPipeline(newPipeline);
+        return response.id!;
       }
-    };
-
-    const newPipelineVersion: ApiPipelineVersion = {
-      code_source_url: this.state.codeSourceUrl,
-      name: this.state.pipelineVersionName,
-      package_url: { pipeline_url: this.state.packageUrl },
-      resource_references: [
-        { key: { id: getPipelineId(), type: ApiResourceType.PIPELINE }, relationship: 1 },
-      ],
     };
 
     this.setState({ isbeingCreated: true }, async () => {
       try {
+        const newPipelineVersion: ApiPipelineVersion = {
+          code_source_url: this.state.codeSourceUrl,
+          name: this.state.pipelineVersionName,
+          package_url: { pipeline_url: this.state.packageUrl },
+          resource_references: [
+            { key: { id: await getPipelineId(), type: ApiResourceType.PIPELINE }, relationship: 1 },
+          ],
+        };
+        console.log('JING create version with: ' + JSON.stringify(newPipelineVersion));
         const response = await Apis.pipelineServiceApi.createPipelineVersion(newPipelineVersion);
         this.props.history.push(
           RoutePage.PIPELINE_DETAILS.replace(
@@ -458,12 +453,12 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
 
   private _validate(): void {
     // Validate state
-    const { pipeline, pipelineVersionName, packageUrl } = this.state;
+    const { pipeline, pipelineVersionName, packageUrl, newPipeline } = this.state;
     try {
       if (!pipelineVersionName) {
         throw new Error('Pipeline version name is required');
       }
-      if (!pipeline) {
+      if (!pipeline && !newPipeline) {
         throw new Error('Pipeline is required');
       }
       if (!packageUrl) {
