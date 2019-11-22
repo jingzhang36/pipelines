@@ -328,6 +328,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
 
           {newPipeline === false  && (
             <React.Fragment>
+            <div className={css.explanation}>Upload pipeline version with the specified package.</div>
             {/* Select pipeline */}
             <Input
               value={pipelineName}
