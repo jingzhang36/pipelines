@@ -16,7 +16,7 @@ import * as portableFetch from 'portable-fetch';
 import {HTMLViewerConfig} from 'src/components/viewers/HTMLViewer';
 import {ExperimentServiceApi, FetchAPI} from '../apis/experiment';
 import {JobServiceApi} from '../apis/job';
-import {ApiPipeline, PipelineServiceApi} from '../apis/pipeline';
+import {ApiPipeline, ApiPipelineVersion, PipelineServiceApi} from '../apis/pipeline';
 import {RunServiceApi} from '../apis/run';
 import {ApiVisualization, VisualizationServiceApi} from '../apis/visualization';
 import {PlotType} from '../components/viewers/Viewer';
@@ -284,35 +284,6 @@ export class Apis {
       '/pipelines/upload',
       v1beta1Prefix,
       `name=${encodeURIComponent(pipelineName)}`,
-      {
-        body: fd,
-        cache: 'no-cache',
-        method: 'POST',
-      },
-    );
-  }
-
-
-  /**
-   * Uploads the given pipeline file to the backend, and gets back a Pipeline
-   * Version object with its metadata parsed. This pipeline version be created
-   * under a new pipeline or unde an existing pipeline. In the former case,
-   * pipeline name is specified; in the latter case, pipeline id is specified.
-   */
-  public static async uploadPipelineVersion(
-    versionName: string,
-    pipelineData: File,
-    pipelineId: string,
-    pipelineName: string,
-    codeSourceUrl: string,
-    /* TODO(jingzhangjz) pass description of new pipeline as well */
-  ): Promise<ApiPipelineVersion> {
-    const fd = new FormData();
-    fd.append('uploadfile', pipelineData, pipelineData.name);
-    return await this._fetchAndParse<ApiPipelineVersion>(
-      '/pipeline_versions/upload',
-      v1beta1Prefix,
-      `versionName=${encodeURIComponent(versionName)}&pipelineId=${encodeURIComponent(pipelineId)}&pipelineName=${encodeURIComponent(pipelineName)}&codeSourceUrl=${encodeURIComponent(codeSourceUrl)}`,
       {
         body: fd,
         cache: 'no-cache',

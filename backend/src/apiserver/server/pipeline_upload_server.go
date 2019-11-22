@@ -28,12 +28,8 @@ import (
 
 // These are valid conditions of a ScheduledWorkflow.
 const (
-	FormFileKey                = "uploadfile"
-	NameQueryStringKey         = "name"
-	VersionNameQueryStringKey  = "versionName"
-	PipelineIdQueryStringKey   = "pipelineId"
-	PipelineNameQueryStringKey = "pipelineName"
-	CodeSourceUrlStringKey     = "codeSourceUrl"
+	FormFileKey        = "uploadfile"
+	NameQueryStringKey = "name"
 )
 
 type PipelineUploadServer struct {
@@ -91,109 +87,6 @@ func (s *PipelineUploadServer) UploadPipeline(w http.ResponseWriter, r *http.Req
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(pipelineJson)
-}
-
-// UploadPipelineVersion create version from local file (instead of URL).
-// This version can be under an existing pipeline or a new pipeline.
-func (s *PipelineUploadServer) UploadPipelineVersion(w http.ResponseWriter, r *http.Request) {
-	glog.Infof("Upload pipeline version called")
-	file, header, err := r.FormFile(FormFileKey)
-	if err != nil {
-		s.writeErrorToResponse(w, http.StatusBadRequest, util.Wrap(err, "Failed to read pipeline form file"))
-		return
-	}
-	defer file.Close()
-
-	pipelineFile, err := ReadPipelineFile(header.Filename, file, MaxFileLength)
-	if err != nil {
-		s.writeErrorToResponse(w, http.StatusBadRequest, util.Wrap(err, "Error read pipeline file."))
-		return
-	}
-
-	// Parse pipeline id from query string.
-	// If pipeline id not specified, create a new pipeline; if it is specified,
-	// verify that it exists.
-	pipelineId, err := GetPipelineName(r.URL.Query().Get(PipelineIdQueryStringKey), header.Filename)
-	if err != nil {
-		s.writeErrorToResponse(w, http.StatusBadRequest, util.Wrap(err, "Invalid pipeline id."))
-		return
-	}
-	var apiPipeline *api.Pipeline
-	if len(pipelineId) == 0 {
-		pipelineName, err := GetPipelineName(r.URL.Query().Get(PipelineNameQueryStringKey), header.Filename)
-		if err != nil {
-			s.writeErrorToResponse(w, http.StatusBadRequest, util.Wrap(err, "Invalid pipeline name."))
-			return
-		}
-		newPipeline, err := s.resourceManager.CreatePipeline(pipelineName, "", pipelineFile)
-		if err != nil {
-			s.writeErrorToResponse(w, http.StatusInternalServerError, util.Wrap(err, "Error creating pipeline"))
-			return
-		}
-		apiPipeline = ToApiPipeline(newPipeline)
-	} else {
-		existingPipeline, err := s.resourceManager.GetPipeline(pipelineId)
-		if err != nil {
-			s.writeErrorToResponse(w, http.StatusInternalServerError, util.Wrap(err, "Error retrieving pipeline"))
-			return
-		}
-		apiPipeline = ToApiPipeline(existingPipeline)
-	}
-
-	// Create version under the above created/retrieved pipeline.
-	versionName, err := GetPipelineName(r.URL.Query().Get(VersionNameQueryStringKey), header.Filename+"_version")
-	if err != nil {
-		s.writeErrorToResponse(w, http.StatusBadRequest, util.Wrap(err, "Invalid pipeline version name."))
-		return
-	}
-	codeSourceUrl, err := GetPipelineName(r.URL.Query().Get(CodeSourceUrlStringKey), "")
-	if err != nil {
-		s.writeErrorToResponse(w, http.StatusBadRequest, util.Wrap(err, "Invalid pipeline version name."))
-		return
-	}
-	newVersion := &api.PipelineVersion{
-		Name:          versionName,
-		CodeSourceUrl: codeSourceUrl,
-		ResourceReferences: []*api.ResourceReference{
-			&api.ResourceReference{
-				Key: &api.ResourceKey{
-					Id:   apiPipeline.Id,
-					Type: api.ResourceType_PIPELINE,
-				},
-				Relationship: api.Relationship_OWNER,
-			},
-		},
-	}
-	createdVersion, err := s.resourceManager.CreatePipelineVersion(newVersion, pipelineFile)
-	if err != nil {
-		s.writeErrorToResponse(w, http.StatusBadRequest, util.Wrap(err, "Failed to create pipeline version."))
-		return
-	}
-	apiPipelineVersion, err := ToApiPipelineVersion(createdVersion)
-	if err != nil {
-		s.writeErrorToResponse(w, http.StatusBadRequest, util.Wrap(err, "Failed to create pipeline version."))
-		return
-	}
-
-	// Return pipeline version to FE in json.
-	createdAt := time.Unix(apiPipelineVersion.CreatedAt.Seconds, int64(apiPipelineVersion.CreatedAt.Nanos)).UTC().Format(time.RFC3339)
-	apiPipelineVersion.CreatedAt = nil
-	// Create an anonymous struct to stream time conforming RFC3339 format "1970-01-01T00:00:01Z"
-	// Otherwise it returns "created_at":{"seconds":1}
-	pipelineVersion := struct {
-		api.PipelineVersion
-		CreatedAtDateTime string `json:"created_at"`
-	}{
-		*apiPipelineVersion,
-		createdAt,
-	}
-	pipelineVersionJson, err := json.Marshal(pipelineVersion)
-	if err != nil {
-		s.writeErrorToResponse(w, http.StatusInternalServerError, util.Wrap(err, "Error creating pipeline version"))
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(pipelineVersionJson)
 }
 
 func (s *PipelineUploadServer) writeErrorToResponse(w http.ResponseWriter, code int, err error) {

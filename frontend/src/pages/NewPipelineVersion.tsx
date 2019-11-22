@@ -184,14 +184,14 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
               label='Create a new pipeline'
               checked={newPipeline === true}
               control={<Radio color='primary' />}
-              onChange={() => this.setState({ newPipeline: true })}
+              onChange={() => this.setState({ newPipeline: true, pipelineName: '', pipelineVersionName: '', pipelineDescription: '', codeSourceUrl: '' })}
             />
             <FormControlLabel
               id='createPipelineVersionUnderExistingPipelineBtn'
               label='Create a new pipeline version under an existing pipeline'
               checked={newPipeline === false}
               control={<Radio color='primary' />}
-              onChange={() => this.setState({ newPipeline: false })}
+              onChange={() => this.setState({ newPipeline: false, pipelineName: '', pipelineVersionName: '', pipelineDescription: '', codeSourceUrl: '' })}
             />
           </div>
 
@@ -219,17 +219,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
               autoFocus={true}
             />
 
-            {/* Set pipeline version name */}
-            <Input
-              id='pipelineVersionName'
-              label='Pipeline Version name'
-              inputRef={this._pipelineVersionNameRef}
-              required={true}
-              onChange={this.handleChange('pipelineVersionName')}
-              value={pipelineVersionName}
-              autoFocus={true}
-              variant='outlined'
-            />
+            {/* TODO(jingzhang36) allow setting pipeline version name when createing pipeline*/}
 
             {/* Choose a local file for package or specify a url for package */}
             <div className={classes(commonCss.flex, padding(10, 'b'))}>
@@ -498,16 +488,40 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   }
 
   private async _create(): Promise<void> {
-   if (this.state.importMethod === ImportMethod.URL) {
-      this._createFromUrl();
-    }
+    this.setState({ isbeingCreated: true }, async () => {
+      try {
+        // 3 use case for now:
+        // (1) new pipeline (and a default version) from local file
+        // (2) new pipeline (and a default version) from url
+        // (3) new pipeline version (under an existing pipeline) from url
+        const response = this.state.newPipeline && this.state.importMethod === ImportMethod.LOCAL
+          ? (await Apis.uploadPipeline(this.state.pipelineName!, this.state.file!)).default_version!
+          : this.state.newPipeline && this.state.importMethod === ImportMethod.URL
+            ? (await Apis.pipelineServiceApi.createPipeline({ name: this.state.pipelineName!, url: { pipeline_url: this.state.packageUrl } })).default_version!
+            : await this._createPipelineVersion();
 
-    if (this.state.importMethod === ImportMethod.LOCAL) {
-      this._createFromLocalFile();
-    }
+        // If success, go to pipeline details page of the new version
+        this.props.history.push(
+          RoutePage.PIPELINE_DETAILS.replace(
+            `:${RouteParams.pipelineId}`,
+            response.resource_references![0].key!.id! /* pipeline id of this version */,
+          ).replace(`:${RouteParams.pipelineVersionId}`, response.id!),
+        );
+        this.props.updateSnackbar({
+          autoHideDuration: 10000,
+          message: `Successfully created new pipeline version: ${response.name}`,
+          open: true,
+        });
+      } catch (err) {
+        const errorMessage = await errorToMessage(err);
+        await this.showErrorDialog('Pipeline version creation failed', errorMessage);
+        logger.error('Error creating pipeline version:', err);
+        this.setState({ isbeingCreated: false });
+      }
+    })
   }
 
-  private async _createFromUrl(): Promise<void> {
+  private async _createPipelineVersion(): Promise<ApiPipelineVersion> {
     const getPipelineId = async () => {
       if (this.state.pipelineId) {
         // Get existing pipeline's id.
@@ -526,9 +540,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       }
     };
 
-    this.setState({ isbeingCreated: true }, async () => {
-      try {
-        const newPipelineVersion: ApiPipelineVersion = {
+    const newPipelineVersion: ApiPipelineVersion = {
           code_source_url: this.state.codeSourceUrl,
           name: this.state.pipelineVersionName,
           package_url: { pipeline_url: this.state.packageUrl },
@@ -537,86 +549,31 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
           ],
         };
         console.log('JING create version with: ' + JSON.stringify(newPipelineVersion));
-        const response = await Apis.pipelineServiceApi.createPipelineVersion(newPipelineVersion);
-        this.props.history.push(
-          RoutePage.PIPELINE_DETAILS.replace(
-            `:${RouteParams.pipelineId}`,
-            response.resource_references![0].key!.id! /* pipeline id of this version */,
-          ).replace(`:${RouteParams.pipelineVersionId}`, response.id!),
-        );
-        this.props.updateSnackbar({
-          autoHideDuration: 10000,
-          message: `Successfully created new pipeline version: ${response.name}`,
-          open: true,
-        });
-      } catch (err) {
-        const errorMessage = await errorToMessage(err);
-        await this.showErrorDialog('Pipeline version creation failed', errorMessage);
-        logger.error('Error creating pipeline version:', err);
-        this.setState({ isbeingCreated: false });
-      }
-    });
-  }
-
-  private async _createFromLocalFile(): Promise<void> {
-    const getPipelineId = async () => {
-      if (this.state.pipelineId) {
-        // Get existing pipeline's id.
-        return this.state.pipelineId;
-      } else {
-        // Get the new pipeline's id.
-        // The new pipeline version is going to be put under this new pipeline
-        // instead of an eixsting pipeline. So create this new pipeline first.
-        const newPipeline: ApiPipeline = {
-          description: this.state.pipelineDescription,
-          name: this.state.pipelineName,
-          url: { pipeline_url: this.state.packageUrl },
-        };
-        const response = await Apis.pipelineServiceApi.createPipeline(newPipeline);
-        return response.id!;
-      }
-    };
-
-    this.setState({ isbeingCreated: true }, async () => {
-      try {
-        const response = await Apis.uploadPipelineVersion(
-          this.state.pipelineVersionName,
-          this.state.file!,
-          await getPipelineId(),
-          this.state.pipelineName || '',
-          this.state.codeSourceUrl);
-        this.props.history.push(
-          RoutePage.PIPELINE_DETAILS.replace(
-            `:${RouteParams.pipelineId}`,
-            response.resource_references![0].key!.id! /* pipeline id of this version */,
-          ).replace(`:${RouteParams.pipelineVersionId}`, response.id!),
-        );
-        this.props.updateSnackbar({
-          autoHideDuration: 10000,
-          message: `Successfully created new pipeline version: ${response.name}`,
-          open: true,
-        });
-      } catch (err) {
-        const errorMessage = await errorToMessage(err);
-        await this.showErrorDialog('Pipeline version creation failed', errorMessage);
-        logger.error('Error creating pipeline version:', err);
-        this.setState({ isbeingCreated: false });
-      }
-    });
+        return Apis.pipelineServiceApi.createPipelineVersion(newPipelineVersion);
   }
 
   private _validate(): void {
     // Validate state
-    const { pipeline, pipelineVersionName, packageUrl, newPipeline } = this.state;
+    // 3 valid use case for now:
+    // (1) new pipeline (and a default version) from local file
+    // (2) new pipeline (and a default version) from url
+    // (3) new pipeline version (under an existing pipeline) from url
+    const { file, pipeline, pipelineVersionName, packageUrl, newPipeline } = this.state;
     try {
-      if (!pipelineVersionName) {
-        throw new Error('Pipeline version name is required');
-      }
-      if (!pipeline && !newPipeline) {
-        throw new Error('Pipeline is required');
-      }
-      if (!packageUrl) {
-        throw new Error('Please specify a pipeline package in .yaml, .zip, or .tar.gz');
+      if (newPipeline) {
+        if (!packageUrl && !file) {
+          throw new Error('Must specify either Package url  or file');
+        }
+      } else {
+        if (!pipeline) {
+          throw new Error('Pipeline is required');
+        }
+        if (!pipelineVersionName) {
+          throw new Error('Pipeline version name is required');
+        }
+        if (!packageUrl) {
+          throw new Error('Please specify a pipeline package in .yaml, .zip, or .tar.gz');
+        }
       }
       this.setState({ validationError: '' });
     } catch (err) {
