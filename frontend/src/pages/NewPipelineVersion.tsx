@@ -185,11 +185,11 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
               control={<Radio color='primary' />}
               onChange={() =>
                 this.setState({
+                  codeSourceUrl: '',
                   newPipeline: true,
+                  pipelineDescription: '',
                   pipelineName: '',
                   pipelineVersionName: '',
-                  pipelineDescription: '',
-                  codeSourceUrl: '',
                 })
               }
             />
@@ -200,11 +200,11 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
               control={<Radio color='primary' />}
               onChange={() =>
                 this.setState({
+                  codeSourceUrl: '',
                   newPipeline: false,
+                  pipelineDescription: '',
                   pipelineName: '',
                   pipelineVersionName: '',
-                  pipelineDescription: '',
-                  codeSourceUrl: '',
                 })
               }
             />
