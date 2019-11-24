@@ -202,7 +202,9 @@ class NewRun extends Page<{}, NewRunState> {
           {!!workflowFromRun && (
             <div>
               <span>{usePipelineFromRunLabel} </span>
-              {!!originalRunId && <Link to={pipelineDetailsUrl}>[View pipeline specification]</Link>}
+              {!!originalRunId && (
+                <Link to={pipelineDetailsUrl}>[View pipeline specification]</Link>
+              )}
             </div>
           )}
           {!useWorkflowFromRun && (
@@ -320,7 +322,14 @@ class NewRun extends Page<{}, NewRunState> {
                 title='Choose a pipeline version'
                 filterLabel='Filter pipeline versions'
                 listApi={async (...args) => {
-                  const response = await Apis.pipelineServiceApi.listPipelineVersions('PIPELINE', this.state.pipeline ? this.state.pipeline!.id! : '', args[1] /* page size */, args[0] /* page token*/, args[2] /* sort by */, args[3] /* filter */);
+                  const response = await Apis.pipelineServiceApi.listPipelineVersions(
+                    'PIPELINE',
+                    this.state.pipeline ? this.state.pipeline!.id! : '',
+                    args[1] /* page size */,
+                    args[0] /* page token*/,
+                    args[2] /* sort by */,
+                    args[3] /* filter */,
+                  );
                   return {
                     nextPageToken: response.next_page_token || '',
                     resources: response.versions || [],
@@ -334,7 +343,10 @@ class NewRun extends Page<{}, NewRunState> {
                 }
                 toolbarActionMap={buttons
                   .upload(() =>
-                    this.setStateSafe({ pipelineVersionSelectorOpen: false, uploadDialogOpen: true }),
+                    this.setStateSafe({
+                      pipelineVersionSelectorOpen: false,
+                      uploadDialogOpen: true,
+                    }),
                   )
                   .getToolbarActionMap()}
               />
@@ -622,7 +634,9 @@ class NewRun extends Page<{}, NewRunState> {
       const possiblePipelineVersionId = urlParser.get(QUERY_PARAMS.pipelineVersionId);
       if (possiblePipelineVersionId) {
         try {
-          const pipelineVersion = await Apis.pipelineServiceApi.getPipelineVersion(possiblePipelineVersionId);
+          const pipelineVersion = await Apis.pipelineServiceApi.getPipelineVersion(
+            possiblePipelineVersionId,
+          );
           this.setStateSafe({
             parameters: pipelineVersion.parameters || [],
             pipelineVersion,
@@ -702,7 +716,9 @@ class NewRun extends Page<{}, NewRunState> {
       // Get the default version of selected pipeline to auto-fill the version
       // input field.
       if (pipeline.default_version) {
-        pipelineVersion = await Apis.pipelineServiceApi.getPipelineVersion(pipeline.default_version.id!);
+        pipelineVersion = await Apis.pipelineServiceApi.getPipelineVersion(
+          pipeline.default_version.id!,
+        );
         parameters = pipelineVersion.parameters || [];
       }
     }
@@ -829,10 +845,7 @@ class NewRun extends Page<{}, NewRunState> {
         `Error: failed to parse the embedded pipeline's spec: ${embeddedPipelineSpec}.`,
         err,
       );
-      logger.error(
-        `Failed to parse the embedded pipeline's spec from run: ${embeddedRunId}`,
-        err,
-      );
+      logger.error(`Failed to parse the embedded pipeline's spec from run: ${embeddedRunId}`, err);
       return;
     }
 

@@ -176,7 +176,6 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     return (
       <div className={classes(commonCss.page, padding(20, 'lr'))}>
         <div className={classes(commonCss.scrollContainer, padding(20, 'lr'))}>
-
           {/* Two subpages: one for creating version under existing pipeline and one for creating version under new pipeline */}
           <div className={classes(commonCss.flex, padding(10, 'b'))}>
             <FormControlLabel
@@ -184,260 +183,278 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
               label='Create a new pipeline'
               checked={newPipeline === true}
               control={<Radio color='primary' />}
-              onChange={() => this.setState({ newPipeline: true, pipelineName: '', pipelineVersionName: '', pipelineDescription: '', codeSourceUrl: '' })}
+              onChange={() =>
+                this.setState({
+                  newPipeline: true,
+                  pipelineName: '',
+                  pipelineVersionName: '',
+                  pipelineDescription: '',
+                  codeSourceUrl: '',
+                })
+              }
             />
             <FormControlLabel
               id='createPipelineVersionUnderExistingPipelineBtn'
               label='Create a new pipeline version under an existing pipeline'
               checked={newPipeline === false}
               control={<Radio color='primary' />}
-              onChange={() => this.setState({ newPipeline: false, pipelineName: '', pipelineVersionName: '', pipelineDescription: '', codeSourceUrl: '' })}
+              onChange={() =>
+                this.setState({
+                  newPipeline: false,
+                  pipelineName: '',
+                  pipelineVersionName: '',
+                  pipelineDescription: '',
+                  codeSourceUrl: '',
+                })
+              }
             />
           </div>
 
           {newPipeline === true && (
             <React.Fragment>
-            <div className={css.explanation}>Upload pipeline with the specified package.</div>
-            <Input
-              id='newPipelineName'
-              value={pipelineName}
-              required={true}
-              label='Pipeline Name'
-              variant='outlined'
-              inputRef={this._pipelineNameRef}
-              onChange={this.handleChange('pipelineName')}
-              autoFocus={true}
-            />
-
-            <Input
-              id='pipelineDescription'
-              value={pipelineDescription}
-              required={true}
-              label='Pipeline Description'
-              variant='outlined'
-              inputRef={this._pipelineDescriptionRef}
-              onChange={this.handleChange('pipelineDescription')}
-              autoFocus={true}
-            />
-
-            {/* TODO(jingzhang36) allow setting pipeline version name when createing pipeline*/}
-
-            {/* Choose a local file for package or specify a url for package */}
-
-            {/* Different package explanation based on import method*/}
-            {this.state.importMethod === ImportMethod.LOCAL && (
-             <React.Fragment>
-               <div className={padding(10, 'b')}>
-              Choose a pipeline package file from your computer, and give the pipeline a unique
-              name.
-              <br />
-              You can also drag and drop the file here.
-            </div>
-            <DocumentationCompilePipeline />
-            </React.Fragment>
-            )}
-            {this.state.importMethod === ImportMethod.URL && (
-            <React.Fragment>
-            <div className={padding(10, 'b')}>URL must be publicly accessible.</div>
-            <DocumentationCompilePipeline />
-            </React.Fragment>
-            )}
-
-            {/* Different package input field based on import method*/}
-            <div className={classes(commonCss.flex, padding(10, 'b'))}>
-              <FormControlLabel
-                id='localPackageBtn'
-                label='Upload a file'
-                checked={ importMethod === ImportMethod.LOCAL }
-                control={<Radio color='primary' />}
-                onChange={() => this.setState({ importMethod: ImportMethod.LOCAL })}
-              />
-              <Dropzone
-                id='dropZone'
-                disableClick={true}
-                onDrop={this._onDrop.bind(this)}
-                onDragEnter={this._onDropzoneDragEnter.bind(this)}
-                onDragLeave={this._onDropzoneDragLeave.bind(this)}
-                style={{ position: 'relative' }}
-                ref={this._dropzoneRef}
-                inputProps={{ tabIndex: -1 }}
-                disabled={ importMethod === ImportMethod.URL }
-              >
-              {dropzoneActive && <div className={css.dropOverlay}>Drop files..</div>}
+              <div className={css.explanation}>Upload pipeline with the specified package.</div>
               <Input
-                  onChange={this.handleChange('fileName')}
-                  value={fileName}
-                  required={true}
-                  label='File'
+                id='newPipelineName'
+                value={pipelineName}
+                required={true}
+                label='Pipeline Name'
+                variant='outlined'
+                inputRef={this._pipelineNameRef}
+                onChange={this.handleChange('pipelineName')}
+                autoFocus={true}
+              />
+
+              <Input
+                id='pipelineDescription'
+                value={pipelineDescription}
+                required={true}
+                label='Pipeline Description'
+                variant='outlined'
+                inputRef={this._pipelineDescriptionRef}
+                onChange={this.handleChange('pipelineDescription')}
+                autoFocus={true}
+              />
+
+              {/* TODO(jingzhang36) allow setting pipeline version name when createing pipeline*/}
+
+              {/* Choose a local file for package or specify a url for package */}
+
+              {/* Different package explanation based on import method*/}
+              {this.state.importMethod === ImportMethod.LOCAL && (
+                <React.Fragment>
+                  <div className={padding(10, 'b')}>
+                    Choose a pipeline package file from your computer, and give the pipeline a
+                    unique name.
+                    <br />
+                    You can also drag and drop the file here.
+                  </div>
+                  <DocumentationCompilePipeline />
+                </React.Fragment>
+              )}
+              {this.state.importMethod === ImportMethod.URL && (
+                <React.Fragment>
+                  <div className={padding(10, 'b')}>URL must be publicly accessible.</div>
+                  <DocumentationCompilePipeline />
+                </React.Fragment>
+              )}
+
+              {/* Different package input field based on import method*/}
+              <div className={classes(commonCss.flex, padding(10, 'b'))}>
+                <FormControlLabel
+                  id='localPackageBtn'
+                  label='Upload a file'
+                  checked={importMethod === ImportMethod.LOCAL}
+                  control={<Radio color='primary' />}
+                  onChange={() => this.setState({ importMethod: ImportMethod.LOCAL })}
+                />
+                <Dropzone
+                  id='dropZone'
+                  disableClick={true}
+                  onDrop={this._onDrop.bind(this)}
+                  onDragEnter={this._onDropzoneDragEnter.bind(this)}
+                  onDragLeave={this._onDropzoneDragLeave.bind(this)}
+                  style={{ position: 'relative' }}
+                  ref={this._dropzoneRef}
+                  inputProps={{ tabIndex: -1 }}
+                  disabled={importMethod === ImportMethod.URL}
+                >
+                  {dropzoneActive && <div className={css.dropOverlay}>Drop files..</div>}
+                  <Input
+                    onChange={this.handleChange('fileName')}
+                    value={fileName}
+                    required={true}
+                    label='File'
+                    variant='outlined'
+                    disabled={importMethod === ImportMethod.URL}
+                    // Find a better to align this input box with others
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position='end'>
+                          <Button
+                            color='secondary'
+                            onClick={() => this._dropzoneRef.current!.open()}
+                            style={{ padding: '3px 5px', margin: 0, whiteSpace: 'nowrap' }}
+                            disabled={importMethod === ImportMethod.URL}
+                          >
+                            Choose file
+                          </Button>
+                        </InputAdornment>
+                      ),
+                      readOnly: true,
+                      style: {
+                        maxWidth: 2000,
+                        width: 455,
+                      },
+                    }}
+                  />
+                </Dropzone>
+              </div>
+              <div className={classes(commonCss.flex, padding(10, 'b'))}>
+                <FormControlLabel
+                  id='remotePackageBtn'
+                  label='Import by url'
+                  checked={importMethod === ImportMethod.URL}
+                  control={<Radio color='primary' />}
+                  onChange={() => this.setState({ importMethod: ImportMethod.URL })}
+                />
+                <Input
+                  id='pipelinePackageUrl'
+                  label='Package Url'
+                  multiline={true}
+                  onChange={this.handleChange('packageUrl')}
+                  value={packageUrl}
                   variant='outlined'
-                  disabled={ importMethod === ImportMethod.URL }
+                  disabled={importMethod === ImportMethod.LOCAL}
                   // Find a better to align this input box with others
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position='end'>
-                        <Button
-                          color='secondary'
-                          onClick={() => this._dropzoneRef.current!.open()}
-                          style={{ padding: '3px 5px', margin: 0, whiteSpace: 'nowrap' }}
-                          disabled={ importMethod === ImportMethod.URL }
-                        >
-                          Choose file
-                        </Button>
-                      </InputAdornment>
-                    ),
-                    readOnly: true,
-                    style: {
-                      maxWidth: 2000,
-                      width: 455,
-                    },
+                  style={{
+                    maxWidth: 2000,
+                    width: 465,
                   }}
                 />
-              </Dropzone>
-            </div>
-            <div className={classes(commonCss.flex, padding(10, 'b'))}>
-              <FormControlLabel
-                id='remotePackageBtn'
-                label='Import by url'
-                checked={ importMethod === ImportMethod.URL }
-                control={<Radio color='primary' />}
-                onChange={() => this.setState({ importMethod: ImportMethod.URL })}
-              />
+              </div>
+              {/* Fill pipeline version code source url */}
               <Input
-                id='pipelinePackageUrl'
+                id='pipelineVersionCodeSource'
+                label='Code Source (optional)'
+                multiline={true}
+                onChange={this.handleChange('codeSourceUrl')}
+                value={codeSourceUrl}
+                variant='outlined'
+              />
+            </React.Fragment>
+          )}
+
+          {newPipeline === false && (
+            <React.Fragment>
+              <div className={css.explanation}>
+                Upload pipeline version with the specified package.
+              </div>
+              {/* Select pipeline */}
+              <Input
+                value={pipelineName}
+                required={true}
+                label='Pipeline'
+                disabled={true}
+                variant='outlined'
+                inputRef={this._pipelineNameRef}
+                onChange={this.handleChange('pipelineName')}
+                autoFocus={true}
+                InputProps={{
+                  classes: { disabled: css.nonEditableInput },
+                  endAdornment: (
+                    <InputAdornment position='end'>
+                      <Button
+                        color='secondary'
+                        id='choosePipelineBtn'
+                        onClick={() => this.setStateSafe({ pipelineSelectorOpen: true })}
+                        style={{ padding: '3px 5px', margin: 0 }}
+                      >
+                        Choose
+                      </Button>
+                    </InputAdornment>
+                  ),
+                  readOnly: true,
+                }}
+              />
+              <Dialog
+                open={pipelineSelectorOpen}
+                classes={{ paper: css.selectorDialog }}
+                onClose={() => this._pipelineSelectorClosed(false)}
+                PaperProps={{ id: 'pipelineSelectorDialog' }}
+              >
+                <DialogContent>
+                  <ResourceSelector
+                    {...this.props}
+                    title='Choose a pipeline'
+                    filterLabel='Filter pipelines'
+                    listApi={async (...args) => {
+                      const response = await Apis.pipelineServiceApi.listPipelines(...args);
+                      return {
+                        nextPageToken: response.next_page_token || '',
+                        resources: response.pipelines || [],
+                      };
+                    }}
+                    columns={this.pipelineSelectorColumns}
+                    emptyMessage='No pipelines found. Upload a pipeline and then try again.'
+                    initialSortColumn={PipelineSortKeys.CREATED_AT}
+                    selectionChanged={(selectedPipeline: ApiPipeline) =>
+                      this.setStateSafe({ unconfirmedSelectedPipeline: selectedPipeline })
+                    }
+                    toolbarActionMap={buttons
+                      .upload(() => this.setStateSafe({ pipelineSelectorOpen: false }))
+                      .getToolbarActionMap()}
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button
+                    id='cancelPipelineSelectionBtn'
+                    onClick={() => this._pipelineSelectorClosed(false)}
+                    color='secondary'
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    id='usePipelineBtn'
+                    onClick={() => this._pipelineSelectorClosed(true)}
+                    color='secondary'
+                    disabled={!unconfirmedSelectedPipeline}
+                  >
+                    Use this pipeline
+                  </Button>
+                </DialogActions>
+              </Dialog>
+
+              {/* Set pipeline version name */}
+              <Input
+                id='pipelineVersionName'
+                label='Pipeline Version name'
+                inputRef={this._pipelineVersionNameRef}
+                required={true}
+                onChange={this.handleChange('pipelineVersionName')}
+                value={pipelineVersionName}
+                autoFocus={true}
+                variant='outlined'
+              />
+
+              {/* Fill pipeline package url */}
+              <Input
+                id='pipelineVersionPackageUrl'
                 label='Package Url'
                 multiline={true}
                 onChange={this.handleChange('packageUrl')}
                 value={packageUrl}
                 variant='outlined'
-                disabled={ importMethod === ImportMethod.LOCAL }
-                // Find a better to align this input box with others
-                style={{
-                  maxWidth: 2000,
-                  width: 465,
-                }}
               />
-            </div>
-            {/* Fill pipeline version code source url */}
-            <Input
-              id='pipelineVersionCodeSource'
-              label='Code Source (optional)'
-              multiline={true}
-              onChange={this.handleChange('codeSourceUrl')}
-              value={codeSourceUrl}
-              variant='outlined'
-            />
-            </React.Fragment>
-          )}
 
-          {newPipeline === false  && (
-            <React.Fragment>
-            <div className={css.explanation}>Upload pipeline version with the specified package.</div>
-            {/* Select pipeline */}
-            <Input
-              value={pipelineName}
-              required={true}
-              label='Pipeline'
-              disabled={true}
-              variant='outlined'
-              inputRef={this._pipelineNameRef}
-              onChange={this.handleChange('pipelineName')}
-              autoFocus={true}
-              InputProps={{
-                classes: { disabled: css.nonEditableInput },
-                endAdornment: (
-                  <InputAdornment position='end'>
-                    <Button
-                      color='secondary'
-                      id='choosePipelineBtn'
-                      onClick={() => this.setStateSafe({ pipelineSelectorOpen: true })}
-                      style={{ padding: '3px 5px', margin: 0 }}
-                    >
-                      Choose
-                    </Button>
-                  </InputAdornment>
-                ),
-                readOnly: true,
-              }}
-            />
-            <Dialog
-              open={pipelineSelectorOpen}
-              classes={{ paper: css.selectorDialog }}
-              onClose={() => this._pipelineSelectorClosed(false)}
-              PaperProps={{ id: 'pipelineSelectorDialog' }}
-            >
-              <DialogContent>
-                <ResourceSelector
-                  {...this.props}
-                  title='Choose a pipeline'
-                  filterLabel='Filter pipelines'
-                  listApi={async (...args) => {
-                    const response = await Apis.pipelineServiceApi.listPipelines(...args);
-                    return {
-                      nextPageToken: response.next_page_token || '',
-                      resources: response.pipelines || [],
-                    };
-                  }}
-                  columns={this.pipelineSelectorColumns}
-                  emptyMessage='No pipelines found. Upload a pipeline and then try again.'
-                  initialSortColumn={PipelineSortKeys.CREATED_AT}
-                  selectionChanged={(selectedPipeline: ApiPipeline) =>
-                    this.setStateSafe({ unconfirmedSelectedPipeline: selectedPipeline })
-                  }
-                  toolbarActionMap={buttons
-                    .upload(() => this.setStateSafe({ pipelineSelectorOpen: false }))
-                    .getToolbarActionMap()}
-                />
-              </DialogContent>
-              <DialogActions>
-                <Button
-                  id='cancelPipelineSelectionBtn'
-                  onClick={() => this._pipelineSelectorClosed(false)}
-                  color='secondary'
-                >
-                  Cancel
-                </Button>
-                <Button
-                  id='usePipelineBtn'
-                  onClick={() => this._pipelineSelectorClosed(true)}
-                  color='secondary'
-                  disabled={!unconfirmedSelectedPipeline}
-                >
-                  Use this pipeline
-                </Button>
-              </DialogActions>
-            </Dialog>
-
-            {/* Set pipeline version name */}
-            <Input
-              id='pipelineVersionName'
-              label='Pipeline Version name'
-              inputRef={this._pipelineVersionNameRef}
-              required={true}
-              onChange={this.handleChange('pipelineVersionName')}
-              value={pipelineVersionName}
-              autoFocus={true}
-              variant='outlined'
-            />
-
-            {/* Fill pipeline package url */}
-            <Input
-              id='pipelineVersionPackageUrl'
-              label='Package Url'
-              multiline={true}
-              onChange={this.handleChange('packageUrl')}
-              value={packageUrl}
-              variant='outlined'
-            />
-
-            {/* Fill pipeline version code source url */}
-            <Input
-              id='pipelineVersionCodeSource'
-              label='Code Source (optional)'
-              multiline={true}
-              onChange={this.handleChange('codeSourceUrl')}
-              value={codeSourceUrl}
-              variant='outlined'
-            />
+              {/* Fill pipeline version code source url */}
+              <Input
+                id='pipelineVersionCodeSource'
+                label='Code Source (optional)'
+                multiline={true}
+                onChange={this.handleChange('codeSourceUrl')}
+                value={codeSourceUrl}
+                variant='outlined'
+              />
             </React.Fragment>
           )}
 
@@ -476,7 +493,9 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
       this.setState({ pipelineId, pipelineName: apiPipeline.name });
       // Suggest a version name based on pipeline name
       const currDate = new Date();
-      this.setState( { pipelineVersionName: apiPipeline.name + '_version_at_' + currDate.toISOString() });
+      this.setState({
+        pipelineVersionName: apiPipeline.name + '_version_at_' + currDate.toISOString(),
+      });
     }
 
     this._validate();
@@ -488,7 +507,10 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     if (name === 'pipelineName') {
       // Suggest a version name based on pipeline name
       const currDate = new Date();
-      this.setState({ pipelineVersionName: value + '_version_at_' + currDate.toISOString() } , this._validate.bind(this));
+      this.setState(
+        { pipelineVersionName: value + '_version_at_' + currDate.toISOString() },
+        this._validate.bind(this),
+      );
     }
   };
 
@@ -506,7 +528,8 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
         pipelineName: (pipeline && pipeline.name) || '',
         pipelineSelectorOpen: false,
         // Suggest a version name based on pipeline name
-        pipelineVersionName: (pipeline && (pipeline.name + '_version_at_' + currDate.toISOString())) || '',
+        pipelineVersionName:
+          (pipeline && pipeline.name + '_version_at_' + currDate.toISOString()) || '',
       },
       () => this._validate(),
     );
@@ -519,10 +542,15 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
         // (1) new pipeline (and a default version) from local file
         // (2) new pipeline (and a default version) from url
         // (3) new pipeline version (under an existing pipeline) from url
-        const response = this.state.newPipeline && this.state.importMethod === ImportMethod.LOCAL
-          ? (await Apis.uploadPipeline(this.state.pipelineName!, this.state.file!)).default_version!
-          : this.state.newPipeline && this.state.importMethod === ImportMethod.URL
-            ? (await Apis.pipelineServiceApi.createPipeline({ name: this.state.pipelineName!, url: { pipeline_url: this.state.packageUrl } })).default_version!
+        const response =
+          this.state.newPipeline && this.state.importMethod === ImportMethod.LOCAL
+            ? (await Apis.uploadPipeline(this.state.pipelineName!, this.state.file!))
+                .default_version!
+            : this.state.newPipeline && this.state.importMethod === ImportMethod.URL
+            ? (await Apis.pipelineServiceApi.createPipeline({
+                name: this.state.pipelineName!,
+                url: { pipeline_url: this.state.packageUrl },
+              })).default_version!
             : await this._createPipelineVersion();
 
         // If success, go to pipeline details page of the new version
@@ -566,15 +594,15 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     };
 
     const newPipelineVersion: ApiPipelineVersion = {
-          code_source_url: this.state.codeSourceUrl,
-          name: this.state.pipelineVersionName,
-          package_url: { pipeline_url: this.state.packageUrl },
-          resource_references: [
-            { key: { id: await getPipelineId(), type: ApiResourceType.PIPELINE }, relationship: 1 },
-          ],
-        };
-        console.log('JING create version with: ' + JSON.stringify(newPipelineVersion));
-        return Apis.pipelineServiceApi.createPipelineVersion(newPipelineVersion);
+      code_source_url: this.state.codeSourceUrl,
+      name: this.state.pipelineVersionName,
+      package_url: { pipeline_url: this.state.packageUrl },
+      resource_references: [
+        { key: { id: await getPipelineId(), type: ApiResourceType.PIPELINE }, relationship: 1 },
+      ],
+    };
+    console.log('JING create version with: ' + JSON.stringify(newPipelineVersion));
+    return Apis.pipelineServiceApi.createPipelineVersion(newPipelineVersion);
   }
 
   private _validate(): void {
@@ -615,13 +643,16 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   }
 
   private _onDrop(files: File[]): void {
-    this.setStateSafe({
-      dropzoneActive: false,
-      file: files[0],
-      fileName: files[0].name,
-      pipelineName: this.state.pipelineName || files[0].name.split('.')[0],
-    },
-      () => { this._validate();},
+    this.setStateSafe(
+      {
+        dropzoneActive: false,
+        file: files[0],
+        fileName: files[0].name,
+        pipelineName: this.state.pipelineName || files[0].name.split('.')[0],
+      },
+      () => {
+        this._validate();
+      },
     );
   }
 }

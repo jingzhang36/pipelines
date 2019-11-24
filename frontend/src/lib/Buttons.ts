@@ -17,12 +17,12 @@
 import AddIcon from '@material-ui/icons/Add';
 import CollapseIcon from '@material-ui/icons/UnfoldLess';
 import ExpandIcon from '@material-ui/icons/UnfoldMore';
-import {QUERY_PARAMS, RoutePage} from '../components/Router';
-import {ToolbarActionMap} from '../components/Toolbar';
-import {PageProps} from '../pages/Page';
-import {Apis} from './Apis';
-import {URLParser} from './URLParser';
-import {errorToMessage, s} from './Utils';
+import { QUERY_PARAMS, RoutePage } from '../components/Router';
+import { ToolbarActionMap } from '../components/Toolbar';
+import { PageProps } from '../pages/Page';
+import { Apis } from './Apis';
+import { URLParser } from './URLParser';
+import { errorToMessage, s } from './Utils';
 
 export enum ButtonKeys {
   ARCHIVE = 'archive',
@@ -274,7 +274,10 @@ export default class Buttons {
     return this;
   }
 
-  public newRunFromPipelineVersion(getPipelineId: () => string, getPipelineVersionId: () => string): Buttons {
+  public newRunFromPipelineVersion(
+    getPipelineId: () => string,
+    getPipelineVersionId: () => string,
+  ): Buttons {
     this._map[ButtonKeys.NEW_RUN_FROM_PIPELINE] = {
       action: () => this._createNewRunFromPipelineVersion(getPipelineId(), getPipelineVersionId()),
       icon: AddIcon,
@@ -652,7 +655,10 @@ export default class Buttons {
       searchString = this._urlParser.build(Object.assign({ [QUERY_PARAMS.fromRunId]: fromRunId }));
     } else {
       searchString = this._urlParser.build(
-        Object.assign({ [QUERY_PARAMS.pipelineId]: pipelineId || '', [QUERY_PARAMS.pipelineVersionId]: pipelineVersionId || '' }),
+        Object.assign({
+          [QUERY_PARAMS.pipelineId]: pipelineId || '',
+          [QUERY_PARAMS.pipelineVersionId]: pipelineVersionId || '',
+        }),
       );
     }
 

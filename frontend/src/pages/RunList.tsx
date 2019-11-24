@@ -434,10 +434,10 @@ class RunList extends React.PureComponent<RunListProps, RunListState> {
           usePlaceholder: false,
         };
       } catch (err) {
-        displayRun.error = 'Failed to get associated pipeline version: ' + (await errorToMessage(err));
+        displayRun.error =
+          'Failed to get associated pipeline version: ' + (await errorToMessage(err));
         return;
       }
-
     } else if (!!RunUtils.getWorkflowManifest(displayRun.run)) {
       displayRun.pipeline = { usePlaceholder: true };
     }

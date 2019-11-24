@@ -127,19 +127,26 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     const fromRunId = new URLParser(this.props).get(QUERY_PARAMS.fromRunId);
     const pipelineIdFromParams = this.props.match.params[RouteParams.pipelineId];
     const pipelineVersionIdFromParams = this.props.match.params[RouteParams.pipelineVersionId];
-    buttons.newRunFromPipelineVersion(() => {
-      return this.state.pipeline
-        ? this.state.pipeline.id!
-        : pipelineIdFromParams
-        ? pipelineIdFromParams
-        : '';
-    }, () => {
-      return this.state.selectedVersion
-        ? this.state.selectedVersion.id!
-        : pipelineVersionIdFromParams
-        ? pipelineVersionIdFromParams
-        : '';
-    }).newPipelineVersion('Upload pipeline version', () => this.state.pipeline ? this.state.pipeline.id! : '');
+    buttons
+      .newRunFromPipelineVersion(
+        () => {
+          return this.state.pipeline
+            ? this.state.pipeline.id!
+            : pipelineIdFromParams
+            ? pipelineIdFromParams
+            : '';
+        },
+        () => {
+          return this.state.selectedVersion
+            ? this.state.selectedVersion.id!
+            : pipelineVersionIdFromParams
+            ? pipelineVersionIdFromParams
+            : '';
+        },
+      )
+      .newPipelineVersion('Upload pipeline version', () =>
+        this.state.pipeline ? this.state.pipeline.id! : '',
+      );
 
     if (fromRunId) {
       return {
