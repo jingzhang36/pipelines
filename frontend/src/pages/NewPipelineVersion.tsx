@@ -156,9 +156,9 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
 
   public render(): JSX.Element {
     const {
-      pipelineVersionName,
       packageUrl,
       pipelineName,
+      pipelineVersionName,
       isbeingCreated,
       validationError,
       pipelineSelectorOpen,
@@ -210,6 +210,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
             />
           </div>
 
+          {/* Form for uploading new pipeline */}
           {newPipeline === true && (
             <React.Fragment>
               <div className={css.explanation}>Upload pipeline with the specified package.</div>
@@ -234,8 +235,6 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
                 onChange={this.handleChange('pipelineDescription')}
                 autoFocus={true}
               />
-
-              {/* TODO(jingzhang36) allow setting pipeline version name when createing pipeline*/}
 
               {/* Choose a local file for package or specify a url for package */}
 
@@ -344,6 +343,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
             </React.Fragment>
           )}
 
+          {/* Form for uploading new pipeline version */}
           {newPipeline === false && (
             <React.Fragment>
               <div className={css.explanation}>
@@ -490,7 +490,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     const pipelineId = urlParser.get(QUERY_PARAMS.pipelineId);
     if (pipelineId) {
       const apiPipeline = await Apis.pipelineServiceApi.getPipeline(pipelineId);
-      this.setState({ pipelineId, pipelineName: apiPipeline.name });
+      this.setState({ pipelineId, pipelineName: apiPipeline.name, pipeline: apiPipeline });
       // Suggest a version name based on pipeline name
       const currDate = new Date();
       this.setState({
@@ -504,6 +504,8 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   public handleChange = (name: string) => (event: any) => {
     const value = (event.target as TextFieldProps).value;
     this.setState({ [name]: value } as any, this._validate.bind(this));
+
+    // When pipeline name is changed, we have some special logic
     if (name === 'pipelineName') {
       // Suggest a version name based on pipeline name
       const currDate = new Date();
