@@ -419,7 +419,7 @@ class RunList extends React.PureComponent<RunListProps, RunListState> {
         return;
       }
     } else if (pipelineId) {
-      // For backend compatibility. Runs created before version is introduced
+      // For backward compatibility. Runs created before version is introduced
       // refer to pipeline id instead of pipeline version id.
       let pipelineName = RunUtils.getPipelineName(displayRun.run);
       if (!pipelineName) {
