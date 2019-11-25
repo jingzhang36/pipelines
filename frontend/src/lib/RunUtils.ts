@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-import { orderBy } from 'lodash';
-import { ApiParameter } from 'src/apis/pipeline';
-import { Workflow } from 'third_party/argo-ui/argo_template';
-import { ApiJob } from '../apis/job';
-import {
-  ApiPipelineRuntime,
-  ApiResourceReference,
-  ApiResourceType,
-  ApiRun,
-  ApiRunDetail,
-} from '../apis/run';
-import { logger } from './Utils';
+import {orderBy} from 'lodash';
+import {ApiParameter} from 'src/apis/pipeline';
+import {Workflow} from 'third_party/argo-ui/argo_template';
+import {ApiJob} from '../apis/job';
+import {ApiPipelineRuntime, ApiResourceReference, ApiResourceType, ApiRun, ApiRunDetail} from '../apis/run';
+import {logger} from './Utils';
 import WorkflowParser from './WorkflowParser';
 
 export interface MetricMetadata {
@@ -67,6 +61,7 @@ function getPipelineName(run?: ApiRun | ApiJob): string | null {
 }
 
 function getPipelineVersionId(run?: ApiRun | ApiJob): string | null {
+  console.log('JING rr: ' + JSON.stringify(run!.resource_references));
   return run &&
     run.resource_references &&
     run.resource_references.some(

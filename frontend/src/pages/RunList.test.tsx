@@ -460,9 +460,9 @@ describe('RunList', () => {
     ).toMatchSnapshot();
   });
 
-  it('renders pipeline name as link to its details page', () => {
+  it('renders pipeline version name as link to its details page', () => {
     expect(
-      getMountedInstance()._pipelineCustomRenderer({
+      getMountedInstance()._pipelineVersionCustomRenderer({
         id: 'run-id',
         value: { displayName: 'test pipeline', id: 'pipeline-id', usePlaceholder: false },
       }),
@@ -471,16 +471,16 @@ describe('RunList', () => {
 
   it('handles no pipeline id given', () => {
     expect(
-      getMountedInstance()._pipelineCustomRenderer({
+      getMountedInstance()._pipelineVersionCustomRenderer({
         id: 'run-id',
         value: { displayName: 'test pipeline', usePlaceholder: false },
       }),
     ).toMatchSnapshot();
   });
 
-  it('shows "View pipeline" button if pipeline is embedded in run', () => {
+  it('shows "View pipeline version" button if pipeline version is embedded in run', () => {
     expect(
-      getMountedInstance()._pipelineCustomRenderer({
+      getMountedInstance()._pipelineVersionCustomRenderer({
         id: 'run-id',
         value: { displayName: 'test pipeline', id: 'pipeline-id', usePlaceholder: true },
       }),
@@ -489,7 +489,7 @@ describe('RunList', () => {
 
   it('handles no pipeline name', () => {
     expect(
-      getMountedInstance()._pipelineCustomRenderer({
+      getMountedInstance()._pipelineVersionCustomRenderer({
         id: 'run-id',
         value: { /* no displayName */ usePlaceholder: true },
       }),

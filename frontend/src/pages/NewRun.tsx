@@ -988,6 +988,7 @@ class NewRun extends Page<{}, NewRunState> {
       // calls, so a run creation could fail, and the success path would still be taken. We need
       // tests for this and other similar situations.
       try {
+        console.log('JING create run with: ' + JSON.stringify(newRun));
         this.state.isRecurringRun
           ? await Apis.jobServiceApi.createJob(newRun)
           : await Apis.runServiceApi.createRun(newRun);
