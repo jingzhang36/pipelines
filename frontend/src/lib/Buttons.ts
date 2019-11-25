@@ -17,12 +17,12 @@
 import AddIcon from '@material-ui/icons/Add';
 import CollapseIcon from '@material-ui/icons/UnfoldLess';
 import ExpandIcon from '@material-ui/icons/UnfoldMore';
-import { QUERY_PARAMS, RoutePage } from '../components/Router';
-import { ToolbarActionMap } from '../components/Toolbar';
-import { PageProps } from '../pages/Page';
-import { Apis } from './Apis';
-import { URLParser } from './URLParser';
-import { errorToMessage, s } from './Utils';
+import {QUERY_PARAMS, RoutePage} from '../components/Router';
+import {ToolbarActionMap} from '../components/Toolbar';
+import {PageProps} from '../pages/Page';
+import {Apis} from './Apis';
+import {URLParser} from './URLParser';
+import {errorToMessage, s} from './Utils';
 
 export enum ButtonKeys {
   ARCHIVE = 'archive',
@@ -44,7 +44,6 @@ export enum ButtonKeys {
   RESTORE = 'restore',
   TERMINATE_RUN = 'terminateRun',
   UPLOAD_PIPELINE = 'uploadPipeline',
-  NEW_PIPELINE = 'newPipeline',
   NEW_PIPELINE_VERSION = 'newPipelineVersion',
 }
 
