@@ -105,7 +105,7 @@ class RunList extends React.PureComponent<RunListProps, RunListState> {
       },
       { customRenderer: this._statusCustomRenderer, flex: 0.5, label: 'Status' },
       { label: 'Duration', flex: 0.5 },
-      { customRenderer: this._pipelineVersionCustomRenderer, label: 'Pipeline', flex: 1 },
+      { customRenderer: this._pipelineVersionCustomRenderer, label: 'Pipeline Version', flex: 1 },
       { customRenderer: this._recurringRunCustomRenderer, label: 'Recurring Run', flex: 0.5 },
       { label: 'Start time', flex: 1, sortKey: RunSortKeys.CREATED_AT },
     ];
@@ -239,7 +239,6 @@ class RunList extends React.PureComponent<RunListProps, RunListState> {
     props: CustomRendererProps<PipelineVersionInfo>,
   ) => {
     // If the getPipelineVersion call failed or a run has no pipeline version, we display a placeholder.
-    console.log('JING version render props ' + JSON.stringify(props.value));
     if (!props.value || (!props.value.usePlaceholder && !props.value.id)) {
       return <div>-</div>;
     }
@@ -424,10 +423,9 @@ class RunList extends React.PureComponent<RunListProps, RunListState> {
    */
   private async _getAndSetPipelineVersionNames(displayRun: DisplayRun): Promise<void> {
     const pipelineVersionId = RunUtils.getPipelineVersionId(displayRun.run);
-    console.log('JING _getAndSetPipelineVersionNames - pipeline version id: ' + JSON.stringify(pipelineVersionId));
     if (pipelineVersionId) {
       try {
-        const pipelineVersion = await Apis.pipelineServiceApi.getPipeline(pipelineVersionId);
+        const pipelineVersion = await Apis.pipelineServiceApi.getPipelineVersion(pipelineVersionId);
         const pipelineVersionName = pipelineVersion.name || '';
         displayRun.pipelineVersion = {
           displayName: pipelineVersionName,
