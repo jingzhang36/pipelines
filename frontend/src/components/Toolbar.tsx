@@ -121,6 +121,7 @@ export interface ToolbarProps {
 class Toolbar extends React.Component<ToolbarProps> {
   public render(): JSX.Element | null {
     const { actions, breadcrumbs, pageTitle, pageTitleTooltip } = { ...this.props };
+
     if (!actions.length && !breadcrumbs.length && !pageTitle) {
       return null;
     }
