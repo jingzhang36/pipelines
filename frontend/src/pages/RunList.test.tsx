@@ -464,7 +464,7 @@ describe('RunList', () => {
     expect(
       getMountedInstance()._pipelineVersionCustomRenderer({
         id: 'run-id',
-        value: { displayName: 'test pipeline', id: 'pipeline-id', usePlaceholder: false },
+        value: { displayName: 'test pipeline', pipelineId: 'pipeline-id', usePlaceholder: false },
       }),
     ).toMatchSnapshot();
   });
@@ -482,7 +482,7 @@ describe('RunList', () => {
     expect(
       getMountedInstance()._pipelineVersionCustomRenderer({
         id: 'run-id',
-        value: { displayName: 'test pipeline', id: 'pipeline-id', usePlaceholder: true },
+        value: { displayName: 'test pipeline', pipelineId: 'pipeline-id', usePlaceholder: true },
       }),
     ).toMatchSnapshot();
   });

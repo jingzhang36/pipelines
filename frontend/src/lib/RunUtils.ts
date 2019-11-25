@@ -61,7 +61,6 @@ function getPipelineName(run?: ApiRun | ApiJob): string | null {
 }
 
 function getPipelineVersionId(run?: ApiRun | ApiJob): string | null {
-  console.log('JING rr: ' + JSON.stringify(run!.resource_references));
   return run &&
     run.resource_references &&
     run.resource_references.some(

@@ -18,7 +18,7 @@ import * as React from 'react';
 import CustomTable, { Column, Row, CustomRendererProps } from '../components/CustomTable';
 import Metric from '../components/Metric';
 import RunUtils, { MetricMetadata, ExperimentInfo } from '../../src/lib/RunUtils';
-import { ApiRun, ApiRunMetric, RunStorageState, ApiRunDetail } from '../../src/apis/run';
+import { ApiResourceType, ApiRun, ApiRunMetric, RunStorageState, ApiRunDetail } from '../../src/apis/run';
 import { Apis, RunSortKeys, ListRequest } from '../lib/Apis';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { NodePhase } from '../lib/StatusUtils';
@@ -29,17 +29,11 @@ import { commonCss, color } from '../Css';
 import { formatDateString, logger, errorToMessage, getRunDuration } from '../lib/Utils';
 import { statusToIcon } from './Status';
 
-// interface PipelineInfo {
-//   displayName?: string;
-//   id?: string;
-//   runId?: string;
-//   usePlaceholder: boolean;
-// }
-
 interface PipelineVersionInfo {
   displayName?: string;
-  id?: string;
+  versionId?: string;
   runId?: string;
+  pipelineId?: string;
   usePlaceholder: boolean;
 }
 
@@ -52,7 +46,6 @@ interface DisplayRun {
   experiment?: ExperimentInfo;
   recurringRun?: RecurringRunInfo;
   run: ApiRun;
-  // pipeline?: PipelineInfo;
   pipelineVersion?: PipelineVersionInfo;
   error?: string;
 }
@@ -217,35 +210,20 @@ class RunList extends React.PureComponent<RunListProps, RunListState> {
     );
   };
 
-  // public _pipelineCustomRenderer: React.FC<CustomRendererProps<PipelineInfo>> = (
-  //   props: CustomRendererProps<PipelineInfo>,
-  // ) => {
-  //   // If the getPipeline call failed or a run has no pipeline, we display a placeholder.
-  //   if (!props.value || (!props.value.usePlaceholder && !props.value.id)) {
-  //     return <div>-</div>;
-  //   }
-  //   const search = new URLParser(this.props).build({ [QUERY_PARAMS.fromRunId]: props.id });
-  //   const url = props.value.usePlaceholder
-  //     ? RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId + '?', '') + search
-  //     : RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId, props.value.id || '');
-  //   return (
-  //     <Link className={commonCss.link} onClick={e => e.stopPropagation()} to={url}>
-  //       {props.value.usePlaceholder ? '[View pipeline]' : props.value.displayName}
-  //     </Link>
-  //   );
-  // };
-
   public _pipelineVersionCustomRenderer: React.FC<CustomRendererProps<PipelineVersionInfo>> = (
     props: CustomRendererProps<PipelineVersionInfo>,
   ) => {
     // If the getPipelineVersion call failed or a run has no pipeline version, we display a placeholder.
-    if (!props.value || (!props.value.usePlaceholder && !props.value.id)) {
+    console.log('JING props ' + JSON.stringify(props));
+    if (!props.value || (!props.value.usePlaceholder && !props.value.versionId)) {
       return <div>-</div>;
     }
     const search = new URLParser(this.props).build({ [QUERY_PARAMS.fromRunId]: props.id });
     const url = props.value.usePlaceholder
       ? RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId + '?', '') + search
-      : RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId, props.value.id || '').replace(':' + RouteParams.pipelineVersionId, props.value.id || '');
+      : props.value.versionId
+      ? RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId, props.value.pipelineId || '').replace(':' + RouteParams.pipelineVersionId, props.value.versionId || '')
+      : RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId, props.value.pipelineId || '');
     return (
       <Link className={commonCss.link} onClick={e => e.stopPropagation()} to={url}>
         {props.value.usePlaceholder ? '[View pipeline]' : props.value.displayName}
@@ -423,20 +401,42 @@ class RunList extends React.PureComponent<RunListProps, RunListState> {
    */
   private async _getAndSetPipelineVersionNames(displayRun: DisplayRun): Promise<void> {
     const pipelineVersionId = RunUtils.getPipelineVersionId(displayRun.run);
+    const pipelineId = RunUtils.getPipelineId(displayRun.run);
     if (pipelineVersionId) {
       try {
         const pipelineVersion = await Apis.pipelineServiceApi.getPipelineVersion(pipelineVersionId);
+        console.log('JING version: ' + JSON.stringify(pipelineVersion));
         const pipelineVersionName = pipelineVersion.name || '';
         displayRun.pipelineVersion = {
           displayName: pipelineVersionName,
-          id: pipelineVersionId,
+          pipelineId: pipelineVersion && pipelineVersion.resource_references && pipelineVersion.resource_references.find(ref => ref.key && ref.key.type && ref.key.type === ApiResourceType.PIPELINE)!.key!.id!,
           usePlaceholder: false,
+          versionId: pipelineVersionId,
         };
       } catch (err) {
         displayRun.error =
           'Failed to get associated pipeline version: ' + (await errorToMessage(err));
         return;
       }
+    } else if (pipelineId) {
+      // For backend compatibility. Runs created before version is introduced
+      // refer to pipeline id instead of pipeline version id.
+      let pipelineName = RunUtils.getPipelineName(displayRun.run);
+      if (!pipelineName) {
+        try {
+          const pipeline = await Apis.pipelineServiceApi.getPipeline(pipelineId);
+          pipelineName = pipeline.name || '';
+        } catch (err) {
+          displayRun.error = 'Failed to get associated pipeline: ' + (await errorToMessage(err));
+          return;
+        }
+      }
+      displayRun.pipelineVersion = {
+        displayName: pipelineName,
+        pipelineId,
+        usePlaceholder: false,
+        versionId: undefined,
+      };
     } else if (!!RunUtils.getWorkflowManifest(displayRun.run)) {
       displayRun.pipelineVersion = { usePlaceholder: true };
     }
