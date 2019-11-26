@@ -376,6 +376,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
 
   public async load(): Promise<void> {
     this.clearBanner();
+    console.log('JING props: ' + JSON.stringify(this.props));
     const fromRunId = new URLParser(this.props).get(QUERY_PARAMS.fromRunId);
 
     let pipeline: ApiPipeline | null = null;
@@ -392,7 +393,6 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     if (fromRunId) {
       try {
         const runDetails = await Apis.runServiceApi.getRun(fromRunId);
-        console.log('JING pipelien details page: run details: ' + JSON.stringify(runDetails));
 
         // Convert the run's pipeline spec to YAML to be displayed as the pipeline's source.
         try {

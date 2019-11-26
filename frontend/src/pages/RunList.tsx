@@ -213,17 +213,16 @@ class RunList extends React.PureComponent<RunListProps, RunListState> {
   public _pipelineVersionCustomRenderer: React.FC<CustomRendererProps<PipelineVersionInfo>> = (
     props: CustomRendererProps<PipelineVersionInfo>,
   ) => {
-    // If the getPipelineVersion call failed or a run has no pipeline version, we display a placeholder.
-    console.log('JING props ' + JSON.stringify(props));
-    if (!props.value || (!props.value.usePlaceholder && !props.value.versionId)) {
+    // If the getPipeline call failed or a run has no pipeline, we display a placeholder.
+    if (!props.value || (!props.value.usePlaceholder && !props.value.pipelineId)) {
       return <div>-</div>;
     }
     const search = new URLParser(this.props).build({ [QUERY_PARAMS.fromRunId]: props.id });
     const url = props.value.usePlaceholder
-      ? RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId + '?', '') + search
+      ? RoutePage.PIPELINE_DETAILS_NO_VERSION.replace(':' + RouteParams.pipelineId + '?', '') + search
       : props.value.versionId
       ? RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId, props.value.pipelineId || '').replace(':' + RouteParams.pipelineVersionId, props.value.versionId || '')
-      : RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId, props.value.pipelineId || '');
+      : RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId, props.value.pipelineId || '').replace(':' + RouteParams.pipelineVersionId, '');
     return (
       <Link className={commonCss.link} onClick={e => e.stopPropagation()} to={url}>
         {props.value.usePlaceholder ? '[View pipeline]' : props.value.displayName}
@@ -405,7 +404,6 @@ class RunList extends React.PureComponent<RunListProps, RunListState> {
     if (pipelineVersionId) {
       try {
         const pipelineVersion = await Apis.pipelineServiceApi.getPipelineVersion(pipelineVersionId);
-        console.log('JING version: ' + JSON.stringify(pipelineVersion));
         const pipelineVersionName = pipelineVersion.name || '';
         displayRun.pipelineVersion = {
           displayName: pipelineVersionName,
