@@ -220,9 +220,9 @@ class RunList extends React.PureComponent<RunListProps, RunListState> {
     const search = new URLParser(this.props).build({ [QUERY_PARAMS.fromRunId]: props.id });
     const url = props.value.usePlaceholder
       ? RoutePage.PIPELINE_DETAILS_NO_VERSION.replace(':' + RouteParams.pipelineId + '?', '') + search
-      : props.value.versionId
+      : !!props.value.versionId
       ? RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId, props.value.pipelineId || '').replace(':' + RouteParams.pipelineVersionId, props.value.versionId || '')
-      : RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId, props.value.pipelineId || '').replace(':' + RouteParams.pipelineVersionId, '');
+      : RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId, props.value.pipelineId || '').replace('/version/:' + RouteParams.pipelineVersionId, '');
     return (
       <Link className={commonCss.link} onClick={e => e.stopPropagation()} to={url}>
         {props.value.usePlaceholder ? '[View pipeline]' : props.value.displayName}
@@ -234,6 +234,7 @@ class RunList extends React.PureComponent<RunListProps, RunListState> {
     props: CustomRendererProps<RecurringRunInfo>,
   ) => {
     // If the getJob call failed or a run has no job, we display a placeholder.
+    console.log('JING recurring run: ' + JSON.stringify(props));
     if (!props.value || !props.value.id) {
       return <div>-</div>;
     }

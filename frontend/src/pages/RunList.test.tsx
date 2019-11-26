@@ -460,11 +460,11 @@ describe('RunList', () => {
     ).toMatchSnapshot();
   });
 
-  it('renders pipeline version name as link to its details page', () => {
+  it('renders pipeline name as link to its details page', () => {
     expect(
       getMountedInstance()._pipelineVersionCustomRenderer({
         id: 'run-id',
-        value: { displayName: 'test pipeline', pipelineId: 'pipeline-id', usePlaceholder: false },
+        value: { displayName: 'test pipeline', pipelineId: 'pipeline-id', usePlaceholder: false, versionId: undefined },
       }),
     ).toMatchSnapshot();
   });
@@ -478,7 +478,7 @@ describe('RunList', () => {
     ).toMatchSnapshot();
   });
 
-  it('shows "View pipeline version" button if pipeline version is embedded in run', () => {
+  it('shows "View pipeline" button if pipeline is embedded in run', () => {
     expect(
       getMountedInstance()._pipelineVersionCustomRenderer({
         id: 'run-id',
