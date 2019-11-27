@@ -376,7 +376,6 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
 
   public async load(): Promise<void> {
     this.clearBanner();
-    console.log('JING props: ' + JSON.stringify(this.props));
     const fromRunId = new URLParser(this.props).get(QUERY_PARAMS.fromRunId);
 
     let pipeline: ApiPipeline | null = null;

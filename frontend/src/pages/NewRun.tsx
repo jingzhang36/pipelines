@@ -185,7 +185,6 @@ class NewRun extends Page<{}, NewRunState> {
     const urlParser = new URLParser(this.props);
     const originalRunId =
       urlParser.get(QUERY_PARAMS.cloneFromRun) || urlParser.get(QUERY_PARAMS.fromRunId);
-    console.log('JING origin run id ' + JSON.stringify(originalRunId));
     const pipelineDetailsUrl = originalRunId
       ? RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId + '?', '') +
         urlParser.build({ [QUERY_PARAMS.fromRunId]: originalRunId })
@@ -576,7 +575,6 @@ class NewRun extends Page<{}, NewRunState> {
     // 3. Click Create run
     const embeddedRunId = urlParser.get(QUERY_PARAMS.fromRunId);
     if (originalRunId) {
-      console.log('JING 1');
       // If we are cloning a run, fetch the original
       try {
         const originalRun = await Apis.runServiceApi.getRun(originalRunId);
@@ -590,7 +588,6 @@ class NewRun extends Page<{}, NewRunState> {
         logger.error(`Failed to retrieve original run: ${originalRunId}`, err);
       }
     } else if (originalRecurringRunId) {
-      console.log('JING 2');
       // If we are cloning a recurring run, fetch the original
       try {
         const originalRun = await Apis.jobServiceApi.getJob(originalRecurringRunId);
@@ -606,11 +603,9 @@ class NewRun extends Page<{}, NewRunState> {
         logger.error(`Failed to retrieve original recurring run: ${originalRunId}`, err);
       }
     } else if (embeddedRunId) {
-      console.log('JING 3');
       // If we create run from a workflow manifest that is acquried from an existing run.
       this._prepareFormFromEmbeddedPipeline(embeddedRunId);
     } else {
-      console.log('JING 4');
       // If we create a run from an existing pipeline version.
       // Get pipeline and pipeline version id from querystring if any
       const possiblePipelineId = urlParser.get(QUERY_PARAMS.pipelineId);
@@ -981,14 +976,12 @@ class NewRun extends Page<{}, NewRunState> {
         trigger: this.state.trigger,
       });
     }
-    console.log('JING creating run with: ' + JSON.stringify(newRun));
 
     this.setStateSafe({ isBeingStarted: true }, async () => {
       // TODO: there was previously a bug here where the await wasn't being applied to the API
       // calls, so a run creation could fail, and the success path would still be taken. We need
       // tests for this and other similar situations.
       try {
-        console.log('JING create run with: ' + JSON.stringify(newRun));
         this.state.isRecurringRun
           ? await Apis.jobServiceApi.createJob(newRun)
           : await Apis.runServiceApi.createRun(newRun);

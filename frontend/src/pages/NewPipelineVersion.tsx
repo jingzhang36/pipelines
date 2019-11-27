@@ -603,7 +603,6 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
         { key: { id: await getPipelineId(), type: ApiResourceType.PIPELINE }, relationship: 1 },
       ],
     };
-    console.log('JING create version with: ' + JSON.stringify(newPipelineVersion));
     return Apis.pipelineServiceApi.createPipelineVersion(newPipelineVersion);
   }
 
