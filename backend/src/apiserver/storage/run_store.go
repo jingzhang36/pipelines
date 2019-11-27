@@ -17,7 +17,6 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-
 	"github.com/pkg/errors"
 
 	sq "github.com/Masterminds/squirrel"
@@ -184,10 +183,6 @@ func (s *RunStore) GetRun(runId string) (*model.RunDetail, error) {
 	}
 	defer r.Close()
 	runs, err := s.scanRowsToRunDetails(r)
-
-	for _, r := range runs {
-		fmt.Printf("JING get run %+v\n\n", r)
-	}
 
 	if err != nil || len(runs) > 1 {
 		return nil, util.NewInternalServerError(err, "Failed to get run: %v", err.Error())
