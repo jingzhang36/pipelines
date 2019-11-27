@@ -32,7 +32,6 @@ export interface PipelineVersionListProps extends RouteComponentProps {
   onError: (message: string, error: Error) => void;
   onSelectionChange?: (selectedIds: string[]) => void;
   selectedIds?: string[];
-  errorMessage: string;
 }
 
 interface PipelineVersionListState {
@@ -115,7 +114,7 @@ class PipelineVersionList extends React.PureComponent<
           disableSorting={this.props.disableSorting}
           disableSelection={this.props.disableSelection}
           noFilterBox={this.props.noFilterBox}
-          emptyMessage={this.props.errorMessage}
+          emptyMessage='No pipeline versions found.'
         />
       </div>
     );

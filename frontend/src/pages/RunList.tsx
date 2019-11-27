@@ -18,7 +18,13 @@ import * as React from 'react';
 import CustomTable, { Column, Row, CustomRendererProps } from '../components/CustomTable';
 import Metric from '../components/Metric';
 import RunUtils, { MetricMetadata, ExperimentInfo } from '../../src/lib/RunUtils';
-import { ApiResourceType, ApiRun, ApiRunMetric, RunStorageState, ApiRunDetail } from '../../src/apis/run';
+import {
+  ApiResourceType,
+  ApiRun,
+  ApiRunMetric,
+  RunStorageState,
+  ApiRunDetail,
+} from '../../src/apis/run';
 import { Apis, RunSortKeys, ListRequest } from '../lib/Apis';
 import { Link, RouteComponentProps } from 'react-router-dom';
 import { NodePhase } from '../lib/StatusUtils';
@@ -219,10 +225,17 @@ class RunList extends React.PureComponent<RunListProps, RunListState> {
     }
     const search = new URLParser(this.props).build({ [QUERY_PARAMS.fromRunId]: props.id });
     const url = props.value.usePlaceholder
-      ? RoutePage.PIPELINE_DETAILS_NO_VERSION.replace(':' + RouteParams.pipelineId + '?', '') + search
+      ? RoutePage.PIPELINE_DETAILS_NO_VERSION.replace(':' + RouteParams.pipelineId + '?', '') +
+        search
       : !!props.value.versionId
-      ? RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId, props.value.pipelineId || '').replace(':' + RouteParams.pipelineVersionId, props.value.versionId || '')
-      : RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId, props.value.pipelineId || '').replace('/version/:' + RouteParams.pipelineVersionId, '');
+      ? RoutePage.PIPELINE_DETAILS.replace(
+          ':' + RouteParams.pipelineId,
+          props.value.pipelineId || '',
+        ).replace(':' + RouteParams.pipelineVersionId, props.value.versionId || '')
+      : RoutePage.PIPELINE_DETAILS.replace(
+          ':' + RouteParams.pipelineId,
+          props.value.pipelineId || '',
+        ).replace('/version/:' + RouteParams.pipelineVersionId, '');
     return (
       <Link className={commonCss.link} onClick={e => e.stopPropagation()} to={url}>
         {props.value.usePlaceholder ? '[View pipeline]' : props.value.displayName}
@@ -407,7 +420,12 @@ class RunList extends React.PureComponent<RunListProps, RunListState> {
         const pipelineVersionName = pipelineVersion.name || '';
         displayRun.pipelineVersion = {
           displayName: pipelineVersionName,
-          pipelineId: pipelineVersion && pipelineVersion.resource_references && pipelineVersion.resource_references.find(ref => ref.key && ref.key.type && ref.key.type === ApiResourceType.PIPELINE)!.key!.id!,
+          pipelineId:
+            pipelineVersion &&
+            pipelineVersion.resource_references &&
+            pipelineVersion.resource_references.find(
+              ref => ref.key && ref.key.type && ref.key.type === ApiResourceType.PIPELINE,
+            )!.key!.id!,
           usePlaceholder: false,
           versionId: pipelineVersionId,
         };

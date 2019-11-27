@@ -162,7 +162,6 @@ class PipelineList extends Page<{}, PipelineListState> {
         onSelectionChange={this._selectionChanged.bind(this, pipeline.id)}
         disableSorting={false}
         disablePaging={false}
-        errorMessage={'(pipeline_of_index_' + JSON.stringify(rowIndex) + ')'}
       />
     );
   }

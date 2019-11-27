@@ -578,7 +578,12 @@ describe('RunList', () => {
     expect(
       getMountedInstance()._pipelineVersionCustomRenderer({
         id: 'run-id',
-        value: { displayName: 'test pipeline version', pipelineId: 'pipeline-id', usePlaceholder: false, versionId: 'version-id' },
+        value: {
+          displayName: 'test pipeline version',
+          pipelineId: 'pipeline-id',
+          usePlaceholder: false,
+          versionId: 'version-id',
+        },
       }),
     ).toMatchSnapshot();
   });
