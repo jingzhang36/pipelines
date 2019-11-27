@@ -17,14 +17,10 @@
 import * as React from 'react';
 import PipelineVersionList, { PipelineVersionListProps } from './PipelineVersionList';
 import TestUtils from '../TestUtils';
-import { ApiPipeline, ApiPipelineVersion } from '../apis/pipeline';
+import { ApiPipelineVersion } from '../apis/pipeline';
 import { Apis, ListRequest } from '../lib/Apis';
-import { PageProps } from './Page';
-import { RoutePage, RouteParams } from '../components/Router';
 import { shallow, ReactWrapper, ShallowWrapper } from 'enzyme';
 import { range } from 'lodash';
-import { ImportMethod } from '../components/UploadPipelineDialog';
-import { ButtonKeys } from '../lib/Buttons';
 
 class PipelineVersionListTest extends PipelineVersionList {
   public _loadPipelineVersions(request: ListRequest): Promise<string> {
@@ -36,8 +32,6 @@ describe('PipelineVersionList', () => {
   let tree: ReactWrapper | ShallowWrapper;
 
   const listPipelineVersionsSpy = jest.spyOn(Apis.pipelineServiceApi, 'listPipelineVersions');
-  // const createPipelineVersionSpy = jest.spyOn(Apis.pipelineServiceApi, 'createPipelineVersion');
-  // const deletePipelineVersionSpy = jest.spyOn(Apis.pipelineServiceApi, 'deletePipelineVersion');
   const onErrorSpy = jest.fn();
 
 
@@ -47,12 +41,13 @@ describe('PipelineVersionList', () => {
       location: { search: '' } as any,
       match: '' as any,
       onError: onErrorSpy,
+      pipelineId: 'pipeline',
     };
   }
 
   async function mountWithNPipelineVersions(n: number): Promise<ReactWrapper> {
-    listPipelineVersionsSpy.mockImplementationOnce((pipelineId: string) => ({
-      pipelineVersions: range(n).map(i => ({
+    listPipelineVersionsSpy.mockImplementation((pipelineId: string) => ({
+      versions: range(n).map(i => ({
         id: 'test-pipeline-version-id' + i,
         name: 'test pipeline version name' + i,
       })),
@@ -124,16 +119,8 @@ describe('PipelineVersionList', () => {
   });
 
   it('calls Apis to list pipeline versions, sorted by creation time in descending order', async () => {
-    // listPipelineVersionsSpy.mockImplementationOnce((pipelineId: string) => ({ pipelineVersions: [{ name: 'pipelineversion1' }] }));
-    // tree = TestUtils.mountWithRouter(<PipelineVersionList {...generateProps()} />);
-    // await listPipelineVersionsSpy;
-    // expect(listPipelineVersionsSpy).toHaveBeenLastCalledWith('', 10, 'created_at desc', '');
-    // expect(tree.state()).toHaveProperty('pipelineVersions', [{ name: 'pipelineversion1' }]);
-
-    mountWithNPipelineVersions(1);
-    const props = generateProps();
-    tree = shallow(<PipelineVersionList {...props} />);
-    await (tree.instance() as PipelineVersionListTest)._loadPipelineVersions({});
-    expect(Apis.pipelineServiceApi.listPipelineVersions).toHaveBeenLastCalledWith('', 10, 'created_at desc', '');
+    tree = await mountWithNPipelineVersions(2);
+    await (tree.instance() as PipelineVersionListTest)._loadPipelineVersions({pageSize: 10, pageToken: '', sortBy: 'created_at'} as ListRequest);
+    expect(listPipelineVersionsSpy).toHaveBeenLastCalledWith('PIPELINE', 'pipeline', 10, '', 'created_at');
   });
 });
