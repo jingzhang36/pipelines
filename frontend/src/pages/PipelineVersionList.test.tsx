@@ -122,5 +122,13 @@ describe('PipelineVersionList', () => {
     tree = await mountWithNPipelineVersions(2);
     await (tree.instance() as PipelineVersionListTest)._loadPipelineVersions({pageSize: 10, pageToken: '', sortBy: 'created_at'} as ListRequest);
     expect(listPipelineVersionsSpy).toHaveBeenLastCalledWith('PIPELINE', 'pipeline', 10, '', 'created_at');
+    expect(tree).toMatchSnapshot();
+  });
+
+  it('calls Apis to list pipeline versions, sorted by pipeline version name in descending order', async () => {
+    tree = await mountWithNPipelineVersions(3);
+    await (tree.instance() as PipelineVersionListTest)._loadPipelineVersions({pageSize: 10, pageToken: '', sortBy: 'name'} as ListRequest);
+    expect(listPipelineVersionsSpy).toHaveBeenLastCalledWith('PIPELINE', 'pipeline', 10, '', 'name');
+    expect(tree).toMatchSnapshot();
   });
 });
