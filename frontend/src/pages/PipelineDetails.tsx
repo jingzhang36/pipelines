@@ -42,6 +42,7 @@ import 'brace';
 import 'brace/ext/language_tools';
 import 'brace/mode/yaml';
 import 'brace/theme/github';
+import { Description } from '../components/Description';
 import Select from '@material-ui/core/Select';
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
@@ -274,7 +275,7 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
                         <div className={css.summaryKey}>Uploaded on</div>
                         <div>{formatDateString(pipeline.created_at)}</div>
                         <div className={css.summaryKey}>Description</div>
-                        <div>{pipeline.description}</div>
+                        <Description description={pipeline.description || ''} />
                       </Paper>
                     )}
 

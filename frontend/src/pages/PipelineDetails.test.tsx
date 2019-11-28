@@ -19,7 +19,7 @@ import * as StaticGraphParser from '../lib/StaticGraphParser';
 import PipelineDetails, { css } from './PipelineDetails';
 import TestUtils from '../TestUtils';
 import { ApiExperiment } from '../apis/experiment';
-import { ApiPipeline } from '../apis/pipeline';
+import { ApiPipeline, ApiPipelineVersion } from '../apis/pipeline';
 import { ApiRunDetail, ApiResourceType } from '../apis/run';
 import { Apis } from '../lib/Apis';
 import { PageProps } from './Page';
@@ -35,20 +35,24 @@ describe('PipelineDetails', () => {
   const updateToolbarSpy = jest.fn();
   const historyPushSpy = jest.fn();
   const getPipelineSpy = jest.spyOn(Apis.pipelineServiceApi, 'getPipeline');
+  const getPipelineVersionSpy = jest.spyOn(Apis.pipelineServiceApi, 'getPipelineVersion');
+  const listPipelineVersionsSpy = jest.spyOn(Apis.pipelineServiceApi, 'listPipelineVersions');
   const getRunSpy = jest.spyOn(Apis.runServiceApi, 'getRun');
   const getExperimentSpy = jest.spyOn(Apis.experimentServiceApi, 'getExperiment');
   const deletePipelineSpy = jest.spyOn(Apis.pipelineServiceApi, 'deletePipeline');
-  const getTemplateSpy = jest.spyOn(Apis.pipelineServiceApi, 'getTemplate');
+  // const getTemplateSpy = jest.spyOn(Apis.pipelineServiceApi, 'getTemplate');
+  const getPipelineVersionTemplateSpy = jest.spyOn(Apis.pipelineServiceApi, 'getPipelineVersionTemplate');
   const createGraphSpy = jest.spyOn(StaticGraphParser, 'createGraph');
 
   let tree: ShallowWrapper | ReactWrapper;
   let testPipeline: ApiPipeline = {};
+  let testPipelineVersion: ApiPipelineVersion = {};
   let testRun: ApiRunDetail = {};
 
   function generateProps(fromRunSpec = false): PageProps {
     const match = {
       isExact: true,
-      params: fromRunSpec ? {} : { [RouteParams.pipelineId]: testPipeline.id },
+      params: fromRunSpec ? {} : { [RouteParams.pipelineId]: testPipeline.id, [RouteParams.pipelineVersionId]: testPipeline.default_version && testPipeline.default_version!.id || '' },
       path: '',
       url: '',
     };
@@ -77,7 +81,16 @@ describe('PipelineDetails', () => {
       id: 'test-pipeline-id',
       name: 'test pipeline',
       parameters: [{ name: 'param1', value: 'value1' }],
+      default_version: {
+        id: 'test-pipeline-version-id',
+        name: 'test-pipeline-version'
+      }
     };
+
+    testPipelineVersion = {
+      id: 'test-pipeline-version-id',
+      name: 'test-pipeline-version'
+    }
 
     testRun = {
       run: {
@@ -90,11 +103,14 @@ describe('PipelineDetails', () => {
     };
 
     getPipelineSpy.mockImplementation(() => Promise.resolve(testPipeline));
+    getPipelineVersionSpy.mockImplementation(() => Promise.resolve(testPipelineVersion));
+    listPipelineVersionsSpy.mockImplementation(() => Promise.resolve([testPipelineVersion]));
     getRunSpy.mockImplementation(() => Promise.resolve(testRun));
     getExperimentSpy.mockImplementation(() =>
       Promise.resolve({ id: 'test-experiment-id', name: 'test experiment' } as ApiExperiment),
     );
-    getTemplateSpy.mockImplementation(() => Promise.resolve({ template: 'test template' }));
+    // getTemplateSpy.mockImplementation(() => Promise.resolve({ template: 'test template' }));
+    getPipelineVersionTemplateSpy.mockImplementation(() => Promise.resolve({ template: 'test template' }));
     createGraphSpy.mockImplementation(() => new graphlib.Graph());
   });
 
@@ -108,19 +124,19 @@ describe('PipelineDetails', () => {
   it('shows empty pipeline details with no graph', async () => {
     TestUtils.makeErrorResponseOnce(createGraphSpy, 'bad graph');
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     expect(tree).toMatchSnapshot();
   });
 
   it('shows pipeline name in page name, and breadcrumb to go back to pipelines', async () => {
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     expect(updateToolbarSpy).toHaveBeenLastCalledWith(
       expect.objectContaining({
         breadcrumbs: [{ displayName: 'Pipelines', href: RoutePage.PIPELINES }],
-        pageTitle: testPipeline.name,
+        pageTitle: testPipeline.name + ' (' + testPipelineVersion.name + ')',
       }),
     );
   });
@@ -131,7 +147,7 @@ describe('PipelineDetails', () => {
     async () => {
       tree = shallow(<PipelineDetails {...generateProps(true)} />);
       await getRunSpy;
-      await getTemplateSpy;
+      await getPipelineVersionTemplateSpy;
       await TestUtils.flushPromises();
       expect(updateToolbarSpy).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -158,7 +174,7 @@ describe('PipelineDetails', () => {
       tree = shallow(<PipelineDetails {...generateProps(true)} />);
       await getRunSpy;
       await getExperimentSpy;
-      await getTemplateSpy;
+      await getPipelineVersionTemplateSpy;
       await TestUtils.flushPromises();
       expect(updateToolbarSpy).toHaveBeenLastCalledWith(
         expect.objectContaining({
@@ -251,7 +267,7 @@ describe('PipelineDetails', () => {
   });
 
   it('uses an empty string and does not show error when getTemplate response is empty', async () => {
-    getTemplateSpy.mockImplementationOnce(() => Promise.resolve({}));
+    getPipelineVersionTemplateSpy.mockImplementationOnce(() => Promise.resolve({}));
 
     tree = shallow(<PipelineDetails {...generateProps()} />);
     await getPipelineSpy;
@@ -280,7 +296,7 @@ describe('PipelineDetails', () => {
   });
 
   it('shows load error banner when failing to get pipeline template', async () => {
-    TestUtils.makeErrorResponseOnce(getTemplateSpy, 'woops');
+    TestUtils.makeErrorResponseOnce(getPipelineVersionTemplateSpy, 'woops');
     tree = shallow(<PipelineDetails {...generateProps()} />);
     await getPipelineSpy;
     await TestUtils.flushPromises();
@@ -297,7 +313,7 @@ describe('PipelineDetails', () => {
   it('shows no graph error banner when failing to parse graph', async () => {
     TestUtils.makeErrorResponseOnce(createGraphSpy, 'bad graph');
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     expect(updateBannerSpy).toHaveBeenCalledTimes(2); // Once to clear banner, once to show error
     expect(updateBannerSpy).toHaveBeenLastCalledWith(
@@ -310,7 +326,7 @@ describe('PipelineDetails', () => {
   });
 
   it('clears the error banner when refreshing the page', async () => {
-    TestUtils.makeErrorResponseOnce(getTemplateSpy, 'woops');
+    TestUtils.makeErrorResponseOnce(getPipelineVersionTemplateSpy, 'woops');
     tree = shallow(<PipelineDetails {...generateProps()} />);
     await TestUtils.flushPromises();
 
@@ -329,14 +345,14 @@ describe('PipelineDetails', () => {
 
   it('shows empty pipeline details with empty graph', async () => {
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     expect(tree).toMatchSnapshot();
   });
 
   it('sets summary shown state to false when clicking the Hide button', async () => {
     tree = mount(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     tree.update();
     expect(tree.state('summaryShown')).toBe(true);
@@ -346,7 +362,7 @@ describe('PipelineDetails', () => {
 
   it('collapses summary card when summary shown state is false', async () => {
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     tree.setState({ summaryShown: false });
     expect(tree).toMatchSnapshot();
@@ -354,7 +370,7 @@ describe('PipelineDetails', () => {
 
   it('shows the summary card when clicking Show button', async () => {
     tree = mount(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     tree.setState({ summaryShown: false });
     tree.find(`.${css.footer} Button`).simulate('click');
@@ -363,7 +379,7 @@ describe('PipelineDetails', () => {
 
   it('has a new experiment button if it has a pipeline reference', async () => {
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     const instance = tree.instance() as PipelineDetails;
     const newExperimentBtn = instance.getInitialToolbarState().actions[ButtonKeys.NEW_EXPERIMENT];
@@ -372,7 +388,7 @@ describe('PipelineDetails', () => {
 
   it("has 'create run' toolbar button if viewing an embedded pipeline", async () => {
     tree = shallow(<PipelineDetails {...generateProps(true)} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     const instance = tree.instance() as PipelineDetails;
     expect(Object.keys(instance.getInitialToolbarState().actions)).toHaveLength(1);
@@ -394,7 +410,7 @@ describe('PipelineDetails', () => {
 
   it("has 'create run' toolbar button if not viewing an embedded pipeline", async () => {
     tree = shallow(<PipelineDetails {...generateProps(false)} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     const instance = tree.instance() as PipelineDetails;
     expect(Object.keys(instance.getInitialToolbarState().actions)).toHaveLength(3);
@@ -432,7 +448,7 @@ describe('PipelineDetails', () => {
 
   it('clicking new experiment button navigates to new experiment page', async () => {
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     const instance = tree.instance() as PipelineDetails;
     const newExperimentBtn = instance.getInitialToolbarState().actions[ButtonKeys.NEW_EXPERIMENT];
@@ -457,7 +473,7 @@ describe('PipelineDetails', () => {
 
   it('has a delete button', async () => {
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     const instance = tree.instance() as PipelineDetails;
     const deleteBtn = instance.getInitialToolbarState().actions[ButtonKeys.DELETE_RUN];
@@ -492,7 +508,7 @@ describe('PipelineDetails', () => {
 
   it('calls delete API when delete dialog is confirmed', async () => {
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     const deleteBtn = (tree.instance() as PipelineDetails).getInitialToolbarState().actions[
       ButtonKeys.DELETE_RUN
@@ -522,7 +538,7 @@ describe('PipelineDetails', () => {
   it('shows error dialog if deletion fails', async () => {
     tree = shallow(<PipelineDetails {...generateProps()} />);
     TestUtils.makeErrorResponseOnce(deletePipelineSpy, 'woops');
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     const deleteBtn = (tree.instance() as PipelineDetails).getInitialToolbarState().actions[
       ButtonKeys.DELETE_RUN
@@ -542,7 +558,7 @@ describe('PipelineDetails', () => {
 
   it('shows success snackbar if deletion succeeds', async () => {
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     const deleteBtn = (tree.instance() as PipelineDetails).getInitialToolbarState().actions[
       ButtonKeys.DELETE_RUN
@@ -562,7 +578,7 @@ describe('PipelineDetails', () => {
 
   it('opens side panel on clicked node, shows message when node is not found in graph', async () => {
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     tree.find('Graph').simulate('click', 'some-node-id');
     expect(tree.state('selectedNodeId')).toBe('some-node-id');
@@ -583,7 +599,7 @@ describe('PipelineDetails', () => {
     createGraphSpy.mockImplementation(() => g);
 
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     tree.find('Graph').simulate('click', 'node1');
     expect(tree).toMatchSnapshot();
@@ -591,7 +607,7 @@ describe('PipelineDetails', () => {
 
   it('shows pipeline source code when config tab is clicked', async () => {
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     tree.find('MD2Tabs').simulate('switch', 1);
     expect(tree.state('selectedTab')).toBe(1);
@@ -600,7 +616,7 @@ describe('PipelineDetails', () => {
 
   it('closes side panel when close button is clicked', async () => {
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    await getTemplateSpy;
+    await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     tree.setState({ selectedNodeId: 'some-node-id' });
     tree.find('SidePanel').simulate('close');
