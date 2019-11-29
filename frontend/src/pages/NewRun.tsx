@@ -187,7 +187,7 @@ class NewRun extends Page<{}, NewRunState> {
     const originalRunId =
       urlParser.get(QUERY_PARAMS.cloneFromRun) || urlParser.get(QUERY_PARAMS.fromRunId);
     const pipelineDetailsUrl = originalRunId
-      ? RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId + '?', '') +
+      ? RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId + '/version/:' + RouteParams.pipelineVersionId + '?', '') +
         urlParser.build({ [QUERY_PARAMS.fromRunId]: originalRunId })
       : '';
 
@@ -201,9 +201,9 @@ class NewRun extends Page<{}, NewRunState> {
           {/* Pipeline selection */}
           {!!workflowFromRun && (
             <div>
-              <span>{usePipelineFromRunLabel} </span>
+              <span>{usePipelineFromRunLabel}</span>
               {!!originalRunId && (
-                <Link to={pipelineDetailsUrl}>[View pipeline specification]</Link>
+                <Link to={pipelineDetailsUrl}>[View pipeline]</Link>
               )}
             </div>
           )}
@@ -621,10 +621,10 @@ class NewRun extends Page<{}, NewRunState> {
         } catch (err) {
           urlParser.clear(QUERY_PARAMS.pipelineId);
           await this.showPageError(
-            `Error: failed to retrieve pipeline version: ${possiblePipelineId}.`,
+            `Error: failed to retrieve pipeline: ${possiblePipelineId}.`,
             err,
           );
-          logger.error(`Failed to retrieve pipeline version: ${possiblePipelineId}`, err);
+          logger.error(`Failed to retrieve pipeline: ${possiblePipelineId}`, err);
         }
       }
       const possiblePipelineVersionId = urlParser.get(QUERY_PARAMS.pipelineVersionId);
@@ -963,7 +963,6 @@ class NewRun extends Page<{}, NewRunState> {
           p.value = (p.value || '').trim();
           return p;
         }),
-        // pipeline_id: this.state.pipeline ? this.state.pipeline.id : undefined,
         workflow_manifest: this.state.useWorkflowFromRun
           ? JSON.stringify(this.state.workflowFromRun)
           : undefined,
