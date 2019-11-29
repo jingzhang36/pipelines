@@ -220,7 +220,7 @@ describe('NewRun', () => {
     expect(tree).toMatchSnapshot();
   });
 
-  it('changes title and form to default state if the new run is a one-off, based on the radio buttons', async () => {
+  it.only('changes title and form to default state if the new run is a one-off, based on the radio buttons', async () => {
     // Modify props to set page to recurring run form
     const props = generateProps();
     props.location.search = `?${QUERY_PARAMS.isRecurring}=1`;

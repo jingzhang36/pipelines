@@ -15,7 +15,7 @@ exports[`NewRun arriving from pipeline details page indicates that a pipeline is
     <div>
       <span>
         Using pipeline from previous page
-         
+
       </span>
       <Link
         replace={false}
@@ -89,7 +89,7 @@ exports[`NewRun arriving from pipeline details page indicates that a pipeline is
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
               },
             }
           }
@@ -519,7 +519,7 @@ exports[`NewRun changes the exit button's text if query params indicate this is 
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
               },
             }
           }
@@ -892,6 +892,38 @@ exports[`NewRun changes title and form if the new run will recur, based on the r
       value=""
       variant="outlined"
     />
+    <Component
+      InputProps={
+        Object {
+          "classes": Object {
+            "disabled": "nonEditableInput",
+          },
+          "endAdornment": <WithStyles(InputAdornment)
+            position="end"
+          >
+            <WithStyles(Button)
+              color="secondary"
+              id="choosePipelineVersionBtn"
+              onClick={[Function]}
+              style={
+                Object {
+                  "margin": 0,
+                  "padding": "3px 5px",
+                }
+              }
+            >
+              Choose
+            </WithStyles(Button)>
+          </WithStyles(InputAdornment)>,
+          "readOnly": true,
+        }
+      }
+      disabled={true}
+      label="Pipeline Version"
+      required={true}
+      value=""
+      variant="outlined"
+    />
     <WithStyles(Dialog)
       PaperProps={
         Object {
@@ -957,7 +989,7 @@ exports[`NewRun changes title and form if the new run will recur, based on the r
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
               },
             }
           }
@@ -1040,6 +1072,157 @@ exports[`NewRun changes title and form if the new run will recur, based on the r
           onClick={[Function]}
         >
           Use this pipeline
+        </WithStyles(Button)>
+      </WithStyles(DialogActions)>
+    </WithStyles(Dialog)>
+    <WithStyles(Dialog)
+      PaperProps={
+        Object {
+          "id": "pipelineVersionSelectorDialog",
+        }
+      }
+      classes={
+        Object {
+          "paper": "selectorDialog",
+        }
+      }
+      onClose={[Function]}
+      open={false}
+    >
+      <WithStyles(DialogContent)>
+        <ResourceSelector
+          columns={
+            Array [
+              Object {
+                "flex": 1,
+                "label": "Version name",
+                "sortKey": "name",
+              },
+              Object {
+                "customRenderer": [Function],
+                "flex": 2,
+                "label": "Description",
+              },
+              Object {
+                "flex": 1,
+                "label": "Uploaded on",
+                "sortKey": "created_at",
+              },
+            ]
+          }
+          emptyMessage="No pipeline versions found. Select or upload a pipeline then try again."
+          filterLabel="Filter pipeline versions"
+          history={
+            Object {
+              "push": [MockFunction],
+              "replace": [MockFunction],
+            }
+          }
+          initialSortColumn="created_at"
+          listApi={[Function]}
+          location={
+            Object {
+              "pathname": "/runs/new",
+              "search": "?experimentId=some-mock-experiment-id",
+            }
+          }
+          match=""
+          selectionChanged={[Function]}
+          title="Choose a pipeline version"
+          toolbarActionMap={
+            Object {
+              "uploadPipeline": Object {
+                "action": [Function],
+                "icon": [Function],
+                "id": "uploadBtn",
+                "outlined": true,
+                "style": Object {
+                  "minWidth": 160,
+                },
+                "title": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
+              },
+            }
+          }
+          toolbarProps={
+            Object {
+              "actions": Object {},
+              "breadcrumbs": Array [
+                Object {
+                  "displayName": "Experiments",
+                  "href": "/experiments",
+                },
+              ],
+              "pageTitle": "Start a new run",
+            }
+          }
+          updateBanner={
+            [MockFunction] {
+              "calls": Array [
+                Array [
+                  Object {},
+                ],
+              ],
+            }
+          }
+          updateDialog={[MockFunction]}
+          updateSnackbar={[MockFunction]}
+          updateToolbar={
+            [MockFunction] {
+              "calls": Array [
+                Array [
+                  Object {
+                    "actions": Object {},
+                    "breadcrumbs": Array [
+                      Object {
+                        "displayName": "Experiments",
+                        "href": "/experiments",
+                      },
+                    ],
+                    "pageTitle": "Start a new run",
+                  },
+                ],
+                Array [
+                  Object {
+                    "actions": Object {},
+                    "breadcrumbs": Array [
+                      Object {
+                        "displayName": "Experiments",
+                        "href": "/experiments",
+                      },
+                      Object {
+                        "displayName": "some mock experiment name",
+                        "href": "/experiments/details/some-mock-experiment-id",
+                      },
+                    ],
+                    "pageTitle": "Start a run",
+                  },
+                ],
+                Array [
+                  Object {
+                    "pageTitle": "Start a recurring run",
+                  },
+                ],
+              ],
+            }
+          }
+        />
+      </WithStyles(DialogContent)>
+      <WithStyles(DialogActions)>
+        <WithStyles(Button)
+          color="secondary"
+          id="cancelPipelineVersionSelectionBtn"
+          onClick={[Function]}
+        >
+          Cancel
+        </WithStyles(Button)>
+        <WithStyles(Button)
+          color="secondary"
+          disabled={true}
+          id="usePipelineVersionBtn"
+          onClick={[Function]}
+        >
+          Use this pipeline version
         </WithStyles(Button)>
       </WithStyles(DialogActions)>
     </WithStyles(Dialog)>
@@ -1300,7 +1483,7 @@ exports[`NewRun changes title and form if the new run will recur, based on the r
           }
         }
       >
-        A pipeline must be selected
+        A pipeline version must be selected
       </div>
     </div>
   </div>
@@ -1347,6 +1530,38 @@ exports[`NewRun changes title and form to default state if the new run is a one-
       }
       disabled={true}
       label="Pipeline"
+      required={true}
+      value=""
+      variant="outlined"
+    />
+    <Component
+      InputProps={
+        Object {
+          "classes": Object {
+            "disabled": "nonEditableInput",
+          },
+          "endAdornment": <WithStyles(InputAdornment)
+            position="end"
+          >
+            <WithStyles(Button)
+              color="secondary"
+              id="choosePipelineVersionBtn"
+              onClick={[Function]}
+              style={
+                Object {
+                  "margin": 0,
+                  "padding": "3px 5px",
+                }
+              }
+            >
+              Choose
+            </WithStyles(Button)>
+          </WithStyles(InputAdornment)>,
+          "readOnly": true,
+        }
+      }
+      disabled={true}
+      label="Pipeline Version"
       required={true}
       value=""
       variant="outlined"
@@ -1416,7 +1631,7 @@ exports[`NewRun changes title and form to default state if the new run is a one-
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
               },
             }
           }
@@ -1495,6 +1710,153 @@ exports[`NewRun changes title and form to default state if the new run is a one-
           onClick={[Function]}
         >
           Use this pipeline
+        </WithStyles(Button)>
+      </WithStyles(DialogActions)>
+    </WithStyles(Dialog)>
+    <WithStyles(Dialog)
+      PaperProps={
+        Object {
+          "id": "pipelineVersionSelectorDialog",
+        }
+      }
+      classes={
+        Object {
+          "paper": "selectorDialog",
+        }
+      }
+      onClose={[Function]}
+      open={false}
+    >
+      <WithStyles(DialogContent)>
+        <ResourceSelector
+          columns={
+            Array [
+              Object {
+                "flex": 1,
+                "label": "Version name",
+                "sortKey": "name",
+              },
+              Object {
+                "customRenderer": [Function],
+                "flex": 2,
+                "label": "Description",
+              },
+              Object {
+                "flex": 1,
+                "label": "Uploaded on",
+                "sortKey": "created_at",
+              },
+            ]
+          }
+          emptyMessage="No pipeline versions found. Select or upload a pipeline then try again."
+          filterLabel="Filter pipeline versions"
+          history={
+            Object {
+              "push": [MockFunction],
+              "replace": [MockFunction],
+            }
+          }
+          initialSortColumn="created_at"
+          listApi={[Function]}
+          location={
+            Object {
+              "pathname": "/runs/new",
+              "search": "?recurring=1",
+            }
+          }
+          match=""
+          selectionChanged={[Function]}
+          title="Choose a pipeline version"
+          toolbarActionMap={
+            Object {
+              "uploadPipeline": Object {
+                "action": [Function],
+                "icon": [Function],
+                "id": "uploadBtn",
+                "outlined": true,
+                "style": Object {
+                  "minWidth": 160,
+                },
+                "title": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
+              },
+            }
+          }
+          toolbarProps={
+            Object {
+              "actions": Object {},
+              "breadcrumbs": Array [
+                Object {
+                  "displayName": "Experiments",
+                  "href": "/experiments",
+                },
+              ],
+              "pageTitle": "Start a new run",
+            }
+          }
+          updateBanner={
+            [MockFunction] {
+              "calls": Array [
+                Array [
+                  Object {},
+                ],
+              ],
+            }
+          }
+          updateDialog={[MockFunction]}
+          updateSnackbar={[MockFunction]}
+          updateToolbar={
+            [MockFunction] {
+              "calls": Array [
+                Array [
+                  Object {
+                    "actions": Object {},
+                    "breadcrumbs": Array [
+                      Object {
+                        "displayName": "Experiments",
+                        "href": "/experiments",
+                      },
+                    ],
+                    "pageTitle": "Start a new run",
+                  },
+                ],
+                Array [
+                  Object {
+                    "actions": Object {},
+                    "breadcrumbs": Array [
+                      Object {
+                        "displayName": "Experiments",
+                        "href": "/experiments",
+                      },
+                    ],
+                    "pageTitle": "Start a recurring run",
+                  },
+                ],
+                Array [
+                  Object {
+                    "pageTitle": "Start a new run",
+                  },
+                ],
+              ],
+            }
+          }
+        />
+      </WithStyles(DialogContent)>
+      <WithStyles(DialogActions)>
+        <WithStyles(Button)
+          color="secondary"
+          id="cancelPipelineVersionSelectionBtn"
+          onClick={[Function]}
+        >
+          Cancel
+        </WithStyles(Button)>
+        <WithStyles(Button)
+          color="secondary"
+          disabled={true}
+          id="usePipelineVersionBtn"
+          onClick={[Function]}
+        >
+          Use this pipeline version
         </WithStyles(Button)>
       </WithStyles(DialogActions)>
     </WithStyles(Dialog)>
@@ -1740,7 +2102,7 @@ exports[`NewRun changes title and form to default state if the new run is a one-
           }
         }
       >
-        A pipeline must be selected
+        A pipeline version must be selected
       </div>
     </div>
   </div>
@@ -1856,7 +2218,7 @@ exports[`NewRun fetches the associated pipeline if one is present in the query p
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
               },
             }
           }
@@ -2221,6 +2583,38 @@ exports[`NewRun renders the new run page 1`] = `
       value=""
       variant="outlined"
     />
+    <Component
+      InputProps={
+        Object {
+          "classes": Object {
+            "disabled": "nonEditableInput",
+          },
+          "endAdornment": <WithStyles(InputAdornment)
+            position="end"
+          >
+            <WithStyles(Button)
+              color="secondary"
+              id="choosePipelineVersionBtn"
+              onClick={[Function]}
+              style={
+                Object {
+                  "margin": 0,
+                  "padding": "3px 5px",
+                }
+              }
+            >
+              Choose
+            </WithStyles(Button)>
+          </WithStyles(InputAdornment)>,
+          "readOnly": true,
+        }
+      }
+      disabled={true}
+      label="Pipeline Version"
+      required={true}
+      value=""
+      variant="outlined"
+    />
     <WithStyles(Dialog)
       PaperProps={
         Object {
@@ -2286,7 +2680,7 @@ exports[`NewRun renders the new run page 1`] = `
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
               },
             }
           }
@@ -2364,6 +2758,152 @@ exports[`NewRun renders the new run page 1`] = `
           onClick={[Function]}
         >
           Use this pipeline
+        </WithStyles(Button)>
+      </WithStyles(DialogActions)>
+    </WithStyles(Dialog)>
+    <WithStyles(Dialog)
+      PaperProps={
+        Object {
+          "id": "pipelineVersionSelectorDialog",
+        }
+      }
+      classes={
+        Object {
+          "paper": "selectorDialog",
+        }
+      }
+      onClose={[Function]}
+      open={false}
+    >
+      <WithStyles(DialogContent)>
+        <ResourceSelector
+          columns={
+            Array [
+              Object {
+                "flex": 1,
+                "label": "Version name",
+                "sortKey": "name",
+              },
+              Object {
+                "customRenderer": [Function],
+                "flex": 2,
+                "label": "Description",
+              },
+              Object {
+                "flex": 1,
+                "label": "Uploaded on",
+                "sortKey": "created_at",
+              },
+            ]
+          }
+          emptyMessage="No pipeline versions found. Select or upload a pipeline then try again."
+          filterLabel="Filter pipeline versions"
+          history={
+            Object {
+              "push": [MockFunction],
+              "replace": [MockFunction],
+            }
+          }
+          initialSortColumn="created_at"
+          listApi={[Function]}
+          location={
+            Object {
+              "pathname": "/runs/new",
+              "search": "?experimentId=some-mock-experiment-id",
+            }
+          }
+          match=""
+          selectionChanged={[Function]}
+          title="Choose a pipeline version"
+          toolbarActionMap={
+            Object {
+              "uploadPipeline": Object {
+                "action": [Function],
+                "icon": [Function],
+                "id": "uploadBtn",
+                "outlined": true,
+                "style": Object {
+                  "minWidth": 160,
+                },
+                "title": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
+              },
+            }
+          }
+          toolbarProps={
+            Object {
+              "actions": Object {},
+              "breadcrumbs": Array [
+                Object {
+                  "displayName": "Experiments",
+                  "href": "/experiments",
+                },
+              ],
+              "pageTitle": "Start a new run",
+            }
+          }
+          updateBanner={
+            [MockFunction] {
+              "calls": Array [
+                Array [
+                  Object {},
+                ],
+              ],
+            }
+          }
+          updateDialog={[MockFunction]}
+          updateSnackbar={[MockFunction]}
+          updateToolbar={
+            [MockFunction] {
+              "calls": Array [
+                Array [
+                  Object {
+                    "actions": Object {},
+                    "breadcrumbs": Array [
+                      Object {
+                        "displayName": "Experiments",
+                        "href": "/experiments",
+                      },
+                    ],
+                    "pageTitle": "Start a new run",
+                  },
+                ],
+                Array [
+                  Object {
+                    "actions": Object {},
+                    "breadcrumbs": Array [
+                      Object {
+                        "displayName": "Experiments",
+                        "href": "/experiments",
+                      },
+                      Object {
+                        "displayName": "some mock experiment name",
+                        "href": "/experiments/details/some-mock-experiment-id",
+                      },
+                    ],
+                    "pageTitle": "Start a run",
+                  },
+                ],
+              ],
+            }
+          }
+        />
+      </WithStyles(DialogContent)>
+      <WithStyles(DialogActions)>
+        <WithStyles(Button)
+          color="secondary"
+          id="cancelPipelineVersionSelectionBtn"
+          onClick={[Function]}
+        >
+          Cancel
+        </WithStyles(Button)>
+        <WithStyles(Button)
+          color="secondary"
+          disabled={true}
+          id="usePipelineVersionBtn"
+          onClick={[Function]}
+        >
+          Use this pipeline version
         </WithStyles(Button)>
       </WithStyles(DialogActions)>
     </WithStyles(Dialog)>
@@ -2608,7 +3148,7 @@ exports[`NewRun renders the new run page 1`] = `
           }
         }
       >
-        A pipeline must be selected
+        A pipeline version must be selected
       </div>
     </div>
   </div>
@@ -2724,7 +3264,7 @@ exports[`NewRun starting a new recurring run includes additional trigger input f
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
               },
             }
           }
@@ -3071,7 +3611,7 @@ exports[`NewRun starting a new run copies pipeline from run in the start API cal
     <div>
       <span>
         Using pipeline from cloned run
-         
+
       </span>
       <Link
         replace={false}
@@ -3151,7 +3691,7 @@ exports[`NewRun starting a new run copies pipeline from run in the start API cal
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
               },
             }
           }
@@ -3594,7 +4134,7 @@ exports[`NewRun starting a new run updates the parameters in state on handlePara
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
               },
             }
           }
@@ -4061,7 +4601,7 @@ exports[`NewRun starting a new run updates the pipeline params as user selects d
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
               },
             }
           }
@@ -4499,7 +5039,7 @@ exports[`NewRun starting a new run updates the pipeline params as user selects d
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
               },
             }
           }
@@ -4948,7 +5488,7 @@ exports[`NewRun starting a new run updates the pipeline params as user selects d
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
               },
             }
           }
@@ -5386,7 +5926,7 @@ exports[`NewRun updates the run's state with the associated experiment if one is
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
               },
             }
           }
