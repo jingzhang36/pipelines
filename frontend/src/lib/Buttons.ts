@@ -17,12 +17,12 @@
 import AddIcon from '@material-ui/icons/Add';
 import CollapseIcon from '@material-ui/icons/UnfoldLess';
 import ExpandIcon from '@material-ui/icons/UnfoldMore';
-import { QUERY_PARAMS, RoutePage } from '../components/Router';
-import { ToolbarActionMap } from '../components/Toolbar';
-import { PageProps } from '../pages/Page';
-import { Apis } from './Apis';
-import { URLParser } from './URLParser';
-import { errorToMessage, s } from './Utils';
+import {QUERY_PARAMS, RoutePage} from '../components/Router';
+import {ToolbarActionMap} from '../components/Toolbar';
+import {PageProps} from '../pages/Page';
+import {Apis} from './Apis';
+import {URLParser} from './URLParser';
+import {errorToMessage, s} from './Utils';
 
 export enum ButtonKeys {
   ARCHIVE = 'archive',
@@ -38,7 +38,6 @@ export enum ButtonKeys {
   NEW_EXPERIMENT = 'newExperiment',
   NEW_RUN = 'newRun',
   NEW_RECURRING_RUN = 'newRecurringRun',
-  NEW_RUN_FROM_PIPELINE = 'newRunFromPipeline',
   NEW_RUN_FROM_PIPELINE_VERSION = 'newRunFromPipelineVersion',
   REFRESH = 'refresh',
   RESTORE = 'restore',
@@ -259,25 +258,11 @@ export default class Buttons {
     return this;
   }
 
-  public newRunFromPipeline(getPipelineId: () => string): Buttons {
-    this._map[ButtonKeys.NEW_RUN_FROM_PIPELINE] = {
-      action: () => this._createNewRunFromPipeline(getPipelineId()),
-      icon: AddIcon,
-      id: 'createNewRunBtn',
-      outlined: true,
-      primary: true,
-      style: { minWidth: 130 },
-      title: 'Create run',
-      tooltip: 'Create a new run',
-    };
-    return this;
-  }
-
   public newRunFromPipelineVersion(
     getPipelineId: () => string,
     getPipelineVersionId: () => string,
   ): Buttons {
-    this._map[ButtonKeys.NEW_RUN_FROM_PIPELINE] = {
+    this._map[ButtonKeys.NEW_RUN_FROM_PIPELINE_VERSION] = {
       action: () => this._createNewRunFromPipelineVersion(getPipelineId(), getPipelineVersionId()),
       icon: AddIcon,
       id: 'createNewRunBtn',
@@ -628,21 +613,6 @@ export default class Buttons {
         isRecurring ? { [QUERY_PARAMS.isRecurring]: '1' } : {},
       ),
     );
-    this._props.history.push(RoutePage.NEW_RUN + searchString);
-  }
-
-  private _createNewRunFromPipeline(pipelineId?: string): void {
-    let searchString = '';
-    const fromRunId = this._urlParser.get(QUERY_PARAMS.fromRunId);
-
-    if (fromRunId) {
-      searchString = this._urlParser.build(Object.assign({ [QUERY_PARAMS.fromRunId]: fromRunId }));
-    } else {
-      searchString = this._urlParser.build(
-        Object.assign({ [QUERY_PARAMS.pipelineId]: pipelineId || '' }),
-      );
-    }
-
     this._props.history.push(RoutePage.NEW_RUN + searchString);
   }
 

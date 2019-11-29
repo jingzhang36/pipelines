@@ -39,8 +39,7 @@ describe('PipelineDetails', () => {
   const listPipelineVersionsSpy = jest.spyOn(Apis.pipelineServiceApi, 'listPipelineVersions');
   const getRunSpy = jest.spyOn(Apis.runServiceApi, 'getRun');
   const getExperimentSpy = jest.spyOn(Apis.experimentServiceApi, 'getExperiment');
-  const deletePipelineSpy = jest.spyOn(Apis.pipelineServiceApi, 'deletePipeline');
-  // const getTemplateSpy = jest.spyOn(Apis.pipelineServiceApi, 'getTemplate');
+  const deletePipelineVersionSpy = jest.spyOn(Apis.pipelineServiceApi, 'deletePipelineVersion');
   const getPipelineVersionTemplateSpy = jest.spyOn(Apis.pipelineServiceApi, 'getPipelineVersionTemplate');
   const createGraphSpy = jest.spyOn(StaticGraphParser, 'createGraph');
 
@@ -391,8 +390,9 @@ describe('PipelineDetails', () => {
     await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     const instance = tree.instance() as PipelineDetails;
-    expect(Object.keys(instance.getInitialToolbarState().actions)).toHaveLength(1);
-    const newRunBtn = instance.getInitialToolbarState().actions[ButtonKeys.NEW_RUN_FROM_PIPELINE];
+    /* create run and create pipeline version, so 2 */
+    expect(Object.keys(instance.getInitialToolbarState().actions)).toHaveLength(2);
+    const newRunBtn = instance.getInitialToolbarState().actions[ButtonKeys.NEW_RUN_FROM_PIPELINE_VERSION, ButtonKeys.NEW_PIPELINE_VERSION];
     expect(newRunBtn).toBeDefined();
   });
 
@@ -400,7 +400,7 @@ describe('PipelineDetails', () => {
     tree = shallow(<PipelineDetails {...generateProps(true)} />);
     await TestUtils.flushPromises();
     const instance = tree.instance() as PipelineDetails;
-    const newRunBtn = instance.getInitialToolbarState().actions[ButtonKeys.NEW_RUN_FROM_PIPELINE];
+    const newRunBtn = instance.getInitialToolbarState().actions[ButtonKeys.NEW_RUN_FROM_PIPELINE_VERSION];
     newRunBtn!.action();
     expect(historyPushSpy).toHaveBeenCalledTimes(1);
     expect(historyPushSpy).toHaveBeenLastCalledWith(
@@ -413,8 +413,9 @@ describe('PipelineDetails', () => {
     await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     const instance = tree.instance() as PipelineDetails;
-    expect(Object.keys(instance.getInitialToolbarState().actions)).toHaveLength(3);
-    const newRunBtn = instance.getInitialToolbarState().actions[ButtonKeys.NEW_RUN_FROM_PIPELINE];
+    /* create run, create pipeline version, create experiment and delete run, so 4 */
+    expect(Object.keys(instance.getInitialToolbarState().actions)).toHaveLength(4);
+    const newRunBtn = instance.getInitialToolbarState().actions[ButtonKeys.NEW_RUN_FROM_PIPELINE_VERSION];
     expect(newRunBtn).toBeDefined();
   });
 
@@ -422,27 +423,27 @@ describe('PipelineDetails', () => {
     tree = shallow(<PipelineDetails {...generateProps(false)} />);
     await TestUtils.flushPromises();
     const instance = tree.instance() as PipelineDetails;
-    const newRunFromPipelineBtn = instance.getInitialToolbarState().actions[
-      ButtonKeys.NEW_RUN_FROM_PIPELINE
+    const newRunFromPipelineVersionBtn = instance.getInitialToolbarState().actions[
+      ButtonKeys.NEW_RUN_FROM_PIPELINE_VERSION
     ];
-    newRunFromPipelineBtn.action();
+    newRunFromPipelineVersionBtn.action();
     expect(historyPushSpy).toHaveBeenCalledTimes(1);
     expect(historyPushSpy).toHaveBeenLastCalledWith(
-      RoutePage.NEW_RUN + `?${QUERY_PARAMS.pipelineId}=${testPipeline.id}`,
+      RoutePage.NEW_RUN + `?${QUERY_PARAMS.pipelineId}=${testPipeline.id}&${QUERY_PARAMS.pipelineVersionId}=${testPipeline.default_version!.id!}`,
     );
   });
 
-  it('clicking new run button when viewing half-loaded page navigates to the new run page with pipeline ID', async () => {
+  it('clicking new run button when viewing half-loaded page navigates to the new run page with pipeline ID and version ID', async () => {
     tree = shallow(<PipelineDetails {...generateProps(false)} />);
     // Intentionally don't wait until all network requests finish.
     const instance = tree.instance() as PipelineDetails;
-    const newRunFromPipelineBtn = instance.getInitialToolbarState().actions[
-      ButtonKeys.NEW_RUN_FROM_PIPELINE
+    const newRunFromPipelineVersionBtn = instance.getInitialToolbarState().actions[
+      ButtonKeys.NEW_RUN_FROM_PIPELINE_VERSION
     ];
-    newRunFromPipelineBtn.action();
+    newRunFromPipelineVersionBtn.action();
     expect(historyPushSpy).toHaveBeenCalledTimes(1);
     expect(historyPushSpy).toHaveBeenLastCalledWith(
-      RoutePage.NEW_RUN + `?${QUERY_PARAMS.pipelineId}=${testPipeline.id}`,
+      RoutePage.NEW_RUN + `?${QUERY_PARAMS.pipelineId}=${testPipeline.id}&${QUERY_PARAMS.pipelineVersionId}=${testPipeline.default_version!.id!}`,
     );
   });
 
@@ -489,7 +490,7 @@ describe('PipelineDetails', () => {
     expect(updateDialogSpy).toHaveBeenCalledTimes(1);
     expect(updateDialogSpy).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        title: 'Delete this pipeline?',
+        title: 'Delete this pipeline version?',
       }),
     );
   });
@@ -503,7 +504,7 @@ describe('PipelineDetails', () => {
     const call = updateDialogSpy.mock.calls[0][0];
     const cancelBtn = call.buttons.find((b: any) => b.text === 'Cancel');
     await cancelBtn.onClick();
-    expect(deletePipelineSpy).not.toHaveBeenCalled();
+    expect(deletePipelineVersionSpy).not.toHaveBeenCalled();
   });
 
   it('calls delete API when delete dialog is confirmed', async () => {
@@ -517,8 +518,8 @@ describe('PipelineDetails', () => {
     const call = updateDialogSpy.mock.calls[0][0];
     const confirmBtn = call.buttons.find((b: any) => b.text === 'Delete');
     await confirmBtn.onClick();
-    expect(deletePipelineSpy).toHaveBeenCalledTimes(1);
-    expect(deletePipelineSpy).toHaveBeenLastCalledWith(testPipeline.id);
+    expect(deletePipelineVersionSpy).toHaveBeenCalledTimes(1);
+    expect(deletePipelineVersionSpy).toHaveBeenLastCalledWith(testPipeline.default_version!.id!);
   });
 
   it('calls delete API when delete dialog is confirmed and page is half-loaded', async () => {
@@ -531,13 +532,13 @@ describe('PipelineDetails', () => {
     const call = updateDialogSpy.mock.calls[0][0];
     const confirmBtn = call.buttons.find((b: any) => b.text === 'Delete');
     await confirmBtn.onClick();
-    expect(deletePipelineSpy).toHaveBeenCalledTimes(1);
-    expect(deletePipelineSpy).toHaveBeenLastCalledWith(testPipeline.id);
+    expect(deletePipelineVersionSpy).toHaveBeenCalledTimes(1);
+    expect(deletePipelineVersionSpy).toHaveBeenLastCalledWith(testPipeline.default_version!.id);
   });
 
   it('shows error dialog if deletion fails', async () => {
     tree = shallow(<PipelineDetails {...generateProps()} />);
-    TestUtils.makeErrorResponseOnce(deletePipelineSpy, 'woops');
+    TestUtils.makeErrorResponseOnce(deletePipelineVersionSpy, 'woops');
     await getPipelineVersionTemplateSpy;
     await TestUtils.flushPromises();
     const deleteBtn = (tree.instance() as PipelineDetails).getInitialToolbarState().actions[
@@ -550,8 +551,8 @@ describe('PipelineDetails', () => {
     expect(updateDialogSpy).toHaveBeenCalledTimes(2); // Delete dialog + error dialog
     expect(updateDialogSpy).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        content: 'Failed to delete pipeline: test-pipeline-id with error: "woops"',
-        title: 'Failed to delete pipeline',
+        content: 'Failed to delete pipeline version: test-pipeline-version-id with error: "woops"',
+        title: 'Failed to delete pipeline version',
       }),
     );
   });
@@ -570,7 +571,7 @@ describe('PipelineDetails', () => {
     expect(updateSnackbarSpy).toHaveBeenCalledTimes(1);
     expect(updateSnackbarSpy).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        message: 'Delete succeeded for this pipeline',
+        message: 'Delete succeeded for this pipeline version',
         open: true,
       }),
     );
