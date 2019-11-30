@@ -40,7 +40,10 @@ describe('PipelineDetails', () => {
   const getRunSpy = jest.spyOn(Apis.runServiceApi, 'getRun');
   const getExperimentSpy = jest.spyOn(Apis.experimentServiceApi, 'getExperiment');
   const deletePipelineVersionSpy = jest.spyOn(Apis.pipelineServiceApi, 'deletePipelineVersion');
-  const getPipelineVersionTemplateSpy = jest.spyOn(Apis.pipelineServiceApi, 'getPipelineVersionTemplate');
+  const getPipelineVersionTemplateSpy = jest.spyOn(
+    Apis.pipelineServiceApi,
+    'getPipelineVersionTemplate',
+  );
   const createGraphSpy = jest.spyOn(StaticGraphParser, 'createGraph');
 
   let tree: ShallowWrapper | ReactWrapper;
@@ -51,7 +54,13 @@ describe('PipelineDetails', () => {
   function generateProps(fromRunSpec = false): PageProps {
     const match = {
       isExact: true,
-      params: fromRunSpec ? {} : { [RouteParams.pipelineId]: testPipeline.id, [RouteParams.pipelineVersionId]: testPipeline.default_version && testPipeline.default_version!.id || '' },
+      params: fromRunSpec
+        ? {}
+        : {
+            [RouteParams.pipelineId]: testPipeline.id,
+            [RouteParams.pipelineVersionId]:
+              (testPipeline.default_version && testPipeline.default_version!.id) || '',
+          },
       path: '',
       url: '',
     };
@@ -82,14 +91,14 @@ describe('PipelineDetails', () => {
       parameters: [{ name: 'param1', value: 'value1' }],
       default_version: {
         id: 'test-pipeline-version-id',
-        name: 'test-pipeline-version'
-      }
+        name: 'test-pipeline-version',
+      },
     };
 
     testPipelineVersion = {
       id: 'test-pipeline-version-id',
-      name: 'test-pipeline-version'
-    }
+      name: 'test-pipeline-version',
+    };
 
     testRun = {
       run: {
@@ -109,7 +118,9 @@ describe('PipelineDetails', () => {
       Promise.resolve({ id: 'test-experiment-id', name: 'test experiment' } as ApiExperiment),
     );
     // getTemplateSpy.mockImplementation(() => Promise.resolve({ template: 'test template' }));
-    getPipelineVersionTemplateSpy.mockImplementation(() => Promise.resolve({ template: 'test template' }));
+    getPipelineVersionTemplateSpy.mockImplementation(() =>
+      Promise.resolve({ template: 'test template' }),
+    );
     createGraphSpy.mockImplementation(() => new graphlib.Graph());
   });
 
@@ -392,7 +403,9 @@ describe('PipelineDetails', () => {
     const instance = tree.instance() as PipelineDetails;
     /* create run and create pipeline version, so 2 */
     expect(Object.keys(instance.getInitialToolbarState().actions)).toHaveLength(2);
-    const newRunBtn = instance.getInitialToolbarState().actions[ButtonKeys.NEW_RUN_FROM_PIPELINE_VERSION, ButtonKeys.NEW_PIPELINE_VERSION];
+    const newRunBtn = instance.getInitialToolbarState().actions[
+      (ButtonKeys.NEW_RUN_FROM_PIPELINE_VERSION, ButtonKeys.NEW_PIPELINE_VERSION)
+    ];
     expect(newRunBtn).toBeDefined();
   });
 
@@ -400,7 +413,9 @@ describe('PipelineDetails', () => {
     tree = shallow(<PipelineDetails {...generateProps(true)} />);
     await TestUtils.flushPromises();
     const instance = tree.instance() as PipelineDetails;
-    const newRunBtn = instance.getInitialToolbarState().actions[ButtonKeys.NEW_RUN_FROM_PIPELINE_VERSION];
+    const newRunBtn = instance.getInitialToolbarState().actions[
+      ButtonKeys.NEW_RUN_FROM_PIPELINE_VERSION
+    ];
     newRunBtn!.action();
     expect(historyPushSpy).toHaveBeenCalledTimes(1);
     expect(historyPushSpy).toHaveBeenLastCalledWith(
@@ -415,7 +430,9 @@ describe('PipelineDetails', () => {
     const instance = tree.instance() as PipelineDetails;
     /* create run, create pipeline version, create experiment and delete run, so 4 */
     expect(Object.keys(instance.getInitialToolbarState().actions)).toHaveLength(4);
-    const newRunBtn = instance.getInitialToolbarState().actions[ButtonKeys.NEW_RUN_FROM_PIPELINE_VERSION];
+    const newRunBtn = instance.getInitialToolbarState().actions[
+      ButtonKeys.NEW_RUN_FROM_PIPELINE_VERSION
+    ];
     expect(newRunBtn).toBeDefined();
   });
 
@@ -429,7 +446,10 @@ describe('PipelineDetails', () => {
     newRunFromPipelineVersionBtn.action();
     expect(historyPushSpy).toHaveBeenCalledTimes(1);
     expect(historyPushSpy).toHaveBeenLastCalledWith(
-      RoutePage.NEW_RUN + `?${QUERY_PARAMS.pipelineId}=${testPipeline.id}&${QUERY_PARAMS.pipelineVersionId}=${testPipeline.default_version!.id!}`,
+      RoutePage.NEW_RUN +
+        `?${QUERY_PARAMS.pipelineId}=${testPipeline.id}&${
+          QUERY_PARAMS.pipelineVersionId
+        }=${testPipeline.default_version!.id!}`,
     );
   });
 
@@ -443,7 +463,10 @@ describe('PipelineDetails', () => {
     newRunFromPipelineVersionBtn.action();
     expect(historyPushSpy).toHaveBeenCalledTimes(1);
     expect(historyPushSpy).toHaveBeenLastCalledWith(
-      RoutePage.NEW_RUN + `?${QUERY_PARAMS.pipelineId}=${testPipeline.id}&${QUERY_PARAMS.pipelineVersionId}=${testPipeline.default_version!.id!}`,
+      RoutePage.NEW_RUN +
+        `?${QUERY_PARAMS.pipelineId}=${testPipeline.id}&${
+          QUERY_PARAMS.pipelineVersionId
+        }=${testPipeline.default_version!.id!}`,
     );
   });
 

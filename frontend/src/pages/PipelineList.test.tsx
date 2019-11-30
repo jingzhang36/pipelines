@@ -143,7 +143,9 @@ describe('PipelineList', () => {
     tree = TestUtils.mountWithRouter(<PipelineList {...generateProps()} />);
     await listPipelinesSpy;
     expect(listPipelinesSpy).toHaveBeenLastCalledWith('', 10, 'created_at desc', '');
-    expect(tree.state()).toHaveProperty('displayPipelines', [{"expandState": 0, "name": "pipeline1"}]);
+    expect(tree.state()).toHaveProperty('displayPipelines', [
+      { expandState: 0, name: 'pipeline1' },
+    ]);
   });
 
   it('has a Refresh button, clicking it refreshes the pipeline list', async () => {
@@ -217,7 +219,10 @@ describe('PipelineList', () => {
     const link = tree.find('a[children="test pipeline name0"]');
     expect(link).toHaveLength(1);
     expect(link.prop('href')).toBe(
-      RoutePage.PIPELINE_DETAILS_NO_VERSION.replace(':' + RouteParams.pipelineId + '?', 'test-pipeline-id0'),
+      RoutePage.PIPELINE_DETAILS_NO_VERSION.replace(
+        ':' + RouteParams.pipelineId + '?',
+        'test-pipeline-id0',
+      ),
     );
   });
 
@@ -340,7 +345,7 @@ describe('PipelineList', () => {
       .at(0)
       .simulate('click');
     expect(tree.state()).toHaveProperty('selectedIds', ['test-pipeline-id0']);
-    deletePipelineSpy.mockImplementation(() => Promise.resolve())
+    deletePipelineSpy.mockImplementation(() => Promise.resolve());
     const deleteBtn = (tree.instance() as PipelineList).getInitialToolbarState().actions[
       ButtonKeys.DELETE_RUN
     ];
@@ -362,7 +367,7 @@ describe('PipelineList', () => {
       .at(3)
       .simulate('click');
     expect(tree.state()).toHaveProperty('selectedIds', ['test-pipeline-id0', 'test-pipeline-id3']);
-    deletePipelineSpy.mockImplementation(() => Promise.resolve())
+    deletePipelineSpy.mockImplementation(() => Promise.resolve());
     const deleteBtn = (tree.instance() as PipelineList).getInitialToolbarState().actions[
       ButtonKeys.DELETE_RUN
     ];
@@ -406,7 +411,7 @@ describe('PipelineList', () => {
       .find('.tableRow')
       .at(0)
       .simulate('click');
-    deletePipelineSpy.mockImplementation(() => Promise.resolve())
+    deletePipelineSpy.mockImplementation(() => Promise.resolve());
     const deleteBtn = (tree.instance() as PipelineList).getInitialToolbarState().actions[
       ButtonKeys.DELETE_RUN
     ];

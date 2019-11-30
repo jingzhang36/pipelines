@@ -72,7 +72,7 @@ describe('NewRun', () => {
       default_version: {
         id: 'original-run-pipeline-version-id',
         name: 'original mock pipeline version name',
-      }
+      },
     };
   }
 
@@ -93,7 +93,7 @@ describe('NewRun', () => {
       default_version: {
         id: 'original-run-pipeline-version-id',
         name: 'original mock pipeline version name',
-      }
+      },
     };
   }
 
@@ -354,7 +354,9 @@ describe('NewRun', () => {
 
   it('fetches the associated pipeline if one is present in the query params', async () => {
     const props = generateProps();
-    props.location.search = `?${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}&${QUERY_PARAMS.pipelineVersionId}=${MOCK_PIPELINE.default_version!.id}`;
+    props.location.search = `?${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}&${
+      QUERY_PARAMS.pipelineVersionId
+    }=${MOCK_PIPELINE.default_version!.id}`;
 
     tree = shallow(<TestNewRun {...props} />);
     await TestUtils.flushPromises();

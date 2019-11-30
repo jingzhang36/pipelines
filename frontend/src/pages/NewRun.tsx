@@ -187,8 +187,10 @@ class NewRun extends Page<{}, NewRunState> {
     const originalRunId =
       urlParser.get(QUERY_PARAMS.cloneFromRun) || urlParser.get(QUERY_PARAMS.fromRunId);
     const pipelineDetailsUrl = originalRunId
-      ? RoutePage.PIPELINE_DETAILS.replace(':' + RouteParams.pipelineId + '/version/:' + RouteParams.pipelineVersionId + '?', '') +
-        urlParser.build({ [QUERY_PARAMS.fromRunId]: originalRunId })
+      ? RoutePage.PIPELINE_DETAILS.replace(
+          ':' + RouteParams.pipelineId + '/version/:' + RouteParams.pipelineVersionId + '?',
+          '',
+        ) + urlParser.build({ [QUERY_PARAMS.fromRunId]: originalRunId })
       : '';
 
     const buttons = new Buttons(this.props, this.refresh.bind(this));
@@ -202,9 +204,7 @@ class NewRun extends Page<{}, NewRunState> {
           {!!workflowFromRun && (
             <div>
               <span>{usePipelineFromRunLabel}</span>
-              {!!originalRunId && (
-                <Link to={pipelineDetailsUrl}>[View pipeline]</Link>
-              )}
+              {!!originalRunId && <Link to={pipelineDetailsUrl}>[View pipeline]</Link>}
             </div>
           )}
           {!useWorkflowFromRun && (
