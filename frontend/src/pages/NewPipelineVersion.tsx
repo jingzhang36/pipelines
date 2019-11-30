@@ -149,7 +149,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
   public getInitialToolbarState(): ToolbarProps {
     return {
       actions: {},
-      breadcrumbs: [{ displayName: 'Pipeline Versions', href: RoutePage.PIPELINE_DETAILS }],
+      breadcrumbs: [{ displayName: 'Pipeline Versions', href: RoutePage.NEW_PIPELINE_VERSION }],
       pageTitle: 'Upload Pipeline or Pipeline Version',
     };
   }
@@ -179,7 +179,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
           {/* Two subpages: one for creating version under existing pipeline and one for creating version under new pipeline */}
           <div className={classes(commonCss.flex, padding(10, 'b'))}>
             <FormControlLabel
-              id='createPipelineVersionUnderNewPipelineBtn'
+              id='createNewPipelineBtn'
               label='Create a new pipeline'
               checked={newPipeline === true}
               control={<Radio color='primary' />}
@@ -458,7 +458,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
             </React.Fragment>
           )}
 
-          {/* Create pipeline version */}
+          {/* Create pipeline or pipeline version */}
           <div className={commonCss.flex}>
             <BusyButton
               id='createPipelineVersionBtn'
@@ -550,6 +550,7 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
                 .default_version!
             : this.state.newPipeline && this.state.importMethod === ImportMethod.URL
             ? (await Apis.pipelineServiceApi.createPipeline({
+                description: this.state.pipelineDescription,
                 name: this.state.pipelineName!,
                 url: { pipeline_url: this.state.packageUrl },
               })).default_version!
