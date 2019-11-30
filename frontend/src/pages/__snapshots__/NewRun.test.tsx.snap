@@ -3692,6 +3692,38 @@ exports[`NewRun starting a new recurring run includes additional trigger input f
       value=""
       variant="outlined"
     />
+    <Component
+      InputProps={
+        Object {
+          "classes": Object {
+            "disabled": "nonEditableInput",
+          },
+          "endAdornment": <WithStyles(InputAdornment)
+            position="end"
+          >
+            <WithStyles(Button)
+              color="secondary"
+              id="choosePipelineVersionBtn"
+              onClick={[Function]}
+              style={
+                Object {
+                  "margin": 0,
+                  "padding": "3px 5px",
+                }
+              }
+            >
+              Choose
+            </WithStyles(Button)>
+          </WithStyles(InputAdornment)>,
+          "readOnly": true,
+        }
+      }
+      disabled={true}
+      label="Pipeline Version"
+      required={true}
+      value=""
+      variant="outlined"
+    />
     <WithStyles(Dialog)
       PaperProps={
         Object {
@@ -3831,6 +3863,148 @@ exports[`NewRun starting a new recurring run includes additional trigger input f
           onClick={[Function]}
         >
           Use this pipeline
+        </WithStyles(Button)>
+      </WithStyles(DialogActions)>
+    </WithStyles(Dialog)>
+    <WithStyles(Dialog)
+      PaperProps={
+        Object {
+          "id": "pipelineVersionSelectorDialog",
+        }
+      }
+      classes={
+        Object {
+          "paper": "selectorDialog",
+        }
+      }
+      onClose={[Function]}
+      open={false}
+    >
+      <WithStyles(DialogContent)>
+        <ResourceSelector
+          columns={
+            Array [
+              Object {
+                "flex": 1,
+                "label": "Version name",
+                "sortKey": "name",
+              },
+              Object {
+                "customRenderer": [Function],
+                "flex": 2,
+                "label": "Description",
+              },
+              Object {
+                "flex": 1,
+                "label": "Uploaded on",
+                "sortKey": "created_at",
+              },
+            ]
+          }
+          emptyMessage="No pipeline versions found. Select or upload a pipeline then try again."
+          filterLabel="Filter pipeline versions"
+          history={
+            Object {
+              "push": [MockFunction],
+              "replace": [MockFunction],
+            }
+          }
+          initialSortColumn="created_at"
+          listApi={[Function]}
+          location={
+            Object {
+              "pathname": "/runs/new",
+              "search": "?recurring=1",
+            }
+          }
+          match=""
+          selectionChanged={[Function]}
+          title="Choose a pipeline version"
+          toolbarActionMap={
+            Object {
+              "uploadPipeline": Object {
+                "action": [Function],
+                "icon": [Function],
+                "id": "uploadBtn",
+                "outlined": true,
+                "style": Object {
+                  "minWidth": 160,
+                },
+                "title": "Upload pipeline",
+                "tooltip": "Create a new pipeline and its first version",
+              },
+            }
+          }
+          toolbarProps={
+            Object {
+              "actions": Object {},
+              "breadcrumbs": Array [
+                Object {
+                  "displayName": "Experiments",
+                  "href": "/experiments",
+                },
+              ],
+              "pageTitle": "Start a new run",
+            }
+          }
+          updateBanner={
+            [MockFunction] {
+              "calls": Array [
+                Array [
+                  Object {},
+                ],
+              ],
+            }
+          }
+          updateDialog={[MockFunction]}
+          updateSnackbar={[MockFunction]}
+          updateToolbar={
+            [MockFunction] {
+              "calls": Array [
+                Array [
+                  Object {
+                    "actions": Object {},
+                    "breadcrumbs": Array [
+                      Object {
+                        "displayName": "Experiments",
+                        "href": "/experiments",
+                      },
+                    ],
+                    "pageTitle": "Start a new run",
+                  },
+                ],
+                Array [
+                  Object {
+                    "actions": Object {},
+                    "breadcrumbs": Array [
+                      Object {
+                        "displayName": "Experiments",
+                        "href": "/experiments",
+                      },
+                    ],
+                    "pageTitle": "Start a recurring run",
+                  },
+                ],
+              ],
+            }
+          }
+        />
+      </WithStyles(DialogContent)>
+      <WithStyles(DialogActions)>
+        <WithStyles(Button)
+          color="secondary"
+          id="cancelPipelineVersionSelectionBtn"
+          onClick={[Function]}
+        >
+          Cancel
+        </WithStyles(Button)>
+        <WithStyles(Button)
+          color="secondary"
+          disabled={true}
+          id="usePipelineVersionBtn"
+          onClick={[Function]}
+        >
+          Use this pipeline version
         </WithStyles(Button)>
       </WithStyles(DialogActions)>
     </WithStyles(Dialog)>

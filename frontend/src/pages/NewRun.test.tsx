@@ -1311,7 +1311,8 @@ describe('NewRun', () => {
       const props = generateProps();
       props.location.search =
         `?${QUERY_PARAMS.experimentId}=${MOCK_EXPERIMENT.id}` +
-        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`;
+        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}` +
+        `&${QUERY_PARAMS.pipelineVersionId}=${MOCK_PIPELINE_VERSION.id}`;
 
       TestUtils.makeErrorResponseOnce(startRunSpy, 'test error message');
 
@@ -1348,7 +1349,7 @@ describe('NewRun', () => {
 
       expect(updateDialogSpy).toHaveBeenCalledTimes(1);
       expect(updateDialogSpy.mock.calls[0][0]).toMatchObject({
-        content: 'Cannot start run without pipeline',
+        content: 'Cannot start run without pipeline version',
         title: 'Run creation failed',
       });
     });
@@ -1357,7 +1358,8 @@ describe('NewRun', () => {
       const props = generateProps();
       props.location.search =
         `?${QUERY_PARAMS.experimentId}=${MOCK_EXPERIMENT.id}` +
-        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`;
+        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}` +
+        `&${QUERY_PARAMS.pipelineVersionId}=${MOCK_PIPELINE_VERSION.id}`;
 
       TestUtils.makeErrorResponseOnce(startRunSpy, 'test error message');
 
@@ -1378,7 +1380,8 @@ describe('NewRun', () => {
       const props = generateProps();
       props.location.search =
         `?${QUERY_PARAMS.experimentId}=${MOCK_EXPERIMENT.id}` +
-        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`;
+        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}` +
+        `&${QUERY_PARAMS.pipelineVersionId}=${MOCK_PIPELINE_VERSION.id}`;
 
       tree = shallow(<TestNewRun {...props} />);
       (tree.instance() as TestNewRun).handleChange('runName')({
@@ -1425,7 +1428,8 @@ describe('NewRun', () => {
       props.location.search =
         `?${QUERY_PARAMS.isRecurring}=1` +
         `&${QUERY_PARAMS.experimentId}=${MOCK_EXPERIMENT.id}` +
-        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`;
+        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}` +
+        `&${QUERY_PARAMS.pipelineVersionId}=${MOCK_PIPELINE_VERSION.id}`;
 
       tree = TestUtils.mountWithRouter(<TestNewRun {...props} />);
       const instance = tree.instance() as TestNewRun;
@@ -1449,7 +1453,6 @@ describe('NewRun', () => {
         name: 'test run name',
         pipeline_spec: {
           parameters: MOCK_PIPELINE.parameters,
-          pipeline_id: MOCK_PIPELINE.id,
         },
         resource_references: [
           {
@@ -1458,6 +1461,13 @@ describe('NewRun', () => {
               type: ApiResourceType.EXPERIMENT,
             },
             relationship: ApiRelationship.OWNER,
+          },
+          {
+            key: {
+              id: MOCK_PIPELINE_VERSION.id,
+              type: ApiResourceType.PIPELINEVERSION,
+            },
+            relationship: ApiRelationship.CREATOR,
           },
         ],
         // Default trigger
@@ -1476,7 +1486,8 @@ describe('NewRun', () => {
       props.location.search =
         `?${QUERY_PARAMS.isRecurring}=1` +
         `&${QUERY_PARAMS.experimentId}=${MOCK_EXPERIMENT.id}` +
-        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`;
+        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}` +
+        `&${QUERY_PARAMS.pipelineVersionId}=${MOCK_PIPELINE_VERSION.id}`;
 
       tree = shallow(<TestNewRun {...props} />);
       (tree.instance() as TestNewRun).handleChange('runName')({
@@ -1502,7 +1513,8 @@ describe('NewRun', () => {
       props.location.search =
         `?${QUERY_PARAMS.isRecurring}=1` +
         `&${QUERY_PARAMS.experimentId}=${MOCK_EXPERIMENT.id}` +
-        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`;
+        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}` +
+        `&${QUERY_PARAMS.pipelineVersionId}=${MOCK_PIPELINE_VERSION.id}`;
 
       tree = shallow(<TestNewRun {...props} />);
       (tree.instance() as TestNewRun).handleChange('runName')({
@@ -1528,7 +1540,8 @@ describe('NewRun', () => {
       props.location.search =
         `?${QUERY_PARAMS.isRecurring}=1` +
         `&${QUERY_PARAMS.experimentId}=${MOCK_EXPERIMENT.id}` +
-        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`;
+        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}` +
+        `&${QUERY_PARAMS.pipelineVersionId}=${MOCK_PIPELINE_VERSION.id}`;
 
       tree = shallow(<TestNewRun {...props} />);
       (tree.instance() as TestNewRun).handleChange('runName')({
@@ -1554,7 +1567,8 @@ describe('NewRun', () => {
       props.location.search =
         `?${QUERY_PARAMS.isRecurring}=1` +
         `&${QUERY_PARAMS.experimentId}=${MOCK_EXPERIMENT.id}` +
-        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`;
+        `&${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}` +
+        `&${QUERY_PARAMS.pipelineVersionId}=${MOCK_PIPELINE_VERSION.id}`;
 
       tree = shallow(<TestNewRun {...props} />);
       (tree.instance() as TestNewRun).handleChange('runName')({
