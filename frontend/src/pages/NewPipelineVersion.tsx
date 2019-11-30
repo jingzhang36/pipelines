@@ -537,6 +537,11 @@ class NewPipelineVersion extends Page<{}, NewPipelineVersionState> {
     );
   }
 
+  // To call _onDrop from test, so make a protected method
+  protected _onDropForTest(files: File[]): void {
+    this._onDrop(files);
+  }
+
   private async _create(): Promise<void> {
     this.setState({ isbeingCreated: true }, async () => {
       try {

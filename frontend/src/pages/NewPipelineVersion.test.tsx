@@ -25,6 +25,7 @@ import { ApiResourceType } from '../apis/pipeline';
 
 class TestNewPipelineVersion extends NewPipelineVersion {
   public _pipelineSelectorClosed = super._pipelineSelectorClosed;
+  public _onDropForTest = super._onDropForTest;
 }
 
 describe('NewPipelineVersion', () => {
@@ -40,6 +41,7 @@ describe('NewPipelineVersion', () => {
   let getPipelineSpy: jest.SpyInstance<{}>;
   let createPipelineSpy: jest.SpyInstance<{}>;
   let createPipelineVersionSpy: jest.SpyInstance<{}>;
+  let uploadPipelineSpy: jest.SpyInstance<{}>;
 
   let MOCK_PIPELINE = {
     id: 'original-run-pipeline-id',
@@ -94,6 +96,7 @@ describe('NewPipelineVersion', () => {
     getPipelineSpy = jest.spyOn(Apis.pipelineServiceApi, 'getPipeline').mockImplementation(() => MOCK_PIPELINE);
     createPipelineVersionSpy = jest.spyOn(Apis.pipelineServiceApi, 'createPipelineVersion').mockImplementation(() => MOCK_PIPELINE_VERSION);
     createPipelineSpy = jest.spyOn(Apis.pipelineServiceApi, 'createPipeline').mockImplementation(() => MOCK_PIPELINE);
+    uploadPipelineSpy = jest.spyOn(Apis, 'uploadPipeline').mockImplementation(() => MOCK_PIPELINE);
   });
 
   afterEach(async () => {
@@ -272,6 +275,26 @@ describe('NewPipelineVersion', () => {
           pipeline_url: "https://dummy_package_url",
         },
       });
+    });
+
+    it('creates pipeline from local file', async () => {
+      tree = shallow(<NewPipelineVersion {...generateProps()} />);
+
+      // Set local file, pipeline name and click create
+      tree.find('#localPackageBtn').simulate('change');
+      (tree.instance() as TestNewPipelineVersion).handleChange('pipelineName')({
+        target: { value: 'test pipeline name' },
+      });
+      const file = new File(['file contents'], 'file_name', { type: 'text/plain' });
+      (tree.instance() as TestNewPipelineVersion)._onDropForTest([file]);
+      tree.find('#createPipelineVersionBtn').simulate('click');
+
+      tree.update();
+      await TestUtils.flushPromises();
+
+      expect(tree.state('importMethod')).toBe(ImportMethod.LOCAL);
+      expect(uploadPipelineSpy).toHaveBeenLastCalledWith('test pipeline name', file);
+      expect(createPipelineSpy).not.toHaveBeenCalled();
     });
   })
 });
