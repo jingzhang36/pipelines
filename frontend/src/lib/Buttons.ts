@@ -36,6 +36,7 @@ export enum ButtonKeys {
   ENABLE_RECURRING_RUN = 'enableRecurringRun',
   EXPAND = 'expand',
   NEW_EXPERIMENT = 'newExperiment',
+  NEW_PIPELINE_VERSION = 'newPipelineVersion',
   NEW_RUN = 'newRun',
   NEW_RECURRING_RUN = 'newRecurringRun',
   NEW_RUN_FROM_PIPELINE_VERSION = 'newRunFromPipelineVersion',
@@ -43,7 +44,6 @@ export enum ButtonKeys {
   RESTORE = 'restore',
   TERMINATE_RUN = 'terminateRun',
   UPLOAD_PIPELINE = 'uploadPipeline',
-  NEW_PIPELINE_VERSION = 'newPipelineVersion',
 }
 
 export default class Buttons {
