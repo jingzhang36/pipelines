@@ -56,7 +56,7 @@ describe('NewPipelineVersion', () => {
             type: ApiResourceType.PIPELINE,
           },
           relationship: 1,
-        }
+        },
       ],
     },
   };
@@ -71,7 +71,7 @@ describe('NewPipelineVersion', () => {
           type: ApiResourceType.PIPELINE,
         },
         relationship: 1,
-      }
+      },
     ],
   };
 
@@ -93,9 +93,15 @@ describe('NewPipelineVersion', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    getPipelineSpy = jest.spyOn(Apis.pipelineServiceApi, 'getPipeline').mockImplementation(() => MOCK_PIPELINE);
-    createPipelineVersionSpy = jest.spyOn(Apis.pipelineServiceApi, 'createPipelineVersion').mockImplementation(() => MOCK_PIPELINE_VERSION);
-    createPipelineSpy = jest.spyOn(Apis.pipelineServiceApi, 'createPipeline').mockImplementation(() => MOCK_PIPELINE);
+    getPipelineSpy = jest
+      .spyOn(Apis.pipelineServiceApi, 'getPipeline')
+      .mockImplementation(() => MOCK_PIPELINE);
+    createPipelineVersionSpy = jest
+      .spyOn(Apis.pipelineServiceApi, 'createPipelineVersion')
+      .mockImplementation(() => MOCK_PIPELINE_VERSION);
+    createPipelineSpy = jest
+      .spyOn(Apis.pipelineServiceApi, 'createPipeline')
+      .mockImplementation(() => MOCK_PIPELINE);
     uploadPipelineSpy = jest.spyOn(Apis, 'uploadPipeline').mockImplementation(() => MOCK_PIPELINE);
   });
 
@@ -129,7 +135,11 @@ describe('NewPipelineVersion', () => {
     });
 
     it('creates pipeline version is default when landing from pipeline details page', () => {
-      tree = shallow(<TestNewPipelineVersion {...generateProps(`?${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`)} />);
+      tree = shallow(
+        <TestNewPipelineVersion
+          {...generateProps(`?${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`)}
+        />,
+      );
 
       // When landing from pipeline list page, the default is to create pipeline
       expect(tree.state('newPipeline')).toBe(false);
@@ -142,11 +152,15 @@ describe('NewPipelineVersion', () => {
       tree.find('#createPipelineVersionUnderExistingPipelineBtn').simulate('change');
       expect(tree.state('newPipeline')).toBe(false);
     });
-  })
+  });
 
   describe('creating version under an existing pipeline', () => {
     it('does not include any action buttons in the toolbar', async () => {
-      tree = shallow(<TestNewPipelineVersion {...generateProps(`?${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`)} />);
+      tree = shallow(
+        <TestNewPipelineVersion
+          {...generateProps(`?${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`)}
+        />,
+      );
       await TestUtils.flushPromises();
 
       expect(updateToolbarSpy).toHaveBeenLastCalledWith({
@@ -158,37 +172,59 @@ describe('NewPipelineVersion', () => {
     });
 
     it('allows updating pipeline version name', async () => {
-      tree = shallow(<TestNewPipelineVersion {...generateProps(`?${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`)} />);
+      tree = shallow(
+        <TestNewPipelineVersion
+          {...generateProps(`?${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`)}
+        />,
+      );
       await TestUtils.flushPromises();
 
-      (tree.instance() as TestNewPipelineVersion).handleChange('pipelineVersionName')({ target: { value: 'version name' } });
+      (tree.instance() as TestNewPipelineVersion).handleChange('pipelineVersionName')({
+        target: { value: 'version name' },
+      });
 
       expect(tree.state()).toHaveProperty('pipelineVersionName', 'version name');
       expect(getPipelineSpy).toHaveBeenCalledTimes(1);
     });
 
     it('allows updating package url', async () => {
-      tree = shallow(<TestNewPipelineVersion {...generateProps(`?${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`)} />);
+      tree = shallow(
+        <TestNewPipelineVersion
+          {...generateProps(`?${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`)}
+        />,
+      );
       await TestUtils.flushPromises();
 
-      (tree.instance() as TestNewPipelineVersion).handleChange('packageUrl')({ target: { value: 'https://dummy' } });
+      (tree.instance() as TestNewPipelineVersion).handleChange('packageUrl')({
+        target: { value: 'https://dummy' },
+      });
 
       expect(tree.state()).toHaveProperty('packageUrl', 'https://dummy');
       expect(getPipelineSpy).toHaveBeenCalledTimes(1);
     });
 
     it('allows updating code source', async () => {
-      tree = shallow(<TestNewPipelineVersion {...generateProps(`?${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`)} />);
+      tree = shallow(
+        <TestNewPipelineVersion
+          {...generateProps(`?${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`)}
+        />,
+      );
       await TestUtils.flushPromises();
 
-      (tree.instance() as TestNewPipelineVersion).handleChange('codeSourceUrl')({ target: { value: 'https://dummy' } });
+      (tree.instance() as TestNewPipelineVersion).handleChange('codeSourceUrl')({
+        target: { value: 'https://dummy' },
+      });
 
       expect(tree.state()).toHaveProperty('codeSourceUrl', 'https://dummy');
       expect(getPipelineSpy).toHaveBeenCalledTimes(1);
     });
 
     it("sends a request to create a version when 'Create' is clicked", async () => {
-      tree = shallow(<TestNewPipelineVersion {...generateProps(`?${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`)} />);
+      tree = shallow(
+        <TestNewPipelineVersion
+          {...generateProps(`?${QUERY_PARAMS.pipelineId}=${MOCK_PIPELINE.id}`)}
+        />,
+      );
       await TestUtils.flushPromises();
 
       (tree.instance() as TestNewPipelineVersion).handleChange('pipelineVersionName')({
@@ -208,7 +244,7 @@ describe('NewPipelineVersion', () => {
         code_source_url: '',
         name: 'test version name',
         package_url: {
-          pipeline_url: "https://dummy_package_url",
+          pipeline_url: 'https://dummy_package_url',
         },
         resource_references: [
           {
@@ -223,7 +259,7 @@ describe('NewPipelineVersion', () => {
     });
 
     // TODO(jingzhang36): test error dialog if creating pipeline version fails
-  })
+  });
 
   describe('creating new pipeline', () => {
     it('renders the new pipeline page', async () => {
@@ -272,7 +308,7 @@ describe('NewPipelineVersion', () => {
         description: 'test pipeline description',
         name: 'test pipeline name',
         url: {
-          pipeline_url: "https://dummy_package_url",
+          pipeline_url: 'https://dummy_package_url',
         },
       });
     });
@@ -296,5 +332,5 @@ describe('NewPipelineVersion', () => {
       expect(uploadPipelineSpy).toHaveBeenLastCalledWith('test pipeline name', file);
       expect(createPipelineSpy).not.toHaveBeenCalled();
     });
-  })
+  });
 });

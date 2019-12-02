@@ -131,22 +131,14 @@ class PipelineDetails extends Page<{}, PipelineDetailsState> {
     buttons
       .newRunFromPipelineVersion(
         () => {
-          return this.state.pipeline
-            ? this.state.pipeline.id!
-            : pipelineIdFromParams
-            ? pipelineIdFromParams
-            : '';
+          return pipelineIdFromParams ? pipelineIdFromParams : '';
         },
         () => {
-          return this.state.selectedVersion
-            ? this.state.selectedVersion.id!
-            : pipelineVersionIdFromParams
-            ? pipelineVersionIdFromParams
-            : '';
+          return pipelineVersionIdFromParams ? pipelineVersionIdFromParams : '';
         },
       )
       .newPipelineVersion('Upload pipeline version', () =>
-        this.state.pipeline ? this.state.pipeline.id! : '',
+        pipelineIdFromParams ? pipelineIdFromParams : '',
       );
 
     if (fromRunId) {
