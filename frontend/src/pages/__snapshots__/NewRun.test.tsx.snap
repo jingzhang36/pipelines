@@ -88,7 +88,7 @@ exports[`NewRun arriving from pipeline details page indicates that a pipeline is
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -230,7 +230,7 @@ exports[`NewRun arriving from pipeline details page indicates that a pipeline is
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -692,7 +692,7 @@ exports[`NewRun changes the exit button's text if query params indicate this is 
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -838,7 +838,7 @@ exports[`NewRun changes the exit button's text if query params indicate this is 
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -1308,7 +1308,7 @@ exports[`NewRun changes title and form if the new run will recur, based on the r
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -1459,7 +1459,7 @@ exports[`NewRun changes title and form if the new run will recur, based on the r
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -1950,7 +1950,7 @@ exports[`NewRun changes title and form to default state if the new run is a one-
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -2097,7 +2097,7 @@ exports[`NewRun changes title and form to default state if the new run is a one-
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -2569,7 +2569,7 @@ exports[`NewRun fetches the associated pipeline if one is present in the query p
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -2711,7 +2711,7 @@ exports[`NewRun fetches the associated pipeline if one is present in the query p
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -3173,7 +3173,7 @@ exports[`NewRun renders the new run page 1`] = `
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -3319,7 +3319,7 @@ exports[`NewRun renders the new run page 1`] = `
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -3789,7 +3789,7 @@ exports[`NewRun starting a new recurring run includes additional trigger input f
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -3931,7 +3931,7 @@ exports[`NewRun starting a new recurring run includes additional trigger input f
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -4357,7 +4357,7 @@ exports[`NewRun starting a new run copies pipeline from run in the start API cal
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -4516,7 +4516,7 @@ exports[`NewRun starting a new run copies pipeline from run in the start API cal
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -4991,7 +4991,7 @@ exports[`NewRun starting a new run updates the parameters in state on handlePara
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -5150,7 +5150,7 @@ exports[`NewRun starting a new run updates the parameters in state on handlePara
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -5649,7 +5649,7 @@ exports[`NewRun starting a new run updates the pipeline params as user selects d
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -5795,7 +5795,7 @@ exports[`NewRun starting a new run updates the pipeline params as user selects d
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -6265,7 +6265,7 @@ exports[`NewRun starting a new run updates the pipeline params as user selects d
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -6411,7 +6411,7 @@ exports[`NewRun starting a new run updates the pipeline params as user selects d
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -6892,7 +6892,7 @@ exports[`NewRun starting a new run updates the pipeline params as user selects d
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -7038,7 +7038,7 @@ exports[`NewRun starting a new run updates the pipeline params as user selects d
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -7508,7 +7508,7 @@ exports[`NewRun updates the run's state with the associated experiment if one is
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
@@ -7654,7 +7654,7 @@ exports[`NewRun updates the run's state with the associated experiment if one is
                   "minWidth": 160,
                 },
                 "title": "Upload pipeline",
-                "tooltip": "Create a new pipeline and its first version",
+                "tooltip": "Upload pipeline",
               },
             }
           }
