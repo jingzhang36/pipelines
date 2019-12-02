@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-import { orderBy } from 'lodash';
-import { ApiParameter } from 'src/apis/pipeline';
-import { Workflow } from 'third_party/argo-ui/argo_template';
-import { ApiJob } from '../apis/job';
-import {
-  ApiPipelineRuntime,
-  ApiResourceReference,
-  ApiResourceType,
-  ApiRun,
-  ApiRunDetail,
-} from '../apis/run';
-import { logger } from './Utils';
+import {orderBy} from 'lodash';
+import {ApiParameter, ApiPipelineVersion} from 'src/apis/pipeline';
+import {Workflow} from 'third_party/argo-ui/argo_template';
+import {ApiJob} from '../apis/job';
+import {ApiPipelineRuntime, ApiResourceReference, ApiResourceType, ApiRun, ApiRunDetail} from '../apis/run';
+import {logger} from './Utils';
 import WorkflowParser from './WorkflowParser';
 
 export interface MetricMetadata {
@@ -76,6 +70,18 @@ function getPipelineVersionId(run?: ApiRun | ApiJob): string | null {
         ref => ref.key && ref.key.type && ref.key.type === ApiResourceType.PIPELINEVERSION,
       )!.key!.id!
     : null;
+}
+
+function getPipelineIdFromApiPipelineVersion(pipelineVersion?: ApiPipelineVersion) : string | undefined {
+  return pipelineVersion &&
+    pipelineVersion.resource_references &&
+    pipelineVersion.resource_references.some(
+      ref => ref.key && ref.key.type && ref.key.type === ApiResourceType.PIPELINE,
+    )
+    ? pipelineVersion.resource_references.find(
+      ref => ref.key && ref.key.type && ref.key.type === ApiResourceType.PIPELINE,
+    )!.key!.id!
+    : undefined;
 }
 
 function getWorkflowManifest(run?: ApiRun | ApiJob): string | null {
@@ -165,6 +171,7 @@ export default {
   getPipelineId,
   getPipelineName,
   getPipelineVersionId,
+  getPipelineIdFromApiPipelineVersion,
   getRecurringRunId,
   getWorkflowManifest,
   runsToMetricMetadataMap,

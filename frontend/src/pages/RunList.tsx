@@ -19,7 +19,6 @@ import CustomTable, { Column, Row, CustomRendererProps } from '../components/Cus
 import Metric from '../components/Metric';
 import RunUtils, { MetricMetadata, ExperimentInfo } from '../../src/lib/RunUtils';
 import {
-  ApiResourceType,
   ApiRun,
   ApiRunMetric,
   RunStorageState,
@@ -420,12 +419,7 @@ class RunList extends React.PureComponent<RunListProps, RunListState> {
         const pipelineVersionName = pipelineVersion.name || '';
         displayRun.pipelineVersion = {
           displayName: pipelineVersionName,
-          pipelineId:
-            pipelineVersion &&
-            pipelineVersion.resource_references &&
-            pipelineVersion.resource_references.find(
-              ref => ref.key && ref.key.type && ref.key.type === ApiResourceType.PIPELINE,
-            )!.key!.id!,
+          pipelineId: RunUtils.getPipelineIdFromApiPipelineVersion(pipelineVersion),
           usePlaceholder: false,
           versionId: pipelineVersionId,
         };
