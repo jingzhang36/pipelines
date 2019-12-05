@@ -36,7 +36,7 @@ exports.config = {
     //TODO:Reduce the timeout once the tests become shorter
     timeout: debug ? 99999999 : 1200000,
   },
-  logLevel: 'silent',
+  logLevel: 'verbose',
   reporters: debug ? [] : ['dot', 'junit'],
   reporterOptions: debug ? {} : {
     junit: {

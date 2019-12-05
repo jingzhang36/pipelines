@@ -18,6 +18,7 @@ set -xe
 
 # K8s Namespace that all resources deployed to
 NAMESPACE=kubeflow
+RESULTS_GCS_DIR=gs://jingzhangjz-kfp/e2etest
 
 usage()
 {
@@ -27,37 +28,36 @@ usage()
     [-h help]"
 }
 
-while [ "$1" != "" ]; do
-    case $1 in
-             --results-gcs-dir )shift
-                                RESULTS_GCS_DIR=$1
-                                ;;
-             --namespace )      shift
-                                NAMESPACE=$1
-                                ;;
-             -h | --help )      usage
-                                exit
-                                ;;
-             * )                usage
-                                exit 1
-    esac
-    shift
-done
+# while [ "$1" != "" ]; do
+#     case $1 in
+#              --results-gcs-dir )shift
+#                                 RESULTS_GCS_DIR=$1
+#                                 ;;
+#              --namespace )      shift
+#                                 NAMESPACE=$1
+#                                 ;;
+#              -h | --help )      usage
+#                                 exit
+#                                 ;;
+#              * )                usage
+#                                 exit 1
+#     esac
+#     shift
+# done
 
 if [ -z "$RESULTS_GCS_DIR" ]; then
     usage
     exit 1
 fi
 
-if [[ ! -z "${GOOGLE_APPLICATION_CREDENTIALS}" ]]; then
-  gcloud auth activate-service-account --key-file="${GOOGLE_APPLICATION_CREDENTIALS}"
-fi
+gcloud auth activate-service-account --key-file=./key_file.json
+gcloud container clusters get-credentials integration-test --zone us-central1-a --project jingzhangjz-experiment
 
 npm install
 
 # Port forward the UI so tests can work against localhost
-POD=`kubectl get pods -n ${NAMESPACE} -l app=ml-pipeline-ui -o jsonpath='{.items[0].metadata.name}'`
-kubectl port-forward -n ${NAMESPACE} ${POD} 3000:3000 &
+# POD=`kubectl get pods -n ${NAMESPACE} -l app=ml-pipeline-ui -o jsonpath='{.items[0].metadata.name}'`
+# kubectl port-forward -n ${NAMESPACE} deployment/ml-pipeline-ui 3000:3000 &
 
 # Run Selenium server
 /opt/bin/entry_point.sh &
