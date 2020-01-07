@@ -131,7 +131,7 @@ images:
 
 
 substitutions:
-  _CODE_PATH: /workspace/kaggle
+  _CODE_PATH: /workspace/kaggle-ci-sample
   _NAMESPACE: kubeflow
   _GCR_PATH: gcr.io/jingzhangjz-project
   _GS_BUCKET: jingzhangjz-project-outputs
