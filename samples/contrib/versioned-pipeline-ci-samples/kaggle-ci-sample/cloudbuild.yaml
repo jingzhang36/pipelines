@@ -16,6 +16,14 @@ steps:
   - name: "gcr.io/cloud-builders/docker"
     args:
       [
+        "push",
+        "${_GCR_PATH}/kaggle_download:latest",
+      ]
+    id: "PushDownloadDataImage"
+
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
         "build",
         "-t",
         "${_GCR_PATH}/kaggle_visualize_table:$COMMIT_SHA",
