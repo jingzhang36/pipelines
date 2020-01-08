@@ -14,7 +14,7 @@ def kaggle_houseprice(
         name ='download dataset',
         image = os.path.join('gcr.io/jingzhangjz-project', 'kaggle_download:latest'),
         command = ['python', 'download_data.py'],
-        arguments = ["--bucket_name", bucket_name],
+        arguments = ["--bucket_name", 'gs://jingzhangjz-project-outputs'],
         file_outputs = {
             'train_dataset': '/train.txt',
             'test_dataset': '/test.txt'
@@ -34,7 +34,7 @@ def kaggle_houseprice(
         image = os.path.join('gcr.io/jingzhangjz-project', 'kaggle_visualize_html:latest'),
         command = ['python', 'visualize.py'],
         arguments = ['--train_file_path', '%s' % stepDownloadData.outputs['train_dataset'],
-                     '--bucket_name', bucket_name],
+                     '--bucket_name', 'gs://jingzhangjz-project-outputs'],
         output_artifact_paths={'mlpipeline-ui-metadata': '/mlpipeline-ui-metadata.json'}
     ).apply(use_gcp_secret('user-gcp-sa'))
 
@@ -44,7 +44,7 @@ def kaggle_houseprice(
         command = ['python', 'train.py'],
         arguments = ['--train_file',  '%s' % stepDownloadData.outputs['train_dataset'],
                      '--test_file', '%s' % stepDownloadData.outputs['test_dataset'],
-                     '--output_bucket', 'gs://'+bucket_name
+                     '--output_bucket', 'gs://jingzhangjz-project-outputs'
                      ],
         file_outputs = {'result': '/result_path.txt'}
     ).apply(use_gcp_secret('user-gcp-sa'))
