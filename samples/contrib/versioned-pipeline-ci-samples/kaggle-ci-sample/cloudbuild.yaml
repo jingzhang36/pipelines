@@ -132,7 +132,6 @@ steps:
     id: "KaggleUploadPipeline"
     waitFor: ["KagglePackagePipeline"]
 
-
   # - name: "gcr.io/cloud-builders/kubectl"
   #   entrypoint: "/bin/sh"
   #   args: [
