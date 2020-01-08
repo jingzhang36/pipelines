@@ -19,5 +19,3 @@ if __name__ == '__main__':
     downoadResult(args.result_file)
     import os
     os.system("kaggle competitions submit -c house-prices-advanced-regression-techniques -f submission.csv -m " + args.submit_message)
-
-    
