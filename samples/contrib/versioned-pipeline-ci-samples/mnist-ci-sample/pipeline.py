@@ -23,7 +23,7 @@ def mnist_pipeline(
        command = ['python', '/mnist.py'],
        arguments = ['--storage_bucket', storage_bucket],
        file_outputs = {'logdir': '/logdir.txt'},
-   ).apply(use_gcp_secret('user-gcp-sa'))
+   )#.apply(use_gcp_secret('user-gcp-sa'))
 
    visualize_step = dsl.ContainerOp(
       name = 'visualize training result with tensorboard',
@@ -31,7 +31,7 @@ def mnist_pipeline(
       command = ['python', '/tensorboard.py'],
       arguments = ['--logdir', '%s' % train_step.outputs['logdir']],
       output_artifact_paths={'mlpipeline-ui-metadata': '/mlpipeline-ui-metadata.json'}
-   ).apply(use_gcp_secret('user-gcp-sa'))
+   )#.apply(use_gcp_secret('user-gcp-sa'))
 
 if __name__ == '__main__':
    import kfp.compiler as compiler

@@ -19,7 +19,7 @@ def kaggle_houseprice(
             'train_dataset': '/train.txt',
             'test_dataset': '/test.txt'
             }
-    ).apply(use_gcp_secret('user-gcp-sa'))
+    )#.apply(use_gcp_secret('user-gcp-sa'))
 
     # stepVisualizeTable = dsl.ContainerOp(
     #     name = 'visualize dataset in table',
@@ -47,7 +47,7 @@ def kaggle_houseprice(
                      '--output_bucket', 'gs://jingzhangjz-project-outputs'
                      ],
         file_outputs = {'result': '/result_path.txt'}
-    ).apply(use_gcp_secret('user-gcp-sa'))
+    )#.apply(use_gcp_secret('user-gcp-sa'))
 
     stepSubmitResult = dsl.ContainerOp(
         name = 'submit result to kaggle competition',
@@ -55,7 +55,7 @@ def kaggle_houseprice(
         command = ['python', 'submit_result.py'],
         arguments = ['--result_file', '%s' % stepTrainModel.outputs['result'],
                      '--submit_message', 'submit']
-    ).apply(use_gcp_secret('user-gcp-sa'))
+    )#.apply(use_gcp_secret('user-gcp-sa'))
 
 if __name__ == '__main__':
     import kfp.compiler as compiler

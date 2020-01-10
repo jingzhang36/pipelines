@@ -34,7 +34,7 @@ def helloworld_ci_pipeline(
     train = dsl.ContainerOp(
         name='mnist train',
         image = os.path.join(gcr_address, 'mnist_train:', args.commit_id)
-    ).apply(use_gcp_secret('user-gcp-sa'))
+    )# .apply(use_gcp_secret('user-gcp-sa'))
 
 
 if __name__ == '__main__':
