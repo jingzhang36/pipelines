@@ -288,6 +288,7 @@ class RunDetails extends Page<RunDetailsProps, RunDetailsState> {
                                 {sidepanelSelectedTab === SidePaneTab.ARTIFACTS && (
                                   <div className={commonCss.page}>
                                     {(selectedNodeDetails.viewerConfigs || []).map((config, i) => {
+                                      console.log('config.type: ' + config.type);
                                       if (config.type == PlotType.MARKDOWN) {
                                         return <div></div>;
                                       } else {
