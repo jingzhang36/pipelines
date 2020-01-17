@@ -50,6 +50,7 @@ export class OutputArtifactLoader {
       if (metadataFile) {
         try {
           plotMetadataList = (JSON.parse(metadataFile) as OutputMetadata).outputs;
+          console.log('outputs: ' + JSON.stringify(plotMetadataList));
           if (plotMetadataList === undefined) {
             throw new Error('"outputs" field required by not found on metadata file');
           }

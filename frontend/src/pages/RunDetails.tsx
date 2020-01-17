@@ -237,7 +237,7 @@ class RunDetails extends Page<RunDetailsProps, RunDetailsState> {
       allowCustomVisualizations,
       isBusy: isGeneratingVisualization,
       onGenerate: (visualizationArguments: string, source: string, type: ApiVisualizationType) => {
-        this._onTFGenerate(visualizationArguments, source, type);
+        this._onGenerate(visualizationArguments, source, type);
       },
       type: PlotType.VISUALIZATION_CREATOR,
     };
@@ -288,8 +288,8 @@ class RunDetails extends Page<RunDetailsProps, RunDetailsState> {
                                 {sidepanelSelectedTab === SidePaneTab.ARTIFACTS && (
                                   <div className={commonCss.page}>
                                     {(selectedNodeDetails.viewerConfigs || []).map((config, i) => {
-                                      console.log('config.type: ' + config.type);
                                       if (config.type == PlotType.MARKDOWN) {
+                                        this._markdownVisualization();
                                         return <div></div>;
                                       } else {
                                         const title = componentMap[
@@ -775,14 +775,11 @@ class RunDetails extends Page<RunDetailsProps, RunDetailsState> {
       for (const path of outputPaths) {
         viewerConfigs = viewerConfigs.concat(await OutputArtifactLoader.load(path));
       }
-      console.log('A');
-      console.log(viewerConfigs);
+      console.log('1');
       const generatedConfigs = generatedVisualizations
         .filter(visualization => visualization.nodeId === selectedNodeDetails.id)
         .map(visualization => visualization.config);
       viewerConfigs = viewerConfigs.concat(generatedConfigs);
-      console.log('B');
-      console.log(viewerConfigs);
 
       selectedNodeDetails.viewerConfigs = viewerConfigs;
       this.setStateSafe({ selectedNodeDetails });
@@ -875,9 +872,6 @@ class RunDetails extends Page<RunDetailsProps, RunDetailsState> {
         selectedNodeDetails.viewerConfigs = viewerConfigs;
       }
       this.setState({ generatedVisualizations, selectedNodeDetails });
-      console.log('C');
-      console.log(generatedVisualizations);
-      console.log('D');
       if (selectedNodeDetails) {
         console.log(selectedNodeDetails.viewerConfigs);
       }
@@ -891,56 +885,54 @@ class RunDetails extends Page<RunDetailsProps, RunDetailsState> {
     }
   }
 
-  private async _onTFGenerate(
-    visualizationArguments: string,
-    source: string,
-    type: ApiVisualizationType,
-  ): Promise<void> {
+  private async _markdownVisualization(): Promise<void> {
     const nodeId = this.state.selectedNodeDetails ? this.state.selectedNodeDetails.id : '';
     if (nodeId.length === 0) {
       this.showPageError('Unable to generate visualization, no component selected.');
       return;
     }
 
-    const script = ['import tensorflow_data_validation as tfdv',
-    'stats = tfdv.load_statistics(\'gs://jingzhangjz-project-outputs/tfx_taxi_simple/e9582623-bded-44d6-8cad-f5e1c3ac0417/StatisticsGen/output/62/eval/stats_tfrecord\')',
-    'tfdv.visualize_statistics(stats)'];
-    const fixedAugments = JSON.parse('{}');
-    fixedAugments.code = script;
-    console.log(JSON.stringify(fixedAugments));
-    const visualizationData: ApiVisualization = {
-      arguments: JSON.stringify(fixedAugments),
-      source: '',
-      type: ApiVisualizationType.CUSTOM,
-    };
-    try {
-      const config = await Apis.buildPythonVisualizationConfig(visualizationData);
-      const { generatedVisualizations, selectedNodeDetails } = this.state;
-      const generatedVisualization: GeneratedVisualization = {
-        config,
-        nodeId,
-      };
-      console.log('2');
-      generatedVisualizations.push(generatedVisualization);
-      if (selectedNodeDetails) {
-        const viewerConfigs = selectedNodeDetails.viewerConfigs || [];
-        viewerConfigs.push(generatedVisualization.config);
-        selectedNodeDetails.viewerConfigs = viewerConfigs;
-      }
-      this.setState({ generatedVisualizations, selectedNodeDetails });
-      console.log('C');
-      console.log(generatedVisualizations);
-      console.log('D');
-      if (selectedNodeDetails) {
-        console.log(selectedNodeDetails.viewerConfigs);
-      }
-    } catch (err) {
-      this.showPageError(
-        'Unable to generate visualization, an unexpected error was encountered.',
-        err,
-      );
-    } finally {
-    }
+    console.log(this.state.selectedNodeDetails);
+
+    // const script = ['import tensorflow_data_validation as tfdv',
+    // 'stats = tfdv.load_statistics(\'gs://jingzhangjz-project-outputs/tfx_taxi_simple/e9582623-bded-44d6-8cad-f5e1c3ac0417/StatisticsGen/output/62/eval/stats_tfrecord\')',
+    // 'tfdv.visualize_statistics(stats)'];
+    // const fixedAugments = JSON.parse('{}');
+    // fixedAugments.code = script;
+    // console.log(JSON.stringify(fixedAugments));
+    // const visualizationData: ApiVisualization = {
+    //   arguments: JSON.stringify(fixedAugments),
+    //   source: '',
+    //   type: ApiVisualizationType.CUSTOM,
+    // };
+    // try {
+    //   const config = await Apis.buildPythonVisualizationConfig(visualizationData);
+    //   const { generatedVisualizations, selectedNodeDetails } = this.state;
+    //   const generatedVisualization: GeneratedVisualization = {
+    //     config,
+    //     nodeId,
+    //   };
+    //   console.log('2');
+    //   generatedVisualizations.push(generatedVisualization);
+    //   if (selectedNodeDetails) {
+    //     const viewerConfigs = selectedNodeDetails.viewerConfigs || [];
+    //     viewerConfigs.push(generatedVisualization.config);
+    //     selectedNodeDetails.viewerConfigs = viewerConfigs;
+    //   }
+    //   this.setState({ generatedVisualizations, selectedNodeDetails });
+    //   console.log('C');
+    //   console.log(generatedVisualizations);
+    //   console.log('D');
+    //   if (selectedNodeDetails) {
+    //     console.log(selectedNodeDetails.viewerConfigs);
+    //   }
+    // } catch (err) {
+    //   this.showPageError(
+    //     'Unable to generate visualization, an unexpected error was encountered.',
+    //     err,
+    //   );
+    // } finally {
+    // }
   }
 }
 
