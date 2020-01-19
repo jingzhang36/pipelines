@@ -172,10 +172,7 @@ class VisualizationCreator extends Viewer<VisualizationCreatorProps, Visualizati
             if (onGenerate && selectedType) {
               const specifiedArguments: any = JSON.parse(_arguments || '{}');
               if (selectedType === ApiVisualizationType.CUSTOM) {
-                console.log("why");
-                console.log(code);
                 specifiedArguments.code = code.split('\n');
-                console.log(JSON.stringify(specifiedArguments));
               }
               onGenerate(JSON.stringify(specifiedArguments), source, selectedType);
             }

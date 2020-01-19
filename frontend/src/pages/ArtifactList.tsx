@@ -135,6 +135,7 @@ class ArtifactList extends Page<{}, ArtifactListState> {
 
     const artifacts = (res && res.getArtifactsList()) || [];
     await this.getRowsFromArtifacts(request, artifacts);
+    console.log(JSON.stringify(artifacts));
     return '';
   }
 

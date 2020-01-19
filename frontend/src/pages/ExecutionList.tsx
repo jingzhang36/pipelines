@@ -133,6 +133,8 @@ class ExecutionList extends Page<{}, ExecutionListState> {
 
     const executions = (res && res.getExecutionsList()) || [];
     await this.getRowsFromExecutions(request, executions);
+    console.log('1');
+    console.log(JSON.stringify(executions));
     return '';
   }
 
@@ -206,6 +208,8 @@ class ExecutionList extends Page<{}, ExecutionListState> {
         .sort(rowCompareFn(request, this.state.columns)),
     );
 
+    console.log('2');
+    console.log(JSON.stringify(executions));
     this.setState({
       executions,
       expandedRows: collapsedAndExpandedRows.expandedRows,

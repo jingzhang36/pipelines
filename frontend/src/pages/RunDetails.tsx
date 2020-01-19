@@ -775,7 +775,6 @@ class RunDetails extends Page<RunDetailsProps, RunDetailsState> {
       for (const path of outputPaths) {
         viewerConfigs = viewerConfigs.concat(await OutputArtifactLoader.load(path));
       }
-      console.log('1');
       const generatedConfigs = generatedVisualizations
         .filter(visualization => visualization.nodeId === selectedNodeDetails.id)
         .map(visualization => visualization.config);
@@ -845,7 +844,6 @@ class RunDetails extends Page<RunDetailsProps, RunDetailsState> {
     if (visualizationArguments.length) {
       try {
         // Attempts to validate JSON, if attempt fails an error is displayed.
-        console.log(visualizationArguments);
         JSON.parse(visualizationArguments);
       } catch (err) {
         this.showPageError('Unable to generate visualization, invalid JSON provided.', err);
@@ -872,9 +870,6 @@ class RunDetails extends Page<RunDetailsProps, RunDetailsState> {
         selectedNodeDetails.viewerConfigs = viewerConfigs;
       }
       this.setState({ generatedVisualizations, selectedNodeDetails });
-      if (selectedNodeDetails) {
-        console.log(selectedNodeDetails.viewerConfigs);
-      }
     } catch (err) {
       this.showPageError(
         'Unable to generate visualization, an unexpected error was encountered.',
@@ -892,7 +887,7 @@ class RunDetails extends Page<RunDetailsProps, RunDetailsState> {
       return;
     }
 
-    console.log(this.state.selectedNodeDetails);
+    console.log(JSON.stringify(this.state.selectedNodeDetails));
 
     // const script = ['import tensorflow_data_validation as tfdv',
     // 'stats = tfdv.load_statistics(\'gs://jingzhangjz-project-outputs/tfx_taxi_simple/e9582623-bded-44d6-8cad-f5e1c3ac0417/StatisticsGen/output/62/eval/stats_tfrecord\')',
