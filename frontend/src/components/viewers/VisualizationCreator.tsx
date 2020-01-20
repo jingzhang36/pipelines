@@ -166,8 +166,8 @@ class VisualizationCreator extends Viewer<VisualizationCreatorProps, Visualizati
         )}
         <BusyButton
           title='Generate Visualization'
-          busy={false} // {isBusy}
-          disabled={false} // {!canGenerate}
+          busy={isBusy}
+          disabled={!canGenerate}
           onClick={() => {
             if (onGenerate && selectedType) {
               const specifiedArguments: any = JSON.parse(_arguments || '{}');

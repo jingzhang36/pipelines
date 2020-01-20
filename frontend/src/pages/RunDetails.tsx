@@ -42,6 +42,7 @@ import { Page } from './Page';
 import { RoutePage, RouteParams } from '../components/Router';
 import { ToolbarProps } from '../components/Toolbar';
 import { ViewerConfig, PlotType } from '../components/viewers/Viewer';
+import { MarkdownViewerConfig } from '../components/viewers/MarkdownViewer';
 import { Workflow } from '../../third_party/argo-ui/argo_template';
 import { classes, stylesheet } from 'typestyle';
 import { commonCss, padding, color, fonts, fontsize } from '../Css';
@@ -887,47 +888,54 @@ class RunDetails extends Page<RunDetailsProps, RunDetailsState> {
       return;
     }
 
-    console.log(JSON.stringify(this.state.selectedNodeDetails));
+    const viewerConfig = this.state.selectedNodeDetails!.viewerConfigs![0] as MarkdownViewerConfig;
+    // const found = JSON.stringify(viewerConfig.markdownContent).match(/Artifact: output.*uri/g);
+    const outputConfigStr = viewerConfig.markdownContent.substr(viewerConfig.markdownContent.search('# Outputs:'));
+    const outputConfigs = outputConfigStr.split('\n\n');
+    // console.log(viewerConfig.markdownContent);
+    const outputPaths = outputConfigs.filter(item => item.startsWith('**uri**:')).map(item => item.substr(8).trim());
+    console.log(outputPaths);
 
-    // const script = ['import tensorflow_data_validation as tfdv',
-    // 'stats = tfdv.load_statistics(\'gs://jingzhangjz-project-outputs/tfx_taxi_simple/e9582623-bded-44d6-8cad-f5e1c3ac0417/StatisticsGen/output/62/eval/stats_tfrecord\')',
-    // 'tfdv.visualize_statistics(stats)'];
-    // const fixedAugments = JSON.parse('{}');
-    // fixedAugments.code = script;
-    // console.log(JSON.stringify(fixedAugments));
-    // const visualizationData: ApiVisualization = {
-    //   arguments: JSON.stringify(fixedAugments),
-    //   source: '',
-    //   type: ApiVisualizationType.CUSTOM,
-    // };
-    // try {
-    //   const config = await Apis.buildPythonVisualizationConfig(visualizationData);
-    //   const { generatedVisualizations, selectedNodeDetails } = this.state;
-    //   const generatedVisualization: GeneratedVisualization = {
-    //     config,
-    //     nodeId,
-    //   };
-    //   console.log('2');
-    //   generatedVisualizations.push(generatedVisualization);
-    //   if (selectedNodeDetails) {
-    //     const viewerConfigs = selectedNodeDetails.viewerConfigs || [];
-    //     viewerConfigs.push(generatedVisualization.config);
-    //     selectedNodeDetails.viewerConfigs = viewerConfigs;
-    //   }
-    //   this.setState({ generatedVisualizations, selectedNodeDetails });
-    //   console.log('C');
-    //   console.log(generatedVisualizations);
-    //   console.log('D');
-    //   if (selectedNodeDetails) {
-    //     console.log(selectedNodeDetails.viewerConfigs);
-    //   }
-    // } catch (err) {
-    //   this.showPageError(
-    //     'Unable to generate visualization, an unexpected error was encountered.',
-    //     err,
-    //   );
-    // } finally {
-    // }
+    const script = ['import tensorflow_data_validation as tfdv',
+    'stats = tfdv.load_statistics(\'' + outputPaths[0] + 'stats_tfrecord\')',
+    'tfdv.visualize_statistics(stats)'];
+    const fixedAugments = JSON.parse('{}');
+    fixedAugments.code = script;
+    console.log(JSON.stringify(fixedAugments));
+    const visualizationData: ApiVisualization = {
+      arguments: JSON.stringify(fixedAugments),
+      source: '',
+      type: ApiVisualizationType.CUSTOM,
+    };
+
+    try {
+      const config = await Apis.buildPythonVisualizationConfig(visualizationData);
+      const { generatedVisualizations, selectedNodeDetails } = this.state;
+      const generatedVisualization: GeneratedVisualization = {
+        config,
+        nodeId,
+      };
+      console.log('2');
+      generatedVisualizations.push(generatedVisualization);
+      if (selectedNodeDetails) {
+        const viewerConfigs = selectedNodeDetails.viewerConfigs || [];
+        viewerConfigs.push(generatedVisualization.config);
+        selectedNodeDetails.viewerConfigs = viewerConfigs;
+      }
+      this.setState({ generatedVisualizations, selectedNodeDetails });
+      console.log('C');
+      console.log(generatedVisualizations);
+      console.log('D');
+      if (selectedNodeDetails) {
+        console.log(selectedNodeDetails.viewerConfigs);
+      }
+    } catch (err) {
+      this.showPageError(
+        'Unable to generate visualization, an unexpected error was encountered.',
+        err,
+      );
+    } finally {
+    }
   }
 }
 

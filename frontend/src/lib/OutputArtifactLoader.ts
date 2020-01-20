@@ -46,6 +46,7 @@ export class OutputArtifactLoader {
   public static async load(outputPath: StoragePath): Promise<ViewerConfig[]> {
     let plotMetadataList: PlotMetadata[] = [];
     try {
+      // console.log(outputPath);
       const metadataFile = await Apis.readFile(outputPath);
       if (metadataFile) {
         try {

@@ -110,9 +110,10 @@ class VisualizationHandler(tornado.web.RequestHandler):
             code = arguments.get("code", [])
             nb.cells.append(exporter.create_cell_from_custom_code(code))
         else:
+            print("JING", Path.cwd())
             visualization_file = str(Path.cwd() / "types/{}.py".format(visualization_type))
             nb.cells.append(exporter.create_cell_from_file(visualization_file))
-        
+
         return nb
 
     def get(self):

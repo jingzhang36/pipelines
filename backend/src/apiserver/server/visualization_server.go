@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/golang/glog"
 	"github.com/kubeflow/pipelines/backend/api/go_client"
-	"github.com/kubeflow/pipelines/backend/src/apiserver/resource"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/common"
+	"github.com/kubeflow/pipelines/backend/src/apiserver/resource"
 	"github.com/kubeflow/pipelines/backend/src/common/util"
 	"io/ioutil"
 	"net/http"
@@ -18,8 +18,8 @@ import (
 )
 
 type VisualizationServer struct {
-	resourceManager    *resource.ResourceManager
-	serviceURL         string
+	resourceManager *resource.ResourceManager
+	serviceURL      string
 }
 
 func (s *VisualizationServer) CreateVisualization(ctx context.Context, request *go_client.CreateVisualizationRequest) (*go_client.Visualization, error) {
@@ -73,12 +73,16 @@ func (s *VisualizationServer) generateVisualizationFromRequest(request *go_clien
 		)
 	}
 	visualizationType := strings.ToLower(go_client.Visualization_Type_name[int32(request.Visualization.Type)])
+	fmt.Printf("JING visualization request: %+v\n", request)
+	fmt.Printf("JING visualization type: %+s\n", visualizationType)
 	urlValues := url.Values{
 		"arguments": {request.Visualization.Arguments},
-		"source": {request.Visualization.Source},
-		"type": {visualizationType},
+		"source":    {request.Visualization.Source},
+		"type":      {visualizationType},
 	}
+	fmt.Printf("JING service URL: %+v\n", s.serviceURL)
 	resp, err := http.PostForm(s.serviceURL, urlValues)
+	fmt.Printf("JING response: %+v\n", resp)
 	if err != nil {
 		return nil, util.Wrap(err, "Unable to initialize visualization request.")
 	}
@@ -105,7 +109,7 @@ func isVisualizationServiceAlive(serviceURL string) bool {
 func NewVisualizationServer(resourceManager *resource.ResourceManager, serviceHost string, servicePort string) *VisualizationServer {
 	serviceURL := fmt.Sprintf("http://%s:%s", serviceHost, servicePort)
 	return &VisualizationServer{
-		resourceManager:    resourceManager,
-		serviceURL:         serviceURL,
+		resourceManager: resourceManager,
+		serviceURL:      serviceURL,
 	}
 }
