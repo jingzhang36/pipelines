@@ -290,7 +290,8 @@ class RunDetails extends Page<RunDetailsProps, RunDetailsState> {
                                   <div className={commonCss.page}>
                                     {(selectedNodeDetails.viewerConfigs || []).map((config, i) => {
                                       if (config.type == PlotType.MARKDOWN) {
-                                        this._markdownVisualization();
+                                        //this._markdownVisualization();
+                                        console.log('many times');
                                         return <div></div>;
                                       } else {
                                         const title = componentMap[
