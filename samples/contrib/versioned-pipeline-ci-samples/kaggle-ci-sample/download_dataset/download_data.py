@@ -7,7 +7,8 @@ def processAndUpload(
 ):
     from google.cloud import storage
     storage_client = storage.Client()
-    bucket = storage_client.get_bucket(bucket_name)
+    # Strip gs:// from bucket_name to use with storage_client
+    bucket = storage_client.get_bucket(bucket_name.lstrip('gs://'))
     train_blob = bucket.blob('train.csv')
     test_blob = bucket.blob('test.csv')
     train_blob.upload_from_filename('train.csv')
