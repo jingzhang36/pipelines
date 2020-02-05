@@ -122,15 +122,15 @@ steps:
       ]
     id: "KagglePackagePipeline"
 
-  - name: "gcr.io/cloud-builders/gsutil"
-    args:
-      [
-        "cp",
-        "/workspace/pipeline.zip",
-        "gs://${_GS_BUCKET}/$COMMIT_SHA/pipeline.zip"
-      ]
-    id: "KaggleUploadPipeline"
-    waitFor: ["KagglePackagePipeline"]
+  # - name: "gcr.io/cloud-builders/gsutil"
+  #   args:
+  #     [
+  #       "cp",
+  #       "/workspace/pipeline.zip",
+  #       "gs://${_GS_BUCKET}/$COMMIT_SHA/pipeline.zip"
+  #     ]
+  #   id: "KaggleUploadPipeline"
+  #   waitFor: ["KagglePackagePipeline"]
 
   # - name: "gcr.io/cloud-builders/kubectl"
   #   entrypoint: "/bin/sh"

@@ -38,24 +38,24 @@ def kaggle_houseprice(
     #     output_artifact_paths={'mlpipeline-ui-metadata': '/mlpipeline-ui-metadata.json'}
     # ).apply(use_gcp_secret('user-gcp-sa'))
 
-    stepTrainModel = dsl.ContainerOp(
-        name = 'train model',
-        image = os.path.join('gcr.io/jingzhangjz-project', 'kaggle_train:latest'),
-        command = ['python', 'train.py'],
-        arguments = ['--train_file',  '%s' % stepDownloadData.outputs['train_dataset'],
-                     '--test_file', '%s' % stepDownloadData.outputs['test_dataset'],
-                     '--output_bucket', 'gs://jingzhangjz-project-outputs'
-                     ],
-        file_outputs = {'result': '/result_path.txt'}
-    )#.apply(use_gcp_secret('user-gcp-sa'))
+    # stepTrainModel = dsl.ContainerOp(
+    #     name = 'train model',
+    #     image = os.path.join('gcr.io/jingzhangjz-project', 'kaggle_train:latest'),
+    #     command = ['python', 'train.py'],
+    #     arguments = ['--train_file',  '%s' % stepDownloadData.outputs['train_dataset'],
+    #                  '--test_file', '%s' % stepDownloadData.outputs['test_dataset'],
+    #                  '--output_bucket', 'gs://jingzhangjz-project-outputs'
+    #                  ],
+    #     file_outputs = {'result': '/result_path.txt'}
+    # )
 
-    stepSubmitResult = dsl.ContainerOp(
-        name = 'submit result to kaggle competition',
-        image = os.path.join('gcr.io/jingzhangjz-project', 'kaggle_submit:latest'),
-        command = ['python', 'submit_result.py'],
-        arguments = ['--result_file', '%s' % stepTrainModel.outputs['result'],
-                     '--submit_message', 'submit']
-    )#.apply(use_gcp_secret('user-gcp-sa'))
+    # stepSubmitResult = dsl.ContainerOp(
+    #     name = 'submit result to kaggle competition',
+    #     image = os.path.join('gcr.io/jingzhangjz-project', 'kaggle_submit:latest'),
+    #     command = ['python', 'submit_result.py'],
+    #     arguments = ['--result_file', '%s' % stepTrainModel.outputs['result'],
+    #                  '--submit_message', 'submit']
+    # )
 
 if __name__ == '__main__':
     import kfp.compiler as compiler
