@@ -21,13 +21,13 @@ def kaggle_houseprice(
             }
     )
 
-    # stepVisualizeTable = dsl.ContainerOp(
-    #     name = 'visualize dataset in table',
-    #     image = os.path.join('gcr.io/jingzhangjz-project', 'kaggle_visualize_table:latest'),
-    #     command = ['python', 'visualize.py'],
-    #     arguments = ['--train_file_path', '%s' % stepDownloadData.outputs['train_dataset']],
-    #     output_artifact_paths={'mlpipeline-ui-metadata': '/mlpipeline-ui-metadata.json'}
-    # )
+    stepVisualizeTable = dsl.ContainerOp(
+        name = 'visualize dataset in table',
+        image = os.path.join('gcr.io/jingzhangjz-project', 'kaggle_visualize_table:latest'),
+        command = ['python', 'visualize.py'],
+        arguments = ['--train_file_path', '%s' % stepDownloadData.outputs['train_dataset']],
+        output_artifact_paths={'mlpipeline-ui-metadata': '/mlpipeline-ui-metadata.json'}
+    )
 
     # stepVisualizeHTML = dsl.ContainerOp(
     #     name = 'visualize dataset in html',
