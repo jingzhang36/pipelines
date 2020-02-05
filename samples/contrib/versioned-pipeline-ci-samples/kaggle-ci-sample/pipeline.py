@@ -14,12 +14,12 @@ def kaggle_houseprice(
         name ='download dataset',
         image = os.path.join('gcr.io/jingzhangjz-project', 'kaggle_download:latest'),
         command = ['python', 'download_data.py'],
-        arguments = ["--bucket_name", 'gs://jingzhangjz-project-outputs'],
+        arguments = ["--bucket_name", bucket_name],
         file_outputs = {
             'train_dataset': '/train.txt',
             'test_dataset': '/test.txt'
             }
-    )#.apply(use_gcp_secret('user-gcp-sa'))
+    )
 
     # stepVisualizeTable = dsl.ContainerOp(
     #     name = 'visualize dataset in table',
