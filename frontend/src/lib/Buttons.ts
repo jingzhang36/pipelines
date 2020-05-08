@@ -152,7 +152,7 @@ export default class Buttons {
   // or recurring run config.
   public delete(
     getSelectedIds: () => string[],
-    resourceName: 'pipeline' | 'recurring run config' | 'pipeline version' | 'run',
+    resourceName: 'pipeline' | 'recurring run config' | 'pipeline version' | 'run' | 'experiment',
     callback: (selectedIds: string[], success: boolean) => void,
     useCurrentResource: boolean,
   ): Buttons {
@@ -164,6 +164,8 @@ export default class Buttons {
           ? this._deletePipelineVersion(getSelectedIds(), useCurrentResource, callback)
           : resourceName === 'run'
           ? this._deleteRun(getSelectedIds(), useCurrentResource, callback)
+          : resourceName === 'experiment'
+          ? this._deleteExperiments(getSelectedIds(), useCurrentResource, callback)
           : this._deleteRecurringRun(getSelectedIds()[0], useCurrentResource, callback),
       disabled: !useCurrentResource,
       disabledTitle: useCurrentResource
@@ -878,7 +880,6 @@ export default class Buttons {
     useCurrent: boolean,
     callback: (selectedIds: string[], success: boolean) => void,
   ): void {
-    console.log('experiment selected: ' + selectedIds);
     this._dialogActionHandler(
       selectedIds,
       `Experiment${s(selectedIds)} will be moved to the Archive section, where you can still view${
@@ -890,6 +891,22 @@ export default class Buttons {
       id => Apis.experimentServiceApi.archiveExperiment(id),
       callback,
       'Archive',
+      'experiment',
+    );
+  }
+
+  private _deleteExperiments(
+    selectedIds: string[],
+    useCurrent: boolean,
+    callback: (selectedIds: string[], success: boolean) => void,
+  ): void {
+    this._dialogActionHandler(
+      selectedIds,
+      'Do you want to delete the selected experiments? This action cannot be undone.',
+      useCurrent,
+      id => Apis.experimentServiceApi.deleteExperiment(id),
+      callback,
+      'Delete',
       'experiment',
     );
   }

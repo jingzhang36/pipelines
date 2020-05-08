@@ -296,6 +296,14 @@ export class ExperimentDetails extends Page<{}, ExperimentDetailsState> {
       experiment.storage_state === ExperimentStorageState.ARCHIVED
         ? buttons.restore('experiment', idGetter, true, () => this.refresh())
         : buttons.archive('experiment', idGetter, true, () => this.refresh());
+      if (experiment.storage_state === ExperimentStorageState.ARCHIVED) {
+        buttons.delete(
+          () => [experimentId],
+          'experiment',
+          this._deleteCallback.bind(this),
+          true /* useCurrentResource */,
+        );
+      }
       const actions = buttons.getToolbarActionMap();
       this.props.updateToolbar({
         actions,
@@ -354,6 +362,16 @@ export class ExperimentDetails extends Page<{}, ExperimentDetailsState> {
     this.setState({ recurringRunsManagerOpen: false });
     // Reload the details to get any updated recurring runs
     this.refresh();
+  }
+
+  private _deleteCallback(_: string[], success: boolean): void {
+    if (success) {
+      const breadcrumbs = this.props.toolbarProps.breadcrumbs;
+      const previousPage = breadcrumbs.length
+        ? breadcrumbs[breadcrumbs.length - 1].href
+        : RoutePage.ARCHIVED_EXPERIMENTS;
+      this.props.history.push(previousPage);
+    }
   }
 }
 
