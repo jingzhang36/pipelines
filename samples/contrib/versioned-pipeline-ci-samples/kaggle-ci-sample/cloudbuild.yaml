@@ -162,7 +162,7 @@ steps:
         --gcr_address ${_GCR_PATH}"
       ]
     env:
-      - "CLOUDSDK_COMPUTE_ZONE=asia-east1-a	"
+      - "CLOUDSDK_COMPUTE_ZONE=asia-east1-a"
       - "CLOUDSDK_CONTAINER_CLUSTER=kfp-2"
     id: "KaggleCreatePipelineVersionAndRun"
 
