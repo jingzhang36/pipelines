@@ -179,4 +179,4 @@ substitutions:
   _NAMESPACE: kubeflow
   _GCR_PATH: gcr.io/jingzhangjz-project
   _GS_BUCKET: gcr.io/jingzhangjz-project-outputs
-  _PIPELINE_ID: 66994532-f418-4e81-b0d4-0459fe5d4ed8
+  _PIPELINE_ID: f9d4a65a-9667-45dc-bd3b-24eced154db6
