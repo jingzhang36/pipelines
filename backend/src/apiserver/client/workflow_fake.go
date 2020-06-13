@@ -16,6 +16,7 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/kubeflow/pipelines/backend/src/common/util"
@@ -46,6 +47,7 @@ func (c *FakeWorkflowClient) Create(workflow *v1alpha1.Workflow) (*v1alpha1.Work
 		workflow.Name = workflow.GenerateName + strconv.Itoa(c.lastGeneratedId)
 		workflow.GenerateName = ""
 	}
+	fmt.Printf("Create workflow with name %+v\n", workflow.Name)
 	c.workflows[workflow.Name] = workflow
 	return workflow, nil
 }
