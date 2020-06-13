@@ -16,7 +16,6 @@ package client
 
 import (
 	"encoding/json"
-	"fmt"
 	"strconv"
 
 	"github.com/kubeflow/pipelines/backend/src/common/util"
@@ -78,7 +77,6 @@ func (c *FakeWorkflowClient) Update(workflow *v1alpha1.Workflow) (*v1alpha1.Work
 }
 
 func (c *FakeWorkflowClient) Delete(name string, options *v1.DeleteOptions) error {
-	fmt.Printf("delete in fake workflow: %+v\n", name)
 	delete(c.workflows, name)
 	return nil
 }

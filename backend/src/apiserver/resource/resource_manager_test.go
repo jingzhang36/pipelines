@@ -780,10 +780,6 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 				Key:          &api.ResourceKey{Type: api.ResourceType_EXPERIMENT, Id: experiment.UUID},
 				Relationship: api.Relationship_OWNER,
 			},
-			// {
-			// 	Key:          &api.ResourceKey{Type: api.ResourceType_PIPELINE_VERSION, Id: version.UUID},
-			// 	Relationship: api.Relationship_CREATOR,
-			// },
 		},
 		ServiceAccount: "sa1",
 	}
