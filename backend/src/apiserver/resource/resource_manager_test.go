@@ -757,8 +757,10 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 	// assert.Nil(t, err)
 
 	// Create the first and the second run, named "run1" and "run2" respectively.
+	nowTime := time.Now()
 	workflowForRun1 := util.NewWorkflow(testWorkflow.DeepCopy())
 	workflowForRun1.Name = "workflow1"
+	workflowForRun1.CreationTimestamp = v1.NewTime(nowTime)
 	apiRun := &api.Run{
 		Name: "run1",
 		PipelineSpec: &api.PipelineSpec{
@@ -772,10 +774,6 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 				Key:          &api.ResourceKey{Type: api.ResourceType_EXPERIMENT, Id: experiment.UUID},
 				Relationship: api.Relationship_OWNER,
 			},
-			// {
-			// 	Key:          &api.ResourceKey{Type: api.ResourceType_PIPELINE_VERSION, Id: version.UUID},
-			// 	Relationship: api.Relationship_CREATOR,
-			// },
 		},
 		ServiceAccount: "sa1",
 	}
@@ -783,6 +781,7 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 	assert.Nil(t, err)
 	workflowForRun2 := util.NewWorkflow(testWorkflow.DeepCopy())
 	workflowForRun2.Name = "workflow2"
+	workflowForRun2.CreationTimestamp = v1.NewTime(nowTime.Add(1))
 	apiRun = &api.Run{
 		Name: "run2",
 		PipelineSpec: &api.PipelineSpec{
@@ -815,6 +814,7 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 	// Create the third run and will end up with the first run being deleted.
 	workflowForRun3 := util.NewWorkflow(testWorkflow.DeepCopy())
 	workflowForRun3.Name = "workflow3"
+	workflowForRun3.CreationTimestamp = v1.NewTime(nowTime.Add(2))
 	apiRun = &api.Run{
 		Name: "run3",
 		PipelineSpec: &api.PipelineSpec{
@@ -828,17 +828,13 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 				Key:          &api.ResourceKey{Type: api.ResourceType_EXPERIMENT, Id: experiment.UUID},
 				Relationship: api.Relationship_OWNER,
 			},
-			// {
-			// 	Key:          &api.ResourceKey{Type: api.ResourceType_PIPELINE_VERSION, Id: version.UUID},
-			// 	Relationship: api.Relationship_CREATOR,
-			// },
 		},
 		ServiceAccount: "sa1",
 	}
 	_, err = manager.CreateRun(apiRun)
 	assert.Nil(t, err)
 
-	// Expect two runs and two workflows. Moreover, workflow1
+	// Expect two runs and two workflows. Moreover, workflow1 is replaced by workflow3.
 	opts, err = list.NewOptions(&model.Run{}, 2, "", nil)
 	runs, _, _, _ = manager.ListRuns(&common.FilterContext{}, opts)
 	assert.Equal(t, 2, len(runs), "Run count is not as expected")
@@ -847,56 +843,6 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 	for _, wf := range retrievedWorkflows.Items {
 		assert.Contains(t, [2]string{"workflow2", "workflow3"}, wf.Name)
 	}
-
-	// expectedRuntimeWorkflow := testWorkflow.DeepCopy()
-	// expectedRuntimeWorkflow.Spec.Arguments.Parameters = []v1alpha1.Parameter{
-	// 	{Name: "param1", Value: util.StringPointer("world")}}
-	// expectedRuntimeWorkflow.Labels = map[string]string{util.LabelKeyWorkflowRunId: "123e4567-e89b-12d3-a456-426655440000"}
-	// expectedRuntimeWorkflow.Annotations = map[string]string{util.AnnotationKeyRunName: "run1"}
-	// expectedRuntimeWorkflow.Spec.ServiceAccountName = "sa1"
-	// expectedRunDetail := &model.RunDetail{
-	// 	Run: model.Run{
-	// 		UUID:           "123e4567-e89b-12d3-a456-426655440000",
-	// 		ExperimentUUID: experiment.UUID,
-	// 		DisplayName:    "run1",
-	// 		Name:           "workflow-name",
-	// 		Namespace:      "ns1",
-	// 		ServiceAccount: "sa1",
-	// 		StorageState:   api.Run_STORAGESTATE_AVAILABLE.String(),
-	// 		CreatedAtInSec: 4,
-	// 		Conditions:     "Running",
-	// 		PipelineSpec: model.PipelineSpec{
-	// 			WorkflowSpecManifest: testWorkflow.ToStringForStore(),
-	// 			Parameters:           "[{\"name\":\"param1\",\"value\":\"world\"}]",
-	// 		},
-	// 		ResourceReferences: []*model.ResourceReference{
-	// 			{
-	// 				ResourceUUID:  "123e4567-e89b-12d3-a456-426655440000",
-	// 				ResourceType:  common.Run,
-	// 				ReferenceUUID: experiment.UUID,
-	// 				ReferenceName: "e1",
-	// 				ReferenceType: common.Experiment,
-	// 				Relationship:  common.Owner,
-	// 			},
-	// 			{
-	// 				ResourceUUID:  "123e4567-e89b-12d3-a456-426655440000",
-	// 				ResourceType:  common.Run,
-	// 				ReferenceUUID: version.UUID,
-	// 				ReferenceName: "version_for_run",
-	// 				ReferenceType: common.PipelineVersion,
-	// 				Relationship:  common.Creator,
-	// 			},
-	// 		},
-	// 	},
-	// 	PipelineRuntime: model.PipelineRuntime{
-	// 		WorkflowRuntimeManifest: util.NewWorkflow(expectedRuntimeWorkflow).ToStringForStore(),
-	// 	},
-	// }
-	// assert.Equal(t, expectedRunDetail, runDetail, "The CreateRun return has unexpected value.")
-	// assert.Equal(t, 1, store.ArgoClientFake.GetWorkflowCount(), "Workflow CRD is not created.")
-	// runDetail, err = manager.GetRun(runDetail.UUID)
-	// assert.Nil(t, err)
-	// assert.Equal(t, expectedRunDetail, runDetail, "CreateRun stored invalid data in database")
 }
 
 func TestDeleteRun(t *testing.T) {
