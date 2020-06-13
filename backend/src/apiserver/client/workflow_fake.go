@@ -47,7 +47,7 @@ func (c *FakeWorkflowClient) Create(workflow *v1alpha1.Workflow) (*v1alpha1.Work
 		workflow.Name = workflow.GenerateName + strconv.Itoa(c.lastGeneratedId)
 		workflow.GenerateName = ""
 	}
-	fmt.Printf("Create workflow with name %+v\n", workflow.Name)
+	fmt.Printf("Create workflow with timestamp %+v\n", workflow.CreationTimestamp)
 	c.workflows[workflow.Name] = workflow
 	return workflow, nil
 }

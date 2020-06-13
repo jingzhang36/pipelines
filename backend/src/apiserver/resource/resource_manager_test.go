@@ -813,8 +813,40 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 	assert.Equal(t, 2, store.ArgoClientFake.GetWorkflowCount(), "Workflow count is not as expected.")
 
 	// Create the third run and will end up with the first run being deleted.
+	workflowForRun3 := util.NewWorkflow(testWorkflow.DeepCopy())
+	workflowForRun3.Name = "workflow3"
+	apiRun = &api.Run{
+		Name: "run3",
+		PipelineSpec: &api.PipelineSpec{
+			WorkflowManifest: workflowForRun3.ToStringForStore(),
+			Parameters: []*api.Parameter{
+				{Name: "param1", Value: "world"},
+			},
+		},
+		ResourceReferences: []*api.ResourceReference{
+			{
+				Key:          &api.ResourceKey{Type: api.ResourceType_EXPERIMENT, Id: experiment.UUID},
+				Relationship: api.Relationship_OWNER,
+			},
+			// {
+			// 	Key:          &api.ResourceKey{Type: api.ResourceType_PIPELINE_VERSION, Id: version.UUID},
+			// 	Relationship: api.Relationship_CREATOR,
+			// },
+		},
+		ServiceAccount: "sa1",
+	}
+	_, err = manager.CreateRun(apiRun)
+	assert.Nil(t, err)
 
-	// Expect one run.
+	// Expect two runs and two workflows. Moreover, workflow1
+	opts, err = list.NewOptions(&model.Run{}, 2, "", nil)
+	runs, _, _, _ = manager.ListRuns(&common.FilterContext{}, opts)
+	assert.Equal(t, 2, len(runs), "Run count is not as expected")
+	assert.Equal(t, 2, store.ArgoClientFake.GetWorkflowCount(), "Workflow count is not as expected.")
+	retrievedWorkflows, err := store.ArgoClientFake.GetWorkflows()
+	fmt.Printf("w1: %+v\n", retrievedWorkflows.Items[0])
+	fmt.Printf("w2: %+v\n", retrievedWorkflows.Items[1])
+
 	// expectedRuntimeWorkflow := testWorkflow.DeepCopy()
 	// expectedRuntimeWorkflow.Spec.Arguments.Parameters = []v1alpha1.Parameter{
 	// 	{Name: "param1", Value: util.StringPointer("world")}}
