@@ -49,7 +49,7 @@ const (
 var (
 	// https://github.com/kubernetes/enhancements/blob/master/keps/sig-api-machinery/20180415-crds-to-ga.md#scale-targets-for-ga
 	maximumNumberOfWorkflowCRDs = flag.Int("max_num_workflows", 500,
-		"Maximum number of workflows allowed within the namespace before the controller starts deleting the oldest one.")
+		"Maximum number of workflows allowed within the namespace before the controller starts deleting the oldest one. Should be > 0")
 )
 
 type ClientManagerInterface interface {
@@ -389,7 +389,7 @@ func (r *ResourceManager) CreateRun(apiRun *api.Run) (*model.RunDetail, error) {
 	// The cleanup of excessive workflows here is just a best-effort attempt, since we have Persistent Agent to do garbage collection.
 	workflows, err := r.getWorkflowClient(namespace).List(v1.ListOptions{})
 	fmt.Printf("max var: %d\n", *maximumNumberOfWorkflowCRDs)
-	if err == nil && workflows != nil && len(workflows.Items) >= *maximumNumberOfWorkflowCRDs {
+	if err == nil && workflows != nil && workflows.Items != nil && len(workflows.Items) >= *maximumNumberOfWorkflowCRDs {
 		oldest := &workflows.Items[0]
 		for i := range workflows.Items {
 			if workflows.Items[i].CreationTimestamp.Time.Before(oldest.CreationTimestamp.Time) && util.NewWorkflow(&workflows.Items[i]).PersistedFinalState() {
