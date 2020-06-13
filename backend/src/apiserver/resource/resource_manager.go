@@ -387,7 +387,7 @@ func (r *ResourceManager) CreateRun(apiRun *api.Run) (*model.RunDetail, error) {
 
 	// Check if the number of workflow CRDs is already over the specified threshold. If yes, delete the oldest workflow in the persisted final state.
 	workflows, err := r.getWorkflowClient(namespace).List(v1.ListOptions{})
-	if len(workflows.Items) >= maximumNumberOfWorkflowCRDs {
+	if len(workflows.Items) >= *maximumNumberOfWorkflowCRDs {
 		oldest := &workflows.Items[0]
 		for i := range workflows.Items {
 			if workflows.Items[i].CreationTimestamp.Time.Before(oldest.CreationTimestamp.Time) && util.NewWorkflow(&workflows.Items[i]).PersistedFinalState() {
