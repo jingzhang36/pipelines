@@ -844,8 +844,9 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 	assert.Equal(t, 2, len(runs), "Run count is not as expected")
 	assert.Equal(t, 2, store.ArgoClientFake.GetWorkflowCount(), "Workflow count is not as expected.")
 	retrievedWorkflows, err := store.ArgoClientFake.GetWorkflows()
-	fmt.Printf("w1: %+v\n", retrievedWorkflows.Items[0])
-	fmt.Printf("w2: %+v\n", retrievedWorkflows.Items[1])
+	for _, wf := range retrievedWorkflows.Items {
+		assert.Contains(t, ["workflow1", "workflow2"], wf.Name)
+	}
 
 	// expectedRuntimeWorkflow := testWorkflow.DeepCopy()
 	// expectedRuntimeWorkflow.Spec.Arguments.Parameters = []v1alpha1.Parameter{
