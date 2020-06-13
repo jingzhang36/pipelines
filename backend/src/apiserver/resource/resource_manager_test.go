@@ -318,7 +318,7 @@ func TestCreateRun_ThroughPipelineID(t *testing.T) {
 	version, err := manager.CreatePipelineVersion(&api.PipelineVersion{
 		Name: "version_for_run",
 		ResourceReferences: []*api.ResourceReference{
-			{
+			&api.ResourceReference{
 				Key: &api.ResourceKey{
 					Id:   p.UUID,
 					Type: api.ResourceType_PIPELINE,
@@ -508,7 +508,7 @@ func TestCreateRun_ThroughPipelineVersion(t *testing.T) {
 	version, err := manager.CreatePipelineVersion(&api.PipelineVersion{
 		Name: "version_for_run",
 		ResourceReferences: []*api.ResourceReference{
-			{
+			&api.ResourceReference{
 				Key: &api.ResourceKey{
 					Id:   pipeline.UUID,
 					Type: api.ResourceType_PIPELINE,
@@ -733,7 +733,7 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 	version, err := manager.CreatePipelineVersion(&api.PipelineVersion{
 		Name: "version_for_run",
 		ResourceReferences: []*api.ResourceReference{
-			{
+			&api.ResourceReference{
 				Key: &api.ResourceKey{
 					Id:   pipeline.UUID,
 					Type: api.ResourceType_PIPELINE,
@@ -1091,7 +1091,7 @@ func TestCreateJob_ThroughPipelineID(t *testing.T) {
 	version, err := manager.CreatePipelineVersion(&api.PipelineVersion{
 		Name: "version_for_run",
 		ResourceReferences: []*api.ResourceReference{
-			{
+			&api.ResourceReference{
 				Key: &api.ResourceKey{
 					Id:   pipeline.UUID,
 					Type: api.ResourceType_PIPELINE,
@@ -1154,7 +1154,7 @@ func TestCreateJob_ThroughPipelineVersion(t *testing.T) {
 	version, err := manager.CreatePipelineVersion(&api.PipelineVersion{
 		Name: "version_for_job",
 		ResourceReferences: []*api.ResourceReference{
-			{
+			&api.ResourceReference{
 				Key: &api.ResourceKey{
 					Id:   pipeline.UUID,
 					Type: api.ResourceType_PIPELINE,
@@ -2213,7 +2213,7 @@ func TestCreatePipelineVersion(t *testing.T) {
 		&api.PipelineVersion{
 			Name: "p_v",
 			ResourceReferences: []*api.ResourceReference{
-				{
+				&api.ResourceReference{
 					Key: &api.ResourceKey{
 						Id:   DefaultFakeUUID,
 						Type: api.ResourceType_PIPELINE,
@@ -2254,7 +2254,7 @@ func TestCreatePipelineVersion_ComplexPipelineVersion(t *testing.T) {
 		&api.PipelineVersion{
 			Name: "pipeline_version",
 			ResourceReferences: []*api.ResourceReference{
-				{
+				&api.ResourceReference{
 					Key: &api.ResourceKey{
 						Id:   DefaultFakeUUID,
 						Type: api.ResourceType_PIPELINE,
@@ -2293,7 +2293,7 @@ func TestCreatePipelineVersion_CreatePipelineVersionFileError(t *testing.T) {
 		&api.PipelineVersion{
 			Name: "pipeline_version",
 			ResourceReferences: []*api.ResourceReference{
-				{
+				&api.ResourceReference{
 					Key: &api.ResourceKey{
 						Id:   DefaultFakeUUID,
 						Type: api.ResourceType_PIPELINE,
@@ -2329,7 +2329,7 @@ func TestCreatePipelineVersion_GetParametersError(t *testing.T) {
 		&api.PipelineVersion{
 			Name: "pipeline_version",
 			ResourceReferences: []*api.ResourceReference{
-				{
+				&api.ResourceReference{
 					Key: &api.ResourceKey{
 						Id:   DefaultFakeUUID,
 						Type: api.ResourceType_PIPELINE,
@@ -2368,7 +2368,7 @@ func TestCreatePipelineVersion_StorePipelineVersionMetadataError(t *testing.T) {
 		&api.PipelineVersion{
 			Name: "pipeline_version",
 			ResourceReferences: []*api.ResourceReference{
-				{
+				&api.ResourceReference{
 					Key: &api.ResourceKey{
 						Id:   DefaultFakeUUID,
 						Type: api.ResourceType_PIPELINE,
@@ -2399,7 +2399,7 @@ func TestDeletePipelineVersion(t *testing.T) {
 		&api.PipelineVersion{
 			Name: "pipeline_version",
 			ResourceReferences: []*api.ResourceReference{
-				{
+				&api.ResourceReference{
 					Key: &api.ResourceKey{
 						Id:   DefaultFakeUUID,
 						Type: api.ResourceType_PIPELINE,
@@ -2436,7 +2436,7 @@ func TestDeletePipelineVersion_FileError(t *testing.T) {
 		&api.PipelineVersion{
 			Name: "pipeline_version",
 			ResourceReferences: []*api.ResourceReference{
-				{
+				&api.ResourceReference{
 					Key: &api.ResourceKey{
 						Id:   DefaultFakeUUID,
 						Type: api.ResourceType_PIPELINE,
