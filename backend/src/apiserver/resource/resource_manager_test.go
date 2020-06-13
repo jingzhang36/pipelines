@@ -724,7 +724,7 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 	// Set maximum number of allowed workflows to be 2.
 	*maximumNumberOfWorkflowCRDs = 2
 
-	// Create experiment, pipeline, and pipeline version.
+	// Create resource manager and an experiment.
 	uuid := util.NewUUIDGenerator()
 	store, err := NewFakeClientManager(util.NewFakeTimeForEpoch(), uuid)
 	manager := NewResourceManager(store)
@@ -732,26 +732,29 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 	defer store.Close()
 	experiment, err := manager.CreateExperiment(&api.Experiment{Name: "e1"})
 	assert.Nil(t, err)
-	pipeline, err := manager.CreatePipeline("p1", "", []byte(testWorkflow.ToStringForStore()))
-	assert.Nil(t, err)
-	version, err := manager.CreatePipelineVersion(&api.PipelineVersion{
-		Name: "version_for_run",
-		ResourceReferences: []*api.ResourceReference{
-			&api.ResourceReference{
-				Key: &api.ResourceKey{
-					Id:   pipeline.UUID,
-					Type: api.ResourceType_PIPELINE,
-				},
-				Relationship: api.Relationship_OWNER,
-			},
-		},
-	}, []byte(testWorkflow.ToStringForStore()))
-	assert.Nil(t, err)
+	// pipeline, err := manager.CreatePipeline("p1", "", []byte(testWorkflow.ToStringForStore()))
+	// assert.Nil(t, err)
+	// version, err := manager.CreatePipelineVersion(&api.PipelineVersion{
+	// 	Name: "version_for_run",
+	// 	ResourceReferences: []*api.ResourceReference{
+	// 		&api.ResourceReference{
+	// 			Key: &api.ResourceKey{
+	// 				Id:   pipeline.UUID,
+	// 				Type: api.ResourceType_PIPELINE,
+	// 			},
+	// 			Relationship: api.Relationship_OWNER,
+	// 		},
+	// 	},
+	// }, []byte(testWorkflow.ToStringForStore()))
+	// assert.Nil(t, err)
 
 	// Create the first and the second run, named "run1" and "run2" respectively.
+	workflowForRun1 := util.NewWorkflow(testWorkflow.DeepCopy())
+	workflowForRun1.Name = "workflow1"
 	apiRun := &api.Run{
 		Name: "run1",
 		PipelineSpec: &api.PipelineSpec{
+			WorkflowManifest: workflowForRun1.ToStringForStore(),
 			Parameters: []*api.Parameter{
 				{Name: "param1", Value: "world"},
 			},
@@ -761,18 +764,21 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 				Key:          &api.ResourceKey{Type: api.ResourceType_EXPERIMENT, Id: experiment.UUID},
 				Relationship: api.Relationship_OWNER,
 			},
-			{
-				Key:          &api.ResourceKey{Type: api.ResourceType_PIPELINE_VERSION, Id: version.UUID},
-				Relationship: api.Relationship_CREATOR,
-			},
+			// {
+			// 	Key:          &api.ResourceKey{Type: api.ResourceType_PIPELINE_VERSION, Id: version.UUID},
+			// 	Relationship: api.Relationship_CREATOR,
+			// },
 		},
 		ServiceAccount: "sa1",
 	}
 	_, err = manager.CreateRun(apiRun)
 	assert.Nil(t, err)
+	workflowForRun2 := util.NewWorkflow(testWorkflow.DeepCopy())
+	workflowForRun2.Name = "workflow2"
 	apiRun = &api.Run{
 		Name: "run2",
 		PipelineSpec: &api.PipelineSpec{
+			WorkflowManifest: workflowForRun2.ToStringForStore(),
 			Parameters: []*api.Parameter{
 				{Name: "param1", Value: "world"},
 			},
@@ -782,10 +788,10 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 				Key:          &api.ResourceKey{Type: api.ResourceType_EXPERIMENT, Id: experiment.UUID},
 				Relationship: api.Relationship_OWNER,
 			},
-			{
-				Key:          &api.ResourceKey{Type: api.ResourceType_PIPELINE_VERSION, Id: version.UUID},
-				Relationship: api.Relationship_CREATOR,
-			},
+			// {
+			// 	Key:          &api.ResourceKey{Type: api.ResourceType_PIPELINE_VERSION, Id: version.UUID},
+			// 	Relationship: api.Relationship_CREATOR,
+			// },
 		},
 		ServiceAccount: "sa1",
 	}
@@ -794,8 +800,8 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 
 	// Expect two runs and two workflows.
 	runs, _, _, _ := manager.ListRuns(&common.FilterContext{}, &list.Options{})
-	assert.Equal(t, 2, len(runs))
-	assert.Equal(t, 2, store.ArgoClientFake.GetWorkflowCount(), "Workflow CRD is not created.")
+	assert.Equal(t, 2, len(runs), "Run count is not as expected")
+	assert.Equal(t, 2, store.ArgoClientFake.GetWorkflowCount(), "Workflow count is not as expected.")
 
 	// Create the third run and will end up with the first run being deleted.
 
