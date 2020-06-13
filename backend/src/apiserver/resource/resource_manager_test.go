@@ -799,7 +799,8 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Expect two runs and two workflows.
-	runs, _, _, _ := manager.ListRuns(&common.FilterContext{}, &list.Options{})
+	opts, err := list.NewOptions(&model.Run{}, 2, "", nil)
+	runs, _, _, _ := manager.ListRuns(&common.FilterContext{}, opts)
 	assert.Equal(t, 2, len(runs), "Run count is not as expected")
 	assert.Equal(t, 2, store.ArgoClientFake.GetWorkflowCount(), "Workflow count is not as expected.")
 
