@@ -47,7 +47,6 @@ func (c *FakeWorkflowClient) Create(workflow *v1alpha1.Workflow) (*v1alpha1.Work
 		workflow.Name = workflow.GenerateName + strconv.Itoa(c.lastGeneratedId)
 		workflow.GenerateName = ""
 	}
-	fmt.Printf("Create workflow with timestamp %+v\n", workflow.CreationTimestamp)
 	c.workflows[workflow.Name] = workflow
 	return workflow, nil
 }
@@ -79,6 +78,7 @@ func (c *FakeWorkflowClient) Update(workflow *v1alpha1.Workflow) (*v1alpha1.Work
 }
 
 func (c *FakeWorkflowClient) Delete(name string, options *v1.DeleteOptions) error {
+	fmt.Printf("delete in fake workflow: %+v\n", name)
 	delete(c.workflows, name)
 	return nil
 }
