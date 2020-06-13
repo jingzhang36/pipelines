@@ -1579,20 +1579,12 @@ func TestReportWorkflowResource_WorkflowCompleted(t *testing.T) {
 }
 
 func TestReportWorkflowResource_WorkflowCompleted_FinalStatePersisted(t *testing.T) {
+	// One run and one workflow are created.
 	store, manager, run := initWithOneTimeRun(t)
 	defer store.Close()
+	assert.Equal(t, 1, store.ArgoClientFake.GetWorkflowCount())
 
-	// Create a workflow of a persisted final state, i.e., NodeFailed.
-	experiment, err := manager.CreateExperiment(&api.Experiment{
-		Name: "e1",
-		ResourceReferences: []*api.ResourceReference{
-			{
-				Key:          &api.ResourceKey{Type: api.ResourceType_NAMESPACE, Id: "ns1"},
-				Relationship: api.Relationship_OWNER,
-			},
-		},
-	})
-	assert.Nil(t, err)
+	// Report workflow will delete the above added workflow because it is in a persisted final state.
 	workflow := util.NewWorkflow(&v1alpha1.Workflow{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      run.Name,
@@ -1602,28 +1594,8 @@ func TestReportWorkflowResource_WorkflowCompleted_FinalStatePersisted(t *testing
 		},
 		Status: v1alpha1.WorkflowStatus{Phase: v1alpha1.NodeFailed},
 	})
-	apiRun := &api.Run{
-		Name: "run1",
-		PipelineSpec: &api.PipelineSpec{
-			WorkflowManifest: workflow.ToStringForStore(),
-			Parameters: []*api.Parameter{
-				{Name: "param1", Value: "world"},
-			},
-		},
-		ResourceReferences: []*api.ResourceReference{
-			{
-				Key:          &api.ResourceKey{Type: api.ResourceType_EXPERIMENT, Id: experiment.UUID},
-				Relationship: api.Relationship_OWNER,
-			},
-		},
-		ServiceAccount: "sa1",
-	}
-	_, err = manager.CreateRun(apiRun)
-	assert.Nil(t, err)
-	assert.Equal(t, 1, store.ArgoClientFake.GetWorkflowCount())
-
-	// Report workflow will delete the above added workflow because it is in a persisted final state.
-	err = manager.ReportWorkflowResource(workflow)
+	workflow.Name = testWorkflow.Name
+	err := manager.ReportWorkflowResource(workflow)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, store.ArgoClientFake.GetWorkflowCount())
 }
