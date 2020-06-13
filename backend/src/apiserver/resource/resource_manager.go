@@ -722,6 +722,8 @@ func (r *ResourceManager) ReportWorkflowResource(workflow *util.Workflow) error 
 		err := r.getWorkflowClient(workflow.Namespace).Delete(workflow.Name, &v1.DeleteOptions{})
 		if err != nil {
 			return util.NewInternalServerError(err, "Failed to delete the completed workflow for run %s", runId)
+		} else {
+			return nil
 		}
 	}
 
