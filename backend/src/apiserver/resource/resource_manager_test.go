@@ -725,11 +725,15 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 	*maximumNumberOfWorkflowCRDs = 2
 
 	// Create experiment, pipeline, and pipeline version.
-	store, manager, experiment, pipeline := initWithExperimentAndPipeline(t)
+	uuid := util.NewUUIDGenerator()
+	store, err := NewFakeClientManager(util.NewFakeTimeForEpoch(), uuid)
+	manager := NewResourceManager(store)
+	assert.Nil(t, err)
 	defer store.Close()
-	pipelineStore, ok := store.pipelineStore.(*storage.PipelineStore)
-	assert.True(t, ok)
-	pipelineStore.SetUUIDGenerator(util.NewFakeUUIDGeneratorOrFatal(FakeUUIDOne, nil))
+	experiment, err := manager.CreateExperiment(&api.Experiment{Name: "e1"})
+	assert.Nil(t, err)
+	pipeline, err := manager.CreatePipeline("p1", "", []byte(testWorkflow.ToStringForStore()))
+	assert.Nil(t, err)
 	version, err := manager.CreatePipelineVersion(&api.PipelineVersion{
 		Name: "version_for_run",
 		ResourceReferences: []*api.ResourceReference{
