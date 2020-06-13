@@ -730,7 +730,15 @@ func TestCreateRun_WithOldestRunDeleted(t *testing.T) {
 	manager := NewResourceManager(store)
 	assert.Nil(t, err)
 	defer store.Close()
-	experiment, err := manager.CreateExperiment(&api.Experiment{Name: "e1"})
+	experiment, err := manager.CreateExperiment(&api.Experiment{
+		Name: "e1",
+		ResourceReferences: []*api.ResourceReference{
+			{
+				Key:          &api.ResourceKey{Type: api.ResourceType_NAMESPACE, Id: "ns1"},
+				Relationship: api.Relationship_OWNER,
+			},
+		},
+	})
 	assert.Nil(t, err)
 	// pipeline, err := manager.CreatePipeline("p1", "", []byte(testWorkflow.ToStringForStore()))
 	// assert.Nil(t, err)
