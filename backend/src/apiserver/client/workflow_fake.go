@@ -72,10 +72,12 @@ func (c *FakeWorkflowClient) Watch(opts v1.ListOptions) (watch.Interface, error)
 }
 
 func (c *FakeWorkflowClient) Update(workflow *v1alpha1.Workflow) (*v1alpha1.Workflow, error) {
+	glog.Error("This fake method is not yet implemented.")
 	return nil, nil
 }
 
 func (c *FakeWorkflowClient) Delete(name string, options *v1.DeleteOptions) error {
+	delete(c.workflows, name)
 	return nil
 }
 
