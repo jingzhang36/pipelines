@@ -38,6 +38,10 @@ import (
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
@@ -49,7 +53,25 @@ var (
 
 type RegisterHttpHandlerFromEndpoint func(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) error
 
+func recordMetrics() {
+	go func() {
+		for {
+			opsProcessed.Inc()
+			time.Sleep(2 * time.Second)
+		}
+	}()
+}
+
+var (
+	opsProcessed = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "myapp_processed_ops_total",
+		Help: "The total number of processed events",
+	})
+)
+
 func main() {
+	recordMetrics()
+
 	flag.Parse()
 
 	initConfig()
@@ -140,6 +162,9 @@ func startHttpProxy(resourceManager *resource.ResourceManager) {
 	})
 
 	topMux.Handle("/apis/", mux)
+
+	// Register a handler for Prometheus to poll.
+	topMux.Handle("/metrics", promhttp.Handler())
 
 	http.ListenAndServe(*httpPortFlag, topMux)
 	glog.Info("Http Proxy started")
