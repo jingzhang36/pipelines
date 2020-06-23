@@ -1080,7 +1080,7 @@ go_repository(
     importpath = "github.com/peterhellberg/duration",
 )
 
-go_respository(
-    name = "come_github_prometheus_client_golang"
-    importpath = "github.com/prometheus/client_golang/prometheus"
+go_repository(
+    name = "come_github_prometheus_client_golang",
+    importpath = "github.com/prometheus/client_golang/prometheus",
 )
