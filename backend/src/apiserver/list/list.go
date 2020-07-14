@@ -376,15 +376,18 @@ func (o *Options) NextPageToken(listable Listable) (string, error) {
 func (o *Options) nextPageToken(listable Listable) (*token, error) {
 	// TODO
 	elem := reflect.ValueOf(listable).Elem()
-	glog.Infof("next page token 1: %+v\n", elem)
+	glog.Infof("next page token: elem: %+v\n", elem)
 	elemName := elem.Type().Name()
+	glog.Infof("next page token: elem name: %+v\n", elemName)
 
 	sortByField := elem.FieldByName(o.SortByFieldName)
+	glog.Infof("next page token: sort field: %+v\n", sortByField)
 	if !sortByField.IsValid() {
 		return nil, util.NewInvalidInputError("cannot sort by field %q on type %q", o.SortByFieldName, elemName)
 	}
 
 	keyField := elem.FieldByName(listable.PrimaryKeyColumnName())
+	glog.Infof("next page token: key field: %+v\n", keyField)
 	if !keyField.IsValid() {
 		return nil, util.NewInvalidInputError("type %q does not have key field %q", elemName, o.KeyFieldName)
 	}
