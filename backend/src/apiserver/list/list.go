@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/golang/glog"
 	api "github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/common"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/filter"
@@ -55,6 +56,13 @@ type token struct {
 	ModelName string
 	// Filter represents the filtering that should be applied in the query.
 	Filter *filter.Filter
+	// SortByRunMetricsName specifies a metric name to sort on. The above
+	// SortByFieldName and KeyFieldName are both columns in the tables; and in
+	// contrast, run metric name is not a column. Therefore, special treatment
+	// is needed for sorting on run metrics and a separate member variable is
+	// used to store the run metrics that is used for sorting.
+	SortByRunMetricsName  string
+	SortByRunMetricsValue interface{}
 }
 
 func (t *token) unmarshal(pageToken string) error {
@@ -94,6 +102,7 @@ type Options struct {
 // Matches returns trues if the sorting and filtering criteria in o matches that
 // of the one supplied in opts.
 func (o *Options) Matches(opts *Options) bool {
+	// TODO
 	return o.SortByFieldName == opts.SortByFieldName &&
 		o.IsDesc == opts.IsDesc &&
 		reflect.DeepEqual(o.Filter, opts.Filter)
@@ -143,10 +152,13 @@ func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api
 	if len(queryList) > 0 {
 		var err error
 		n, ok := listable.APIToModelFieldMap()[queryList[0]]
-		if !ok {
+		if ok {
+			token.SortByFieldName = n
+		} else if strings.HasPrefix(n, "metrics-") {
+			token.SortByRunMetricsName = n[8:]
+		} else {
 			return nil, util.NewInvalidInputError("Invalid sorting field: %q: %s", queryList[0], err)
 		}
-		token.SortByFieldName = n
 	}
 
 	if len(queryList) == 2 {
@@ -210,6 +222,45 @@ func (o *Options) AddSortingToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuild
 		OrderBy(fmt.Sprintf("%v %v", modelNamePrefix+o.KeyFieldName, order))
 
 	return sqlBuilder
+}
+
+func (o *Options) AddRunMetricsSortingToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
+	// If next row's value is specified, set those values in the clause.
+	sortedRunMetricsSql := sq.
+		Select("selectruns.*").
+		FromSelect(sqlBuilder, "selectedruns").
+		LeftJoin("run_metrics ON selectedruns.uuid=run_metrics.runuuid AND run_metrics.name='" + o.SortByRunMetricsName + "'")
+	order := "ASC"
+	if o.IsDesc {
+		order = "DESC"
+	}
+	sortedRunMetricsSql = sortedRunMetricsSql.
+		OrderBy(fmt.Sprintf("%v %v", "run_metrics.value", order)).
+		OrderBy(fmt.Sprintf("%v %v", "run_metrics.value", order))
+
+	// Not the first page
+	var modelNamePrefix string
+	if len(o.ModelName) == 0 {
+		modelNamePrefix = ""
+	} else {
+		modelNamePrefix = o.ModelName + "."
+	}
+	if o.SortByRunMetricsValue != nil {
+		if o.IsDesc {
+			sortedRunMetricsSql = sortedRunMetricsSql.
+				Where(sq.Or{sq.Lt{"run_metrics" + o.SortByRunMetricsName: o.SortByRunMetricsValue},
+					sq.And{sq.Eq{"run_metrics" + o.SortByRunMetricsName: o.SortByRunMetricsValue},
+						sq.LtOrEq{modelNamePrefix + o.KeyFieldName: o.KeyFieldValue}}})
+		} else {
+			sortedRunMetricsSql = sortedRunMetricsSql.
+				Where(sq.Or{sq.Gt{"run_metrics" + o.SortByRunMetricsName: o.SortByRunMetricsValue},
+					sq.And{sq.Eq{"run_metrics" + o.SortByRunMetricsName: o.SortByRunMetricsValue},
+						sq.GtOrEq{modelNamePrefix + o.KeyFieldName: o.KeyFieldValue}}})
+		}
+	}
+
+	return sortedRunMetricsSql
+
 }
 
 // AddFilterToSelect adds WHERE clauses with the filtering criteria in the
@@ -323,7 +374,9 @@ func (o *Options) NextPageToken(listable Listable) (string, error) {
 }
 
 func (o *Options) nextPageToken(listable Listable) (*token, error) {
+	// TODO
 	elem := reflect.ValueOf(listable).Elem()
+	glog.Infof("next page token 1: %+v\n", elem)
 	elemName := elem.Type().Name()
 
 	sortByField := elem.FieldByName(o.SortByFieldName)
