@@ -60,7 +60,7 @@ type token struct {
 	// SortByFieldName and KeyFieldName are both columns in the tables; and in
 	// contrast, run metric name is not a column. Therefore, special treatment
 	// is needed for sorting on run metrics and a separate member variable is
-	// used to store the run metrics that is used for sorting.
+	// used to store the run metrics name that is used for sorting.
 	SortByRunMetricsName  string
 	SortByRunMetricsValue interface{}
 }
@@ -188,10 +188,19 @@ func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBu
 	return sqlBuilder
 }
 
-// AddPaginationToSelect adds WHERE clauses with the sorting and pagination criteria in the
-// Options o to the supplied SelectBuilder, and returns the new SelectBuilder
-// containing these.
+// Add sorting based on the specified SortByFieldName or SortByRunMetricsName in Options.
 func (o *Options) AddSortingToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
+	// Only support sorting on one field or on one metric.
+	// If SortByFieldName and SortByRunMetricsName are set at the same time,
+	// SortByRunMetricsName prevails.
+	// if len(o.SortByRunMetricsName) > 0 {
+	// 	return o.AddSortingByRunMetricsToSelect(sqlBuilder)
+	// } else {
+	return o.AddSortingByFieldToSelect(sqlBuilder)
+	// }
+}
+
+func (o *Options) AddSortingByFieldToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
 	// If next row's value is specified, set those values in the clause.
 	var modelNamePrefix string
 	if len(o.ModelName) == 0 {
@@ -224,13 +233,13 @@ func (o *Options) AddSortingToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuild
 	return sqlBuilder
 }
 
-func (o *Options) AddRunMetricsSortingToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
+func (o *Options) AddSortingByRunMetricsToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
 	if len(o.SortByRunMetricsName) == 0 {
 		return sqlBuilder
 	}
 
 	sortedRunMetricsSql := sq.
-		Select("selected_runs.*").
+		Select("selected_runs.*, run_metrics.value as "+o.SortByRunMetricsName).
 		FromSelect(sqlBuilder, "selected_runs").
 		LeftJoin("run_metrics ON selected_runs.uuid=run_metrics.runuuid AND run_metrics.name='" + o.SortByRunMetricsName + "'")
 	order := "ASC"

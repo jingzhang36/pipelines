@@ -78,6 +78,7 @@ type RunStore struct {
 // matching the supplied filters and resource references.
 func (s *RunStore) ListRuns(
 	filterContext *common.FilterContext, opts *list.Options) ([]*model.Run, int, string, error) {
+	opts.PageSize = 1
 	errorF := func(err error) ([]*model.Run, int, string, error) {
 		return nil, 0, "", util.NewInternalServerError(err, "Failed to list runs: %v", err)
 	}
@@ -87,7 +88,7 @@ func (s *RunStore) ListRuns(
 		return errorF(err)
 	}
 
-	s.buildSelectRunsQuery2(false, opts, filterContext)
+	// s.buildSelectRunsQuery2(false, opts, filterContext)
 
 	sizeSql, sizeArgs, err := s.buildSelectRunsQuery(true, opts, filterContext)
 	if err != nil {
@@ -180,6 +181,7 @@ func (s *RunStore) buildSelectRunsQuery(selectCount bool, opts *list.Options,
 	if err != nil {
 		return "", nil, util.NewInternalServerError(err, "Failed to list runs: %v", err)
 	}
+	glog.Infof("sql: %+v\n", sql)
 	return sql, args, err
 }
 
@@ -210,7 +212,6 @@ func (s *RunStore) buildSelectRunsQuery2(selectCount bool, opts *list.Options,
 		sqlBuilder = opts.AddPaginationToSelect(sqlBuilder)
 		sqlBuilder = s.addMetricsAndResourceReferences(sqlBuilder)
 		sqlBuilder = opts.AddSortingToSelect(sqlBuilder)
-		sqlBuilder = opts.AddRunMetricsSortingToSelect(sqlBuilder)
 	}
 	sql, args, _ := sqlBuilder.ToSql()
 
