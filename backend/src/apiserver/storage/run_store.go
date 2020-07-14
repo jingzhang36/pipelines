@@ -87,6 +87,8 @@ func (s *RunStore) ListRuns(
 		return errorF(err)
 	}
 
+	s.buildSelectRunsQuery2(false, opts, filterContext)
+
 	sizeSql, sizeArgs, err := s.buildSelectRunsQuery(true, opts, filterContext)
 	if err != nil {
 		return errorF(err)
@@ -179,6 +181,41 @@ func (s *RunStore) buildSelectRunsQuery(selectCount bool, opts *list.Options,
 		return "", nil, util.NewInternalServerError(err, "Failed to list runs: %v", err)
 	}
 	return sql, args, err
+}
+
+func (s *RunStore) buildSelectRunsQuery2(selectCount bool, opts *list.Options,
+	filterContext *common.FilterContext) {
+
+	var filteredSelectBuilder sq.SelectBuilder
+
+	refKey := filterContext.ReferenceKey
+	if refKey != nil && refKey.Type == "ExperimentUUID" {
+		// for performance reasons need to special treat experiment ID filter on runs
+		// currently only the run table have experiment UUID column
+		filteredSelectBuilder, err = list.FilterOnExperiment("run_details", runColumns,
+			selectCount, refKey.ID)
+	} else if refKey != nil && refKey.Type == common.Namespace {
+		filteredSelectBuilder, err = list.FilterOnNamespace("run_details", runColumns,
+			selectCount, refKey.ID)
+	} else {
+		filteredSelectBuilder, err = list.FilterOnResourceReference("run_details", runColumns,
+			common.Run, selectCount, filterContext)
+	}
+
+	sqlBuilder := opts.AddFilterToSelect(filteredSelectBuilder)
+
+	// If we're not just counting, then also add select columns and perform a left join
+	// to get resource reference information. Also add pagination.
+	if !selectCount {
+		sqlBuilder = opts.AddPaginationToSelect(sqlBuilder)
+		sqlBuilder = s.addMetricsAndResourceReferences(sqlBuilder)
+		sqlBuilder = opts.AddSortingToSelect(sqlBuilder)
+		sqlBuilder = opts.AddRunMetricsSortingToSelect(sqlBuilder)
+	}
+	sql, args, _ := sqlBuilder.ToSql()
+
+	glog.Infof("sorting metrics: %+v\n", sql)
+	glog.Infof("sorting metrics args: %+v\n", args)
 }
 
 // GetRun Get the run manifest from Workflow CRD
