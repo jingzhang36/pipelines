@@ -192,13 +192,13 @@ func (s *RunStore) buildSelectRunsQuery2(selectCount bool, opts *list.Options,
 	if refKey != nil && refKey.Type == "ExperimentUUID" {
 		// for performance reasons need to special treat experiment ID filter on runs
 		// currently only the run table have experiment UUID column
-		filteredSelectBuilder, err = list.FilterOnExperiment("run_details", runColumns,
+		filteredSelectBuilder, _ = list.FilterOnExperiment("run_details", runColumns,
 			selectCount, refKey.ID)
 	} else if refKey != nil && refKey.Type == common.Namespace {
-		filteredSelectBuilder, err = list.FilterOnNamespace("run_details", runColumns,
+		filteredSelectBuilder, _ = list.FilterOnNamespace("run_details", runColumns,
 			selectCount, refKey.ID)
 	} else {
-		filteredSelectBuilder, err = list.FilterOnResourceReference("run_details", runColumns,
+		filteredSelectBuilder, _ = list.FilterOnResourceReference("run_details", runColumns,
 			common.Run, selectCount, filterContext)
 	}
 

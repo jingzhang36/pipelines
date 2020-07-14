@@ -154,7 +154,7 @@ func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api
 		n, ok := listable.APIToModelFieldMap()[queryList[0]]
 		if ok {
 			token.SortByFieldName = n
-		} else if strings.HasPrefix(n, "metrics-") {
+		} else if strings.HasPrefix(n, "metrics:") {
 			token.SortByRunMetricsName = n[8:]
 		} else {
 			return nil, util.NewInvalidInputError("Invalid sorting field: %q: %s", queryList[0], err)
@@ -225,20 +225,22 @@ func (o *Options) AddSortingToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuild
 }
 
 func (o *Options) AddRunMetricsSortingToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
-	// If next row's value is specified, set those values in the clause.
+	if len(o.SortByRunMetricsName) == 0 {
+		return sqlBuilder
+	}
+
 	sortedRunMetricsSql := sq.
-		Select("selectruns.*").
-		FromSelect(sqlBuilder, "selectedruns").
-		LeftJoin("run_metrics ON selectedruns.uuid=run_metrics.runuuid AND run_metrics.name='" + o.SortByRunMetricsName + "'")
+		Select("selected_runs.*").
+		FromSelect(sqlBuilder, "selected_runs").
+		LeftJoin("run_metrics ON selected_runs.uuid=run_metrics.runuuid AND run_metrics.name='" + o.SortByRunMetricsName + "'")
 	order := "ASC"
 	if o.IsDesc {
 		order = "DESC"
 	}
 	sortedRunMetricsSql = sortedRunMetricsSql.
-		OrderBy(fmt.Sprintf("%v %v", "run_metrics.value", order)).
 		OrderBy(fmt.Sprintf("%v %v", "run_metrics.value", order))
 
-	// Not the first page
+	// If not the first page nad next row's value is specified, set those values in where clause.
 	var modelNamePrefix string
 	if len(o.ModelName) == 0 {
 		modelNamePrefix = ""
@@ -260,7 +262,6 @@ func (o *Options) AddRunMetricsSortingToSelect(sqlBuilder sq.SelectBuilder) sq.S
 	}
 
 	return sortedRunMetricsSql
-
 }
 
 // AddFilterToSelect adds WHERE clauses with the filtering criteria in the
