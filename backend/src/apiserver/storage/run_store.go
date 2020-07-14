@@ -216,6 +216,9 @@ func (s *RunStore) buildSelectRunsQuery2(selectCount bool, opts *list.Options,
 
 	glog.Infof("sorting metrics: %+v\n", sql)
 	glog.Infof("sorting metrics args: %+v\n", args)
+
+	fmt.Printf("sorting metrics: %+v\n", sql)
+	fmt.Printf("sorting metrics args: %+v\n", args)
 }
 
 // GetRun Get the run manifest from Workflow CRD

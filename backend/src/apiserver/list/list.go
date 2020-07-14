@@ -154,8 +154,8 @@ func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api
 		n, ok := listable.APIToModelFieldMap()[queryList[0]]
 		if ok {
 			token.SortByFieldName = n
-		} else if strings.HasPrefix(n, "metrics:") {
-			token.SortByRunMetricsName = n[8:]
+		} else if strings.HasPrefix(queryList[0], "metrics:") {
+			token.SortByRunMetricsName = queryList[0][8:]
 		} else {
 			return nil, util.NewInvalidInputError("Invalid sorting field: %q: %s", queryList[0], err)
 		}
