@@ -185,8 +185,8 @@ func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api
 // AddPaginationToSelect adds WHERE clauses with the sorting and pagination criteria in the
 // Options o to the supplied SelectBuilder, and returns the new SelectBuilder
 // containing these.
-func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder, join bool) sq.SelectBuilder {
-	sqlBuilder = o.AddSortingToSelect(sqlBuilder, join)
+func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
+	sqlBuilder = o.AddOrderBy(sqlBuilder)
 	// Add one more item than what is requested.
 	sqlBuilder = sqlBuilder.Limit(uint64(o.PageSize + 1))
 
@@ -194,18 +194,18 @@ func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder, join bool) 
 }
 
 // Add sorting based on the specified SortByFieldName or SortByRunMetricName in Options.
-func (o *Options) AddSortingToSelect(sqlBuilder sq.SelectBuilder, join bool) sq.SelectBuilder {
+func (o *Options) AddOrderBy(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
 	// Only support sorting on one field or on one metric.
 	// If SortByFieldName and SortByRunMetricName are set at the same time,
 	// SortByRunMetricName prevails.
 	if len(o.SortByRunMetricName) > 0 {
-		return o.AddSortingByRunMetricsToSelect(sqlBuilder, join)
+		return o.AddOrderByRunMetric(sqlBuilder)
 	} else {
-		return o.AddSortingByFieldToSelect(sqlBuilder)
+		return o.AddOrderByField(sqlBuilder)
 	}
 }
 
-func (o *Options) AddSortingByFieldToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
+func (o *Options) AddOrderByField(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
 	// If next row's value is specified, set those values in the clause.
 	var modelNamePrefix string
 	if len(o.ModelName) == 0 {
@@ -238,26 +238,9 @@ func (o *Options) AddSortingByFieldToSelect(sqlBuilder sq.SelectBuilder) sq.Sele
 	return sqlBuilder
 }
 
-func (o *Options) AddSortingByRunMetricsToSelect(sqlBuilder sq.SelectBuilder, join bool) sq.SelectBuilder {
+func (o *Options) AddOrderByRunMetric(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
 	if len(o.SortByRunMetricName) == 0 {
 		return sqlBuilder
-	}
-
-	order := "ASC"
-	if o.IsDesc {
-		order = "DESC"
-	}
-
-	var sortedRunMetricsSql sq.SelectBuilder
-	if join {
-		sortedRunMetricsSql := sq.
-			Select("selected_runs.*, run_metrics.value as "+o.SortByRunMetricName).
-			FromSelect(sqlBuilder, "selected_runs").
-			LeftJoin("run_metrics ON selected_runs.uuid=run_metrics.runuuid AND run_metrics.name='" + o.SortByRunMetricName + "'")
-		sortedRunMetricsSql = sortedRunMetricsSql.
-			OrderBy(fmt.Sprintf("%v %v", "run_metrics.value", order))
-	} else {
-		sortedRunMetricsSql = sqlBuilder.OrderBy(fmt.Sprintf("%v %v", o.SortByRunMetricName, order))
 	}
 
 	// If not the first page nad next row's value is specified, set those values in where clause.
@@ -269,19 +252,38 @@ func (o *Options) AddSortingByRunMetricsToSelect(sqlBuilder sq.SelectBuilder, jo
 	}
 	if o.SortByRunMetricValue != nil {
 		if o.IsDesc {
-			sortedRunMetricsSql = sortedRunMetricsSql.
-				Where(sq.Or{sq.Lt{"run_metrics" + o.SortByRunMetricName: o.SortByRunMetricValue},
-					sq.And{sq.Eq{"run_metrics" + o.SortByRunMetricName: o.SortByRunMetricValue},
+			sqlBuilder = sqlBuilder.
+				Where(sq.Or{sq.Lt{o.SortByRunMetricName: o.SortByRunMetricValue},
+					sq.And{sq.Eq{o.SortByRunMetricName: o.SortByRunMetricValue},
 						sq.LtOrEq{modelNamePrefix + o.KeyFieldName: o.KeyFieldValue}}})
 		} else {
-			sortedRunMetricsSql = sortedRunMetricsSql.
-				Where(sq.Or{sq.Gt{"run_metrics" + o.SortByRunMetricName: o.SortByRunMetricValue},
-					sq.And{sq.Eq{"run_metrics" + o.SortByRunMetricName: o.SortByRunMetricValue},
+			sqlBuilder = sqlBuilder.
+				Where(sq.Or{sq.Gt{o.SortByRunMetricName: o.SortByRunMetricValue},
+					sq.And{sq.Eq{o.SortByRunMetricName: o.SortByRunMetricValue},
 						sq.GtOrEq{modelNamePrefix + o.KeyFieldName: o.KeyFieldValue}}})
 		}
 	}
 
-	return sortedRunMetricsSql
+	order := "ASC"
+	if o.IsDesc {
+		order = "DESC"
+	}
+	sqlBuilder = sqlBuilder.
+		OrderBy(fmt.Sprintf("%v %v", o.SortByRunMetricName, order))
+
+	return sqlBuilder
+}
+
+// Add the metric as a new field to the select clause by join the passed-in SQL query with run_metrics table.
+// With the metric as a field in the select clause enable sorting on this metric afterwards.
+func (o *Options) AddSortByRunMetricToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
+	if len(o.SortByRunMetricName) == 0 {
+		return sqlBuilder
+	}
+	return sq.
+		Select("selected_runs.*, run_metrics.value as "+o.SortByRunMetricName).
+		FromSelect(sqlBuilder, "selected_runs").
+		LeftJoin("run_metrics ON selected_runs.uuid=run_metrics.runuuid AND run_metrics.name='" + o.SortByRunMetricName + "'")
 }
 
 // AddFilterToSelect adds WHERE clauses with the filtering criteria in the

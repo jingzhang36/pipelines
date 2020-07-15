@@ -45,7 +45,7 @@ func (s *ExperimentStore) ListExperiments(filterContext *common.FilterContext, o
 	}
 	sqlBuilder = opts.AddFilterToSelect(sqlBuilder)
 
-	rowsSql, rowsArgs, err := opts.AddPaginationToSelect(sqlBuilder, false).ToSql()
+	rowsSql, rowsArgs, err := opts.AddPaginationToSelect(sqlBuilder).ToSql()
 	if err != nil {
 		return errorF(err)
 	}

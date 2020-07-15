@@ -79,8 +79,8 @@ type RunStore struct {
 func (s *RunStore) ListRuns(
 	filterContext *common.FilterContext, opts *list.Options) ([]*model.Run, int, string, error) {
 	// opts.PageSize = 1
-	opts.SortByFieldName = ""
-	opts.SortByRunMetricName = "metric:accuracy_score"
+	// opts.SortByFieldName = ""
+	// opts.SortByRunMetricName = "metric:accuracy_score"
 	errorF := func(err error) ([]*model.Run, int, string, error) {
 		return nil, 0, "", util.NewInternalServerError(err, "Failed to list runs: %v", err)
 	}
@@ -173,9 +173,10 @@ func (s *RunStore) buildSelectRunsQuery(selectCount bool, opts *list.Options,
 	// If we're not just counting, then also add select columns and perform a left join
 	// to get resource reference information. Also add pagination.
 	if !selectCount {
-		sqlBuilder = opts.AddPaginationToSelect(sqlBuilder, true)
+		sqlBuilder = opts.AddSortByRunMetricToSelect(sqlBuilder)
+		sqlBuilder = opts.AddPaginationToSelect(sqlBuilder)
 		sqlBuilder = s.addMetricsAndResourceReferences(sqlBuilder)
-		sqlBuilder = opts.AddSortingToSelect(sqlBuilder, false)
+		sqlBuilder = opts.AddOrderBy(sqlBuilder)
 	}
 	sql, args, err := sqlBuilder.ToSql()
 	if err != nil {

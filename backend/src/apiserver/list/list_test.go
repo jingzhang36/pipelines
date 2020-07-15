@@ -506,7 +506,7 @@ func TestAddPaginationAndFilterToSelect(t *testing.T) {
 
 	for _, test := range tests {
 		sql := sq.Select("*").From("MyTable")
-		gotSQL, gotArgs, err := test.in.AddFilterToSelect(test.in.AddPaginationToSelect(sql, false)).ToSql()
+		gotSQL, gotArgs, err := test.in.AddFilterToSelect(test.in.AddPaginationToSelect(sql)).ToSql()
 
 		if gotSQL != test.wantSQL || !reflect.DeepEqual(gotArgs, test.wantArgs) || err != nil {
 			t.Errorf("BuildListSQLQuery(%+v) =\nGot: %q, %v, %v\nWant: %q, %v, nil",
