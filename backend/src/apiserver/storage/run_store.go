@@ -175,7 +175,7 @@ func (s *RunStore) buildSelectRunsQuery(selectCount bool, opts *list.Options,
 	if !selectCount {
 		sqlBuilder = opts.AddSortByRunMetricToSelect(sqlBuilder)
 		sqlBuilder = opts.AddPaginationToSelect(sqlBuilder)
-		sqlBuilder = s.addMetricsAndResourceReferences(sqlBuilder)
+		sqlBuilder = s.addMetricsAndResourceReferences(sqlBuilder, opts)
 		sqlBuilder = opts.AddOrderBy(sqlBuilder)
 	}
 	sql, args, err := sqlBuilder.ToSql()
@@ -188,11 +188,12 @@ func (s *RunStore) buildSelectRunsQuery(selectCount bool, opts *list.Options,
 
 // GetRun Get the run manifest from Workflow CRD
 func (s *RunStore) GetRun(runId string) (*model.RunDetail, error) {
+	opts, err := list.NewOptions(&model.Run{}, 1, "", nil)
 	sql, args, err := s.addMetricsAndResourceReferences(
 		sq.Select(runColumns...).
 			From("run_details").
 			Where(sq.Eq{"UUID": runId}).
-			Limit(1)).
+			Limit(1), opts).
 		ToSql()
 
 	if err != nil {
@@ -218,17 +219,33 @@ func (s *RunStore) GetRun(runId string) (*model.RunDetail, error) {
 	return runs[0], nil
 }
 
-func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.SelectBuilder) sq.SelectBuilder {
+func AppendRd(column string) string {
+	return "rd." + column
+}
+
+func AppendSubq(column string) string {
+	return "subq." + column
+}
+
+func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.SelectBuilder, opts *list.Options) sq.SelectBuilder {
 	resourceRefConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rr.Payload", ","), `"]"`}, "")
+	columns1 := append(Map(runColumns, AppendRd()), resourceRefConcatQuery+" AS refs")
+	if len(opts.SortByRunMetricName) > 0 {
+		columns1 = append(columns1, opts.SortByRunMetricName)
+	}
 	subQ := sq.
-		Select("rd.*", resourceRefConcatQuery+" AS refs").
+		Select(columns1...). //"rd.*", resourceRefConcatQuery+" AS refs").
 		FromSelect(filteredSelectBuilder, "rd").
 		LeftJoin("resource_references AS rr ON rr.ResourceType='Run' AND rd.UUID=rr.ResourceUUID").
 		GroupBy("rd.UUID")
 
 	metricConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rm.Payload", ","), `"]"`}, "")
+	columns2 := append(Map(runColumns, AppendSubq()), "subq.refs", metricConcatQuery+" AS metrics")
+	if len(opts.SortByRunMetricName) > 0 {
+		columns2 = append(columns2, opts.SortByRunMetricName)
+	}
 	return sq.
-		Select("subq.*", metricConcatQuery+" AS metrics").
+		Select(columns2...). //"subq.*", metricConcatQuery+" AS metrics").
 		FromSelect(subQ, "subq").
 		LeftJoin("run_metrics AS rm ON subq.UUID=rm.RunUUID").
 		GroupBy("subq.UUID")
