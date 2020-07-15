@@ -151,6 +151,7 @@ func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api
 	}
 
 	token.SortByFieldName = listable.DefaultSortField()
+	token.SortByRunMetricName = ""
 	if len(queryList) > 0 {
 		var err error
 		n, ok := listable.APIToModelFieldMap()[queryList[0]]
@@ -409,7 +410,8 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 	// if elemName == "Run" && len(o.SortByRunMetricName) > 0 {
 	glog.Info("metrics to be fetched")
 	if elemName == "Run" {
-		glog.Info("metrics for run")
+		glog.Infof("metrics for run %+v\n", elem.FieldByName("Metrics"))
+		glog.Infof("metrics for run type %+v\n", elem.FieldByName("Metrics").Type())
 		metrics, ok := elem.FieldByName("Metrics").Interface().([]*model.RunDetail)
 		if !ok {
 			glog.Info("metric not found\n")
@@ -431,15 +433,15 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 	}
 
 	return &token{
-		SortByFieldName:  o.SortByFieldName,
-		SortByFieldValue: sortByField.Interface(),
-		KeyFieldName:     listable.PrimaryKeyColumnName(),
-		KeyFieldValue:    keyField.Interface(),
-		IsDesc:           o.IsDesc,
-		Filter:           o.Filter,
-		ModelName:        o.ModelName,
-		// SortByRunMetricName:  o.SortByRunMetricName,
-		// SortByRunMetricValue: o.SortByRunMetricValue,
+		SortByFieldName:      o.SortByFieldName,
+		SortByFieldValue:     sortByField.Interface(),
+		KeyFieldName:         listable.PrimaryKeyColumnName(),
+		KeyFieldValue:        keyField.Interface(),
+		IsDesc:               o.IsDesc,
+		Filter:               o.Filter,
+		ModelName:            o.ModelName,
+		SortByRunMetricName:  o.SortByRunMetricName,
+		SortByRunMetricValue: o.SortByRunMetricValue,
 	}, nil
 }
 
