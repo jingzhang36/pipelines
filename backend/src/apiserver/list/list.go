@@ -193,10 +193,6 @@ func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder, join bool) 
 	return sqlBuilder
 }
 
-func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
-	return o.AddPaginationToSelect(sqlBuilder, false)
-}
-
 // Add sorting based on the specified SortByFieldName or SortByRunMetricName in Options.
 func (o *Options) AddSortingToSelect(sqlBuilder sq.SelectBuilder, join bool) sq.SelectBuilder {
 	// Only support sorting on one field or on one metric.
