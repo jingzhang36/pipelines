@@ -24,7 +24,7 @@ func TestAddSortingToSelect(t *testing.T) {
 	listableOptions, err := list.NewOptions(listable, 10, "name", protoFilter)
 	assert.Nil(t, err)
 	sqlBuilder := sq.Select("*").From("pipeline_versions")
-	sql, _, err := listableOptions.AddSortingToSelect(sqlBuilder).ToSql()
+	sql, _, err := listableOptions.AddSortingToSelect(sqlBuilder, false).ToSql()
 	assert.Nil(t, err)
 
 	assert.Contains(t, sql, "pipeline_versions.Name") // sorting field
