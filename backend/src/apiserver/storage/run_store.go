@@ -79,6 +79,8 @@ type RunStore struct {
 func (s *RunStore) ListRuns(
 	filterContext *common.FilterContext, opts *list.Options) ([]*model.Run, int, string, error) {
 	// opts.PageSize = 1
+	// opts.SortByFieldName = ""
+	// opts.SortByRunMetricName = "metric:accuracy_score"
 	errorF := func(err error) ([]*model.Run, int, string, error) {
 		return nil, 0, "", util.NewInternalServerError(err, "Failed to list runs: %v", err)
 	}
@@ -87,8 +89,6 @@ func (s *RunStore) ListRuns(
 	if err != nil {
 		return errorF(err)
 	}
-
-	// s.buildSelectRunsQuery2(false, opts, filterContext)
 
 	sizeSql, sizeArgs, err := s.buildSelectRunsQuery(true, opts, filterContext)
 	if err != nil {
@@ -173,9 +173,9 @@ func (s *RunStore) buildSelectRunsQuery(selectCount bool, opts *list.Options,
 	// If we're not just counting, then also add select columns and perform a left join
 	// to get resource reference information. Also add pagination.
 	if !selectCount {
-		sqlBuilder = opts.AddPaginationToSelect(sqlBuilder)
+		sqlBuilder = opts.AddPaginationToSelect(sqlBuilder, true)
 		sqlBuilder = s.addMetricsAndResourceReferences(sqlBuilder)
-		sqlBuilder = opts.AddSortingToSelect(sqlBuilder)
+		sqlBuilder = opts.AddSortingToSelect(sqlBuilder, false)
 	}
 	sql, args, err := sqlBuilder.ToSql()
 	if err != nil {
@@ -183,43 +183,6 @@ func (s *RunStore) buildSelectRunsQuery(selectCount bool, opts *list.Options,
 	}
 	glog.Infof("sql: %+v\n", sql)
 	return sql, args, err
-}
-
-func (s *RunStore) buildSelectRunsQuery2(selectCount bool, opts *list.Options,
-	filterContext *common.FilterContext) {
-
-	var filteredSelectBuilder sq.SelectBuilder
-
-	refKey := filterContext.ReferenceKey
-	if refKey != nil && refKey.Type == "ExperimentUUID" {
-		// for performance reasons need to special treat experiment ID filter on runs
-		// currently only the run table have experiment UUID column
-		filteredSelectBuilder, _ = list.FilterOnExperiment("run_details", runColumns,
-			selectCount, refKey.ID)
-	} else if refKey != nil && refKey.Type == common.Namespace {
-		filteredSelectBuilder, _ = list.FilterOnNamespace("run_details", runColumns,
-			selectCount, refKey.ID)
-	} else {
-		filteredSelectBuilder, _ = list.FilterOnResourceReference("run_details", runColumns,
-			common.Run, selectCount, filterContext)
-	}
-
-	sqlBuilder := opts.AddFilterToSelect(filteredSelectBuilder)
-
-	// If we're not just counting, then also add select columns and perform a left join
-	// to get resource reference information. Also add pagination.
-	if !selectCount {
-		sqlBuilder = opts.AddPaginationToSelect(sqlBuilder)
-		sqlBuilder = s.addMetricsAndResourceReferences(sqlBuilder)
-		sqlBuilder = opts.AddSortingToSelect(sqlBuilder)
-	}
-	sql, args, _ := sqlBuilder.ToSql()
-
-	glog.Infof("sorting metrics: %+v\n", sql)
-	glog.Infof("sorting metrics args: %+v\n", args)
-
-	fmt.Printf("sorting metrics: %+v\n", sql)
-	fmt.Printf("sorting metrics args: %+v\n", args)
 }
 
 // GetRun Get the run manifest from Workflow CRD
