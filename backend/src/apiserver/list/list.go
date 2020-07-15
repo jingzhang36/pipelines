@@ -410,16 +410,24 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 	var runMetricFieldValue interface{}
 	if elemName == "Run" && len(o.SortByRunMetricName) > 0 {
 		runMetrics = elem.FieldByName("Metrics")
-		var metrics []*model.RunMetric
-		if !runMetrics.IsValid() || metrics, ok := runMetrics.Interface().([]*model.RunMetric) && !ok {
+		if !runMetrics.IsValid() {
 			return nil, util.NewInvalidInputError("Unable to find run metrics")
 		}
+		var metrics []*model.RunMetric
+		if metrics, ok := runMetrics.Interface().([]*model.RunMetric); !ok {
+			return nil, util.NewInvalidInputError("Unable to parse run metrics")
+		}
 		// Find the metric inside metrics that matches the o.SortByRunMetricName
+		found := false
 		for _, metric := range metrics {
 			if metric.Name == o.SortByRunMetricName {
 				runMetricFieldValue = metric.NumberValue
+				found = true
 				glog.Infof("run metric sorting: %+v %+v\n", o.SortByRunMetricName, runMetricFieldValue)
 			}
+		}
+		if !found {
+			return nil, util.NewInvalidInputError("Unable to find run metric %s", o.SortByRunMetricName)
 		}
 	}
 
