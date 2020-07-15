@@ -31,6 +31,8 @@ import (
 	"github.com/kubeflow/pipelines/backend/src/apiserver/common"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/filter"
 	"github.com/kubeflow/pipelines/backend/src/common/util"
+
+	"github.com/kubeflow/pipelines/backend/src/apiserver/model"
 )
 
 // token represents a WHERE clause when making a ListXXX query. It can either
@@ -61,8 +63,8 @@ type token struct {
 	// contrast, run metric name is not a column. Therefore, special treatment
 	// is needed for sorting on run metrics and a separate member variable is
 	// used to store the run metrics name that is used for sorting.
-	SortByRunMetricsName  string
-	SortByRunMetricsValue interface{}
+	SortByRunMetricName  string
+	SortByRunMetricValue interface{}
 }
 
 func (t *token) unmarshal(pageToken string) error {
@@ -154,8 +156,10 @@ func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api
 		n, ok := listable.APIToModelFieldMap()[queryList[0]]
 		if ok {
 			token.SortByFieldName = n
-		} else if strings.HasPrefix(queryList[0], "metrics:") {
-			token.SortByRunMetricsName = queryList[0][8:]
+			token.SortByRunMetricName = ""
+		} else if strings.HasPrefix(queryList[0], "metric:") {
+			token.SortByFieldName = ""
+			token.SortByRunMetricsName = queryList[0][7:]
 		} else {
 			return nil, util.NewInvalidInputError("Invalid sorting field: %q: %s", queryList[0], err)
 		}
@@ -385,6 +389,7 @@ func (o *Options) NextPageToken(listable Listable) (string, error) {
 
 func (o *Options) nextPageToken(listable Listable) (*token, error) {
 	// TODO
+	glog.Infof("next page token: listable: %+v\n", listable)
 	elem := reflect.ValueOf(listable).Elem()
 	glog.Infof("next page token: elem: %+v\n", elem)
 	elemName := elem.Type().Name()
@@ -402,14 +407,28 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 		return nil, util.NewInvalidInputError("type %q does not have key field %q", elemName, o.KeyFieldName)
 	}
 
+	// if elemName == "Run" && len(o.SortByRunMetricName) > 0 {
+	if elemName == "Run" {
+		metrics, err := elem.FieldByName("Metrics").Interface().([]*model.RunDetail)
+		if err != nil {
+			return nil, util.NewInvalidInputError("type %q does not have metric fields", elemName)
+		}
+		// Find the metric inside metrics that matches the o.SortByRunMetricName
+		for idx, metric := metrics {
+			glog.Infof("metrics: %+v\n", metric)
+		}
+	}
+
 	return &token{
-		SortByFieldName:  o.SortByFieldName,
-		SortByFieldValue: sortByField.Interface(),
-		KeyFieldName:     listable.PrimaryKeyColumnName(),
-		KeyFieldValue:    keyField.Interface(),
-		IsDesc:           o.IsDesc,
-		Filter:           o.Filter,
-		ModelName:        o.ModelName,
+		SortByFieldName:      o.SortByFieldName,
+		SortByFieldValue:     sortByField.Interface(),
+		KeyFieldName:         listable.PrimaryKeyColumnName(),
+		KeyFieldValue:        keyField.Interface(),
+		IsDesc:               o.IsDesc,
+		Filter:               o.Filter,
+		ModelName:            o.ModelName,
+		// SortByRunMetricName:  o.SortByRunMetricName,
+		// SortByRunMetricValue: o.SortByRunMetricValue,
 	}, nil
 }
 

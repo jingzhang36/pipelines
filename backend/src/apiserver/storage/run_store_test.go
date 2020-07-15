@@ -148,7 +148,7 @@ func TestListRuns_Pagination(t *testing.T) {
 			},
 		}}
 
-	opts, err := list.NewOptions(&model.Run{}, 1, "metrics:dummymetric", nil)
+	opts, err := list.NewOptions(&model.Run{}, 1, "metric:dummymetric", nil)
 	assert.Nil(t, err)
 
 	runs, total_size, nextPageToken, err := runStore.ListRuns(
