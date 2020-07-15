@@ -58,7 +58,7 @@ type token struct {
 	ModelName string
 	// Filter represents the filtering that should be applied in the query.
 	Filter *filter.Filter
-	// SortByRunMetricsName specifies a metric name to sort on. The above
+	// SortByRunMetricName specifies a metric name to sort on. The above
 	// SortByFieldName and KeyFieldName are both columns in the tables; and in
 	// contrast, run metric name is not a column. Therefore, special treatment
 	// is needed for sorting on run metrics and a separate member variable is
@@ -159,7 +159,7 @@ func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api
 			token.SortByRunMetricName = ""
 		} else if strings.HasPrefix(queryList[0], "metric:") {
 			token.SortByFieldName = ""
-			token.SortByRunMetricsName = queryList[0][7:]
+			token.SortByRunMetricName = queryList[0][7:]
 		} else {
 			return nil, util.NewInvalidInputError("Invalid sorting field: %q: %s", queryList[0], err)
 		}
@@ -192,12 +192,12 @@ func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBu
 	return sqlBuilder
 }
 
-// Add sorting based on the specified SortByFieldName or SortByRunMetricsName in Options.
+// Add sorting based on the specified SortByFieldName or SortByRunMetricName in Options.
 func (o *Options) AddSortingToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
 	// Only support sorting on one field or on one metric.
-	// If SortByFieldName and SortByRunMetricsName are set at the same time,
-	// SortByRunMetricsName prevails.
-	// if len(o.SortByRunMetricsName) > 0 {
+	// If SortByFieldName and SortByRunMetricName are set at the same time,
+	// SortByRunMetricName prevails.
+	// if len(o.SortByRunMetricName) > 0 {
 	// 	return o.AddSortingByRunMetricsToSelect(sqlBuilder)
 	// } else {
 	return o.AddSortingByFieldToSelect(sqlBuilder)
@@ -238,14 +238,14 @@ func (o *Options) AddSortingByFieldToSelect(sqlBuilder sq.SelectBuilder) sq.Sele
 }
 
 func (o *Options) AddSortingByRunMetricsToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
-	if len(o.SortByRunMetricsName) == 0 {
+	if len(o.SortByRunMetricName) == 0 {
 		return sqlBuilder
 	}
 
 	sortedRunMetricsSql := sq.
-		Select("selected_runs.*, run_metrics.value as "+o.SortByRunMetricsName).
+		Select("selected_runs.*, run_metrics.value as "+o.SortByRunMetricName).
 		FromSelect(sqlBuilder, "selected_runs").
-		LeftJoin("run_metrics ON selected_runs.uuid=run_metrics.runuuid AND run_metrics.name='" + o.SortByRunMetricsName + "'")
+		LeftJoin("run_metrics ON selected_runs.uuid=run_metrics.runuuid AND run_metrics.name='" + o.SortByRunMetricName + "'")
 	order := "ASC"
 	if o.IsDesc {
 		order = "DESC"
@@ -260,16 +260,16 @@ func (o *Options) AddSortingByRunMetricsToSelect(sqlBuilder sq.SelectBuilder) sq
 	} else {
 		modelNamePrefix = o.ModelName + "."
 	}
-	if o.SortByRunMetricsValue != nil {
+	if o.SortByRunMetricValue != nil {
 		if o.IsDesc {
 			sortedRunMetricsSql = sortedRunMetricsSql.
-				Where(sq.Or{sq.Lt{"run_metrics" + o.SortByRunMetricsName: o.SortByRunMetricsValue},
-					sq.And{sq.Eq{"run_metrics" + o.SortByRunMetricsName: o.SortByRunMetricsValue},
+				Where(sq.Or{sq.Lt{"run_metrics" + o.SortByRunMetricName: o.SortByRunMetricValue},
+					sq.And{sq.Eq{"run_metrics" + o.SortByRunMetricName: o.SortByRunMetricValue},
 						sq.LtOrEq{modelNamePrefix + o.KeyFieldName: o.KeyFieldValue}}})
 		} else {
 			sortedRunMetricsSql = sortedRunMetricsSql.
-				Where(sq.Or{sq.Gt{"run_metrics" + o.SortByRunMetricsName: o.SortByRunMetricsValue},
-					sq.And{sq.Eq{"run_metrics" + o.SortByRunMetricsName: o.SortByRunMetricsValue},
+				Where(sq.Or{sq.Gt{"run_metrics" + o.SortByRunMetricName: o.SortByRunMetricValue},
+					sq.And{sq.Eq{"run_metrics" + o.SortByRunMetricName: o.SortByRunMetricValue},
 						sq.GtOrEq{modelNamePrefix + o.KeyFieldName: o.KeyFieldValue}}})
 		}
 	}
@@ -414,19 +414,19 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 			return nil, util.NewInvalidInputError("type %q does not have metric fields", elemName)
 		}
 		// Find the metric inside metrics that matches the o.SortByRunMetricName
-		for idx, metric := metrics {
+		for idx, metric := range metrics {
 			glog.Infof("metrics: %+v\n", metric)
 		}
 	}
 
 	return &token{
-		SortByFieldName:      o.SortByFieldName,
-		SortByFieldValue:     sortByField.Interface(),
-		KeyFieldName:         listable.PrimaryKeyColumnName(),
-		KeyFieldValue:        keyField.Interface(),
-		IsDesc:               o.IsDesc,
-		Filter:               o.Filter,
-		ModelName:            o.ModelName,
+		SortByFieldName:  o.SortByFieldName,
+		SortByFieldValue: sortByField.Interface(),
+		KeyFieldName:     listable.PrimaryKeyColumnName(),
+		KeyFieldValue:    keyField.Interface(),
+		IsDesc:           o.IsDesc,
+		Filter:           o.Filter,
+		ModelName:        o.ModelName,
 		// SortByRunMetricName:  o.SortByRunMetricName,
 		// SortByRunMetricValue: o.SortByRunMetricValue,
 	}, nil
