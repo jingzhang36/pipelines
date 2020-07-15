@@ -227,9 +227,17 @@ func AppendSubq(column string) string {
 	return "subq." + column
 }
 
+func Map(vs []string, f func(string) string) []string {
+	vsm := make([]string, len(vs))
+	for i, v := range vs {
+		vsm[i] = f(v)
+	}
+	return vsm
+}
+
 func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.SelectBuilder, opts *list.Options) sq.SelectBuilder {
 	resourceRefConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rr.Payload", ","), `"]"`}, "")
-	columns1 := append(Map(runColumns, AppendRd()), resourceRefConcatQuery+" AS refs")
+	columns1 := append(Map(runColumns, func(column string) string { return "rd." + column }), resourceRefConcatQuery+" AS refs")
 	if len(opts.SortByRunMetricName) > 0 {
 		columns1 = append(columns1, opts.SortByRunMetricName)
 	}
@@ -240,7 +248,7 @@ func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.Sele
 		GroupBy("rd.UUID")
 
 	metricConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rm.Payload", ","), `"]"`}, "")
-	columns2 := append(Map(runColumns, AppendSubq()), "subq.refs", metricConcatQuery+" AS metrics")
+	columns2 := append(Map(runColumns, func(column string) string { return "subq." + column }), "subq.refs", metricConcatQuery+" AS metrics")
 	if len(opts.SortByRunMetricName) > 0 {
 		columns2 = append(columns2, opts.SortByRunMetricName)
 	}
