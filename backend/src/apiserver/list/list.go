@@ -407,27 +407,18 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 		return nil, util.NewInvalidInputError("type %q does not have key field %q", elemName, o.KeyFieldName)
 	}
 
-	// if elemName == "Run" && len(o.SortByRunMetricName) > 0 {
-	glog.Info("metrics to be fetched")
-	if elemName == "Run" {
-		glog.Infof("metrics for run %+v\n", elem.FieldByName("Metrics"))
-		glog.Infof("metrics for run type %+v\n", elem.FieldByName("Metrics").Type())
-		metrics, ok := elem.FieldByName("Metrics").Interface().([]*model.RunDetail)
-		if !ok {
-			glog.Info("metric not found\n")
-		} else {
-			// Find the metric inside metrics that matches the o.SortByRunMetricName
-			for _, metric := range metrics {
-				glog.Infof("metric: %+v\n", metric)
-			}
+	var runMetricFieldValue interface{}
+	if elemName == "Run" && len(o.SortByRunMetricName) > 0 {
+		runMetrics = elem.FieldByName("Metrics")
+		var metrics []*model.RunMetric
+		if !runMetrics.IsValid() || metrics, ok := runMetrics.Interface().([]*model.RunMetric) && !ok {
+			return nil, util.NewInvalidInputError("Unable to find run metrics")
 		}
-		metrics2, ok := elem.FieldByName("metrics").Interface().([]*model.RunDetail)
-		if !ok {
-			glog.Info("metric2 not found\n")
-		} else {
-			// Find the metric inside metrics that matches the o.SortByRunMetricName
-			for _, metric2 := range metrics2 {
-				glog.Infof("metric: %+v\n", metric2)
+		// Find the metric inside metrics that matches the o.SortByRunMetricName
+		for _, metric := range metrics {
+			if metric.Name == o.SortByRunMetricName {
+				runMetricFieldValue = metric.NumberValue
+				glog.Infof("run metric sorting: %+v %+v\n", o.SortByRunMetricName, runMetricFieldValue)
 			}
 		}
 	}
@@ -441,7 +432,7 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 		Filter:               o.Filter,
 		ModelName:            o.ModelName,
 		SortByRunMetricName:  o.SortByRunMetricName,
-		SortByRunMetricValue: o.SortByRunMetricValue,
+		SortByRunMetricValue: runMetricFieldValue,
 	}, nil
 }
 
