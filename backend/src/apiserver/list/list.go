@@ -185,7 +185,7 @@ func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api
 // AddPaginationToSelect adds WHERE clauses with the sorting and pagination criteria in the
 // Options o to the supplied SelectBuilder, and returns the new SelectBuilder
 // containing these.
-func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder, bool join) sq.SelectBuilder {
+func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder, join bool) sq.SelectBuilder {
 	sqlBuilder = o.AddSortingToSelect(sqlBuilder, join)
 	// Add one more item than what is requested.
 	sqlBuilder = sqlBuilder.Limit(uint64(o.PageSize + 1))
@@ -193,8 +193,12 @@ func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder, bool join) 
 	return sqlBuilder
 }
 
+func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
+	return o.AddPaginationToSelect(sqlBuilder, false)
+}
+
 // Add sorting based on the specified SortByFieldName or SortByRunMetricName in Options.
-func (o *Options) AddSortingToSelect(sqlBuilder sq.SelectBuilder, bool join) sq.SelectBuilder {
+func (o *Options) AddSortingToSelect(sqlBuilder sq.SelectBuilder, join bool) sq.SelectBuilder {
 	// Only support sorting on one field or on one metric.
 	// If SortByFieldName and SortByRunMetricName are set at the same time,
 	// SortByRunMetricName prevails.
@@ -238,7 +242,7 @@ func (o *Options) AddSortingByFieldToSelect(sqlBuilder sq.SelectBuilder) sq.Sele
 	return sqlBuilder
 }
 
-func (o *Options) AddSortingByRunMetricsToSelect(sqlBuilder sq.SelectBuilder, bool join) sq.SelectBuilder {
+func (o *Options) AddSortingByRunMetricsToSelect(sqlBuilder sq.SelectBuilder, join bool) sq.SelectBuilder {
 	if len(o.SortByRunMetricName) == 0 {
 		return sqlBuilder
 	}
@@ -248,7 +252,7 @@ func (o *Options) AddSortingByRunMetricsToSelect(sqlBuilder sq.SelectBuilder, bo
 		order = "DESC"
 	}
 
-	var sortedRunMetricsSql sql.SelectBuilder
+	var sortedRunMetricsSql sq.SelectBuilder
 	if join {
 		sortedRunMetricsSql := sq.
 			Select("selected_runs.*, run_metrics.value as "+o.SortByRunMetricName).

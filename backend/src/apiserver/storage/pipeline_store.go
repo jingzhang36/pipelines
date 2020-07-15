@@ -97,7 +97,7 @@ func (s *PipelineStore) ListPipelines(opts *list.Options) ([]*model.Pipeline, in
 	sqlBuilder := buildQuery(sq.Select(pipelineColumns...))
 
 	// SQL for row list
-	rowsSql, rowsArgs, err := opts.AddPaginationToSelect(sqlBuilder).ToSql()
+	rowsSql, rowsArgs, err := opts.AddPaginationToSelect(sqlBuilder, false).ToSql()
 	if err != nil {
 		return errorF(err)
 	}
@@ -610,7 +610,7 @@ func (s *PipelineStore) ListPipelineVersions(pipelineId string, opts *list.Optio
 
 	// SQL for pipeline version list
 	rowsSql, rowsArgs, err := opts.AddPaginationToSelect(
-		buildQuery(sq.Select(pipelineVersionColumns...))).ToSql()
+		buildQuery(sq.Select(pipelineVersionColumns...)), false).ToSql()
 	if err != nil {
 		return errorF(err)
 	}
