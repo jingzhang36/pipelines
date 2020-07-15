@@ -389,9 +389,7 @@ func (o *Options) NextPageToken(listable Listable) (string, error) {
 
 func (o *Options) nextPageToken(listable Listable) (*token, error) {
 	// TODO
-	glog.Infof("next page token: listable: %+v\n", listable)
 	elem := reflect.ValueOf(listable).Elem()
-	glog.Infof("next page token: elem: %+v\n", elem)
 	elemName := elem.Type().Name()
 	glog.Infof("next page token: elem name: %+v\n", elemName)
 
@@ -408,14 +406,26 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 	}
 
 	// if elemName == "Run" && len(o.SortByRunMetricName) > 0 {
+	glog.Info("metrics to be fetched")
 	if elemName == "Run" {
-		metrics, err := elem.FieldByName("Metrics").Interface().([]*model.RunDetail)
-		if err != nil {
-			return nil, util.NewInvalidInputError("type %q does not have metric fields", elemName)
+		glog.Info("metrics for run")
+		metrics, ok := elem.FieldByName("Metrics").Interface().([]*model.RunDetail)
+		if !ok {
+			glog.Info("metric not found from: %+v\n", elem.FieldByName("Metrics").Interface())
+		} else {
+			// Find the metric inside metrics that matches the o.SortByRunMetricName
+			for _, metric := range metrics {
+				glog.Infof("metric: %+v\n", metric)
+			}
 		}
-		// Find the metric inside metrics that matches the o.SortByRunMetricName
-		for idx, metric := range metrics {
-			glog.Infof("metrics: %+v\n", metric)
+		metrics2, ok := elem.FieldByName("metrics").Interface().([]*model.RunDetail)
+		if !ok {
+			glog.Info("metric2 not found from: %+v\n", elem.FieldByName("metrics").Interface())
+		} else {
+			// Find the metric inside metrics that matches the o.SortByRunMetricName
+			for _, metric2 := range metrics2 {
+				glog.Infof("metric: %+v\n", metric2)
+			}
 		}
 	}
 
