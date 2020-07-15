@@ -79,8 +79,8 @@ type RunStore struct {
 func (s *RunStore) ListRuns(
 	filterContext *common.FilterContext, opts *list.Options) ([]*model.Run, int, string, error) {
 	// opts.PageSize = 1
-	// opts.SortByFieldName = ""
-	// opts.SortByRunMetricName = "metric:accuracy_score"
+	opts.SortByFieldName = ""
+	opts.SortByRunMetricName = "metric:accuracy_score"
 	errorF := func(err error) ([]*model.Run, int, string, error) {
 		return nil, 0, "", util.NewInternalServerError(err, "Failed to list runs: %v", err)
 	}
