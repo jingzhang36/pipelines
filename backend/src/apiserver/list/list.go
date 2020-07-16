@@ -101,8 +101,8 @@ type Options struct {
 // Matches returns trues if the sorting and filtering criteria in o matches that
 // of the one supplied in opts.
 func (o *Options) Matches(opts *Options) bool {
-	return o.SortByFieldName == opts.SortByFieldName && o.SortByFieldIsRunMetric == opts.SortByFieldIsRunMetric
-	o.IsDesc == opts.IsDesc &&
+	return o.SortByFieldName == opts.SortByFieldName && o.SortByFieldIsRunMetric == opts.SortByFieldIsRunMetric &&
+		o.IsDesc == opts.IsDesc &&
 		reflect.DeepEqual(o.Filter, opts.Filter)
 }
 
@@ -160,7 +160,7 @@ func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api
 				return nil, util.NewInvalidInputError("Invalid sorting field: %q on %q : %s", queryList[0], model, err)
 			}
 			token.SortByFieldName = queryList[0][7:]
-			SortByFieldIsRunMetric = true
+			token.SortByFieldIsRunMetric = true
 		} else {
 			return nil, util.NewInvalidInputError("Invalid sorting field: %q: %s", queryList[0], err)
 		}
@@ -229,7 +229,7 @@ func (o *Options) AddOrderBy(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
 // Add the metric as a new field to the select clause by join the passed-in SQL query with run_metrics table.
 // With the metric as a field in the select clause enable sorting on this metric afterwards.
 func (o *Options) AddSortByRunMetricToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
-	if !SortByFieldIsRunMetric {
+	if !o.SortByFieldIsRunMetric {
 		return sqlBuilder
 	}
 	return sq.
@@ -354,8 +354,9 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 
 	var sortByField interface{}
 	if !o.SortByFieldIsRunMetric {
-		sortByField = elem.FieldByName(o.SortByFieldName)
-		if !sortByField.IsValid() {
+		if value := elem.FieldByName(o.SortByFieldName); value.IsValid() {
+			sortByField = value
+		} else {
 			return nil, util.NewInvalidInputError("cannot sort by field %q on type %q", o.SortByFieldName, elemName)
 		}
 	} else {
@@ -388,7 +389,7 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 
 	return &token{
 		SortByFieldName:        o.SortByFieldName,
-		SortByFieldValue:       sortByField.Interface(),
+		SortByFieldValue:       sortByField,
 		SortByFieldIsRunMetric: o.SortByFieldIsRunMetric,
 		KeyFieldName:           listable.PrimaryKeyColumnName(),
 		KeyFieldValue:          keyField.Interface(),
