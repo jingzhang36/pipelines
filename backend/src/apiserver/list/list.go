@@ -281,7 +281,7 @@ func (o *Options) AddSortByRunMetricToSelect(sqlBuilder sq.SelectBuilder) sq.Sel
 		return sqlBuilder
 	}
 	return sq.
-		Select("selected_runs.*, run_metrics.value as "+o.SortByRunMetricName).
+		Select("selected_runs.*, run_metrics.numbervalue as "+o.SortByRunMetricName).
 		FromSelect(sqlBuilder, "selected_runs").
 		LeftJoin("run_metrics ON selected_runs.uuid=run_metrics.runuuid AND run_metrics.name='" + o.SortByRunMetricName + "'")
 }

@@ -45,6 +45,12 @@ func initializeRunStore() (*DB, *RunStore) {
 			CreatedAtInSec:   1,
 			ScheduledAtInSec: 1,
 			Conditions:       "Running",
+			Metrics: []*model.RunMetric{
+				{
+					Name:        "dummymetric",
+					NumberValue: 1.0,
+				},
+			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "1", ResourceType: common.Run,
@@ -67,6 +73,12 @@ func initializeRunStore() (*DB, *RunStore) {
 			CreatedAtInSec:   2,
 			ScheduledAtInSec: 2,
 			Conditions:       "done",
+			Metrics: []*model.RunMetric{
+				{
+					Name:        "dummymetric",
+					NumberValue: 2.0,
+				},
+			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "2", ResourceType: common.Run,

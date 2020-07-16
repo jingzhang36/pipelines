@@ -183,6 +183,7 @@ func (s *RunStore) buildSelectRunsQuery(selectCount bool, opts *list.Options,
 		return "", nil, util.NewInternalServerError(err, "Failed to list runs: %v", err)
 	}
 	glog.Infof("sql: %+v\n", sql)
+	fmt.Printf("sql: %+v\n", sql)
 	return sql, args, err
 }
 
@@ -239,7 +240,7 @@ func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.Sele
 	resourceRefConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rr.Payload", ","), `"]"`}, "")
 	columns1 := append(Map(runColumns, func(column string) string { return "rd." + column }), resourceRefConcatQuery+" AS refs")
 	if len(opts.SortByRunMetricName) > 0 {
-		columns1 = append(columns1, opts.SortByRunMetricName)
+		columns1 = append(columns1, "rd."+opts.SortByRunMetricName)
 	}
 	subQ := sq.
 		Select(columns1...). //"rd.*", resourceRefConcatQuery+" AS refs").
@@ -250,7 +251,7 @@ func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.Sele
 	metricConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rm.Payload", ","), `"]"`}, "")
 	columns2 := append(Map(runColumns, func(column string) string { return "subq." + column }), "subq.refs", metricConcatQuery+" AS metrics")
 	if len(opts.SortByRunMetricName) > 0 {
-		columns2 = append(columns2, opts.SortByRunMetricName)
+		columns2 = append(columns2, "subq."+opts.SortByRunMetricName)
 	}
 	return sq.
 		Select(columns2...). //"subq.*", metricConcatQuery+" AS metrics").
@@ -266,7 +267,7 @@ func (s *RunStore) scanRowsToRunDetails(rows *sql.Rows) ([]*model.RunDetail, err
 			pipelineName, pipelineSpecManifest, workflowSpecManifest, parameters, conditions, pipelineRuntimeManifest,
 			workflowRuntimeManifest string
 		var createdAtInSec, scheduledAtInSec, finishedAtInSec int64
-		var metricsInString, resourceReferencesInString sql.NullString
+		var metricsInString, resourceReferencesInString sortbymetric sql.NullString
 		err := rows.Scan(
 			&uuid,
 			&experimentUUID,
@@ -289,6 +290,7 @@ func (s *RunStore) scanRowsToRunDetails(rows *sql.Rows) ([]*model.RunDetail, err
 			&workflowRuntimeManifest,
 			&resourceReferencesInString,
 			&metricsInString,
+			&sortbymetric,
 		)
 		if err != nil {
 			glog.Errorf("Failed to scan row: %v", err)
