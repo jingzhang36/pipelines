@@ -195,23 +195,29 @@ func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBu
 
 func (o *Options) AddOrderBy(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
 	// If next row's value is specified, set those values in the clause.
-	var modelNamePrefix string
-	if len(o.ModelName) == 0 || o.SortByFieldIsRunMetric {
-		modelNamePrefix = ""
+	var keyFieldPrefix string
+	var sortByFieldPrefix string
+	if len(o.ModelName) == 0 {
+		keyFieldPrefix = ""
+		sortByFieldPrefix = ""
+	} else if o.SortByFieldIsRunMetric {
+		keyFieldPrefix = o.ModelName + "."
+		sortByFieldPrefix = ""
 	} else {
-		modelNamePrefix = o.ModelName + "."
+		keyFieldPrefix = o.ModelName + "."
+		sortByFieldPrefix = o.ModelName + "."
 	}
 	if o.SortByFieldValue != nil && o.KeyFieldValue != nil {
 		if o.IsDesc {
 			sqlBuilder = sqlBuilder.
-				Where(sq.Or{sq.Lt{modelNamePrefix + o.SortByFieldName: o.SortByFieldValue},
-					sq.And{sq.Eq{modelNamePrefix + o.SortByFieldName: o.SortByFieldValue},
-						sq.LtOrEq{modelNamePrefix + o.KeyFieldName: o.KeyFieldValue}}})
+				Where(sq.Or{sq.Lt{sortByFieldPrefix + o.SortByFieldName: o.SortByFieldValue},
+					sq.And{sq.Eq{sortByFieldPrefix + o.SortByFieldName: o.SortByFieldValue},
+						sq.LtOrEq{keyFieldPrefix + o.KeyFieldName: o.KeyFieldValue}}})
 		} else {
 			sqlBuilder = sqlBuilder.
-				Where(sq.Or{sq.Gt{modelNamePrefix + o.SortByFieldName: o.SortByFieldValue},
-					sq.And{sq.Eq{modelNamePrefix + o.SortByFieldName: o.SortByFieldValue},
-						sq.GtOrEq{modelNamePrefix + o.KeyFieldName: o.KeyFieldValue}}})
+				Where(sq.Or{sq.Gt{sortByFieldPrefix + o.SortByFieldName: o.SortByFieldValue},
+					sq.And{sq.Eq{sortByFieldPrefix + o.SortByFieldName: o.SortByFieldValue},
+						sq.GtOrEq{keyFieldPrefix + o.KeyFieldName: o.KeyFieldValue}}})
 		}
 	}
 
@@ -220,8 +226,8 @@ func (o *Options) AddOrderBy(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
 		order = "DESC"
 	}
 	sqlBuilder = sqlBuilder.
-		OrderBy(fmt.Sprintf("%v %v", modelNamePrefix+o.SortByFieldName, order)).
-		OrderBy(fmt.Sprintf("%v %v", modelNamePrefix+o.KeyFieldName, order))
+		OrderBy(fmt.Sprintf("%v %v", sortByFieldPrefix+o.SortByFieldName, order)).
+		OrderBy(fmt.Sprintf("%v %v", keyFieldPrefix+o.KeyFieldName, order))
 
 	return sqlBuilder
 }
