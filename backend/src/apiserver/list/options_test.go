@@ -359,7 +359,34 @@ func TestAddPaginationAndFilterToSelect(t *testing.T) {
 	}
 }
 
-func TestOptionMatches(t *testing.T) {
+func TestMatches(t *testing.T) {
+	protoFilter1 := &api.Filter{
+		Predicates: []*api.Predicate{
+			&api.Predicate{
+				Key:   "Name",
+				Op:    api.Predicate_EQUALS,
+				Value: &api.Predicate_StringValue{StringValue: "SomeName"},
+			},
+		},
+	}
+	f1, err := filter.New(protoFilter1)
+	if err != nil {
+		t.Fatalf("failed to parse filter proto %+v: %v", protoFilter1, err)
+	}
+
+	protoFilter2 := &api.Filter{
+		Predicates: []*api.Predicate{
+			&api.Predicate{
+				Key:   "Name",
+				Op:    api.Predicate_NOT_EQUALS, // Not equals as opposed to equals above.
+				Value: &api.Predicate_StringValue{StringValue: "SomeName"},
+			},
+		},
+	}
+	f2, err := filter.New(protoFilter2)
+	if err != nil {
+		t.Fatalf("failed to parse filter proto %+v: %v", protoFilter2, err)
+	}
 	tests := []struct {
 		o1   *Options
 		o2   *Options
