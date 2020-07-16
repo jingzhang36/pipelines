@@ -79,8 +79,8 @@ type RunStore struct {
 func (s *RunStore) ListRuns(
 	filterContext *common.FilterContext, opts *list.Options) ([]*model.Run, int, string, error) {
 	// opts.PageSize = 1
-	opts.SortByFieldName = ""
-	opts.SortByRunMetricName = "accuracy_score"
+	opts.SortByFieldName = "accuracy_score"
+	opts.SortByFieldIsRunMetric = true
 	errorF := func(err error) ([]*model.Run, int, string, error) {
 		return nil, 0, "", util.NewInternalServerError(err, "Failed to list runs: %v", err)
 	}
@@ -239,8 +239,8 @@ func Map(vs []string, f func(string) string) []string {
 func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.SelectBuilder, opts *list.Options) sq.SelectBuilder {
 	resourceRefConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rr.Payload", ","), `"]"`}, "")
 	columns1 := append(Map(runColumns, func(column string) string { return "rd." + column }), resourceRefConcatQuery+" AS refs")
-	if len(opts.SortByRunMetricName) > 0 {
-		columns1 = append(columns1, "rd."+opts.SortByRunMetricName)
+	if opts.SortByFieldIsRunMetric {
+		columns1 = append(columns1, "rd."+opts.SortByFieldName)
 	}
 	subQ := sq.
 		Select(columns1...). //"rd.*", resourceRefConcatQuery+" AS refs").
@@ -250,8 +250,8 @@ func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.Sele
 
 	metricConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rm.Payload", ","), `"]"`}, "")
 	columns2 := append(Map(runColumns, func(column string) string { return "subq." + column }), "subq.refs", metricConcatQuery+" AS metrics")
-	if len(opts.SortByRunMetricName) > 0 {
-		columns2 = append(columns2, "subq."+opts.SortByRunMetricName)
+	if opts.SortByFieldIsRunMetric {
+		columns2 = append(columns2, "subq."+opts.SortByFieldName)
 	}
 	return sq.
 		Select(columns2...). //"subq.*", metricConcatQuery+" AS metrics").
