@@ -781,7 +781,16 @@ func TestReportMetric_Success(t *testing.T) {
 
 	runDetail, err := runStore.GetRun("1")
 	assert.Nil(t, err, "Got error: %+v", err)
-	assert.Equal(t, []*model.RunMetric{metric}, runDetail.Run.Metrics)
+	sort.Sort(RunMetricSorter(runDetail.Run.Metrics))
+	assert.Equal(t, []*model.RunMetric{
+		metric,
+		{
+			RunUUID:     "1",
+			NodeID:      "node1",
+			Name:        "dummymetric",
+			NumberValue: 1.0,
+			Format:      "PERCENTAGE",
+		}}, runDetail.Run.Metrics)
 }
 
 func TestReportMetric_DupReports_Fail(t *testing.T) {
@@ -918,10 +927,10 @@ func TestListRuns_WithMetrics(t *testing.T) {
 	assert.Equal(t, 3, total_size)
 	assert.Nil(t, err)
 	for _, run := range expectedRuns {
-		sort.Sort(run.Metrics)
+		sort.Sort(RunMetricSorter(run.Metrics))
 	}
 	for _, run := range runs {
-		sort.Sort(run.Metrics)
+		sort.Sort(RunMetricSorter(run.Metrics))
 	}
 	assert.Equal(t, expectedRuns, runs, "Unexpected Run listed.")
 }
