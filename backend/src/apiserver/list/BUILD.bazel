@@ -2,7 +2,7 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 
 go_library(
     name = "go_default_library",
-    srcs = ["list.go"],
+    srcs = ["list.go", "options.go"],
     importpath = "github.com/kubeflow/pipelines/backend/src/apiserver/list",
     visibility = ["//visibility:public"],
     deps = [
@@ -18,7 +18,7 @@ go_library(
 
 go_test(
     name = "go_default_test",
-    srcs = ["list_test.go"],
+    srcs = ["list_test.go", "options_test.go"],
     embed = [":go_default_library"],
     deps = [
         "//backend/api:go_default_library",
