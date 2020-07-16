@@ -168,33 +168,33 @@ func TestListRuns_Pagination(t *testing.T) {
 				},
 			},
 		}}
-	// expectedSecondPageRuns := []*model.Run{
-	// 	{
-	// 		UUID:             "2",
-	// 		Name:             "run2",
-	// 		DisplayName:      "run2",
-	// 		Namespace:        "n2",
-	// 		CreatedAtInSec:   2,
-	// 		ScheduledAtInSec: 2,
-	// 		StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
-	// 		Conditions:       "done",
-	// 		Metrics: []*model.RunMetric{
-	// 			{
-	// RunUUID:     "2",
-	// NodeID:      "node2",
-	// 				Name:        "dummymetric",
-	// 				NumberValue: 2.0,
-	// Format:      "PERCENTAGE",
-	// 			},
-	// 		},
-	// 		ResourceReferences: []*model.ResourceReference{
-	// 			{
-	// 				ResourceUUID: "2", ResourceType: common.Run,
-	// 				ReferenceUUID: defaultFakeExpId, ReferenceName: "e1",
-	// 				ReferenceType: common.Experiment, Relationship: common.Creator,
-	// 			},
-	// 		},
-	// 	}}
+	expectedSecondPageRuns := []*model.Run{
+		{
+			UUID:             "2",
+			Name:             "run2",
+			DisplayName:      "run2",
+			Namespace:        "n2",
+			CreatedAtInSec:   2,
+			ScheduledAtInSec: 2,
+			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
+			Conditions:       "done",
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "2",
+					NodeID:      "node2",
+					Name:        "dummymetric",
+					NumberValue: 2.0,
+					Format:      "PERCENTAGE",
+				},
+			},
+			ResourceReferences: []*model.ResourceReference{
+				{
+					ResourceUUID: "2", ResourceType: common.Run,
+					ReferenceUUID: defaultFakeExpId, ReferenceName: "e1",
+					ReferenceType: common.Experiment, Relationship: common.Creator,
+				},
+			},
+		}}
 
 	opts, err := list.NewOptions(&model.Run{}, 1, "metric:dummymetric", nil)
 	assert.Nil(t, err)
@@ -206,14 +206,14 @@ func TestListRuns_Pagination(t *testing.T) {
 	assert.Equal(t, expectedFirstPageRuns, runs, "Unexpected Run listed.")
 	assert.NotEmpty(t, nextPageToken)
 
-	// opts, err = list.NewOptionsFromToken(nextPageToken, 1)
-	// assert.Nil(t, err)
-	// runs, total_size, nextPageToken, err = runStore.ListRuns(
-	// 	&common.FilterContext{ReferenceKey: &common.ReferenceKey{Type: common.Experiment, ID: defaultFakeExpId}}, opts)
-	// assert.Nil(t, err)
-	// assert.Equal(t, 2, total_size)
-	// assert.Equal(t, expectedSecondPageRuns, runs, "Unexpected Run listed.")
-	// assert.Empty(t, nextPageToken)
+	opts, err = list.NewOptionsFromToken(nextPageToken, 1)
+	assert.Nil(t, err)
+	runs, total_size, nextPageToken, err = runStore.ListRuns(
+		&common.FilterContext{ReferenceKey: &common.ReferenceKey{Type: common.Experiment, ID: defaultFakeExpId}}, opts)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, total_size)
+	assert.Equal(t, expectedSecondPageRuns, runs, "Unexpected Run listed.")
+	assert.Empty(t, nextPageToken)
 }
 
 func TestListRuns_TotalSizeWithNoFilter(t *testing.T) {
