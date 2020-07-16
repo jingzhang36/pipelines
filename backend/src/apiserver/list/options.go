@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	api "github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/filter"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/model"
 	"github.com/kubeflow/pipelines/backend/src/common/util"
