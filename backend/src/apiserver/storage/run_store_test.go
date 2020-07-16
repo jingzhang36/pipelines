@@ -15,6 +15,7 @@
 package storage
 
 import (
+	"fmt"
 	"testing"
 
 	sq "github.com/Masterminds/squirrel"
@@ -45,12 +46,6 @@ func initializeRunStore() (*DB, *RunStore) {
 			CreatedAtInSec:   1,
 			ScheduledAtInSec: 1,
 			Conditions:       "Running",
-			Metrics: []*model.RunMetric{
-				{
-					Name:        "dummymetric",
-					NumberValue: 1.0,
-				},
-			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "1", ResourceType: common.Run,
@@ -73,12 +68,6 @@ func initializeRunStore() (*DB, *RunStore) {
 			CreatedAtInSec:   2,
 			ScheduledAtInSec: 2,
 			Conditions:       "done",
-			Metrics: []*model.RunMetric{
-				{
-					Name:        "dummymetric",
-					NumberValue: 2.0,
-				},
-			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "2", ResourceType: common.Run,
@@ -272,7 +261,7 @@ func TestListRuns_Pagination_Descend(t *testing.T) {
 					RunUUID:     "2",
 					NodeID:      "node2",
 					Name:        "dummymetric",
-					NumberValue: 1.0,
+					NumberValue: 2.0,
 					Format:      "PERCENTAGE",
 				},
 			},
@@ -316,6 +305,10 @@ func TestListRuns_Pagination_Descend(t *testing.T) {
 	assert.Nil(t, err)
 	runs, total_size, nextPageToken, err := runStore.ListRuns(
 		&common.FilterContext{ReferenceKey: &common.ReferenceKey{Type: common.Experiment, ID: defaultFakeExpId}}, opts)
+
+	for _, run := range runs {
+		fmt.Printf("%+v\n", run)
+	}
 
 	assert.Nil(t, err)
 	assert.Equal(t, 2, total_size)

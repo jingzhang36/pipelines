@@ -361,7 +361,7 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 	var sortByField interface{}
 	if !o.SortByFieldIsRunMetric {
 		if value := elem.FieldByName(o.SortByFieldName); value.IsValid() {
-			sortByField = value
+			sortByField = value.Interface()
 		} else {
 			return nil, util.NewInvalidInputError("cannot sort by field %q on type %q", o.SortByFieldName, elemName)
 		}
