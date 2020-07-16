@@ -267,6 +267,15 @@ func TestListRuns_Pagination_Descend(t *testing.T) {
 			ScheduledAtInSec: 2,
 			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
 			Conditions:       "done",
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "2",
+					NodeID:      "node2",
+					Name:        "dummymetric",
+					NumberValue: 1.0,
+					Format:      "PERCENTAGE",
+				},
+			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "2", ResourceType: common.Run,
@@ -285,6 +294,15 @@ func TestListRuns_Pagination_Descend(t *testing.T) {
 			ScheduledAtInSec: 1,
 			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
 			Conditions:       "Running",
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "1",
+					NodeID:      "node1",
+					Name:        "dummymetric",
+					NumberValue: 1.0,
+					Format:      "PERCENTAGE",
+				},
+			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "1", ResourceType: common.Run,
@@ -328,6 +346,15 @@ func TestListRuns_Pagination_LessThanPageSize(t *testing.T) {
 			ScheduledAtInSec: 1,
 			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
 			Conditions:       "Running",
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "1",
+					NodeID:      "node1",
+					Name:        "dummymetric",
+					NumberValue: 1.0,
+					Format:      "PERCENTAGE",
+				},
+			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "1", ResourceType: common.Run,
@@ -345,6 +372,15 @@ func TestListRuns_Pagination_LessThanPageSize(t *testing.T) {
 			ScheduledAtInSec: 2,
 			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
 			Conditions:       "done",
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "1",
+					NodeID:      "node1",
+					Name:        "dummymetric",
+					NumberValue: 1.0,
+					Format:      "PERCENTAGE",
+				},
+			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "2", ResourceType: common.Run,
@@ -389,6 +425,15 @@ func TestGetRun(t *testing.T) {
 			ScheduledAtInSec: 1,
 			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
 			Conditions:       "Running",
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "1",
+					NodeID:      "node1",
+					Name:        "dummymetric",
+					NumberValue: 1.0,
+					Format:      "PERCENTAGE",
+				},
+			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "1", ResourceType: common.Run,
@@ -437,6 +482,15 @@ func TestCreateOrUpdateRun_UpdateSuccess(t *testing.T) {
 			ScheduledAtInSec: 1,
 			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
 			Conditions:       "Running",
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "1",
+					NodeID:      "node1",
+					Name:        "dummymetric",
+					NumberValue: 1.0,
+					Format:      "PERCENTAGE",
+				},
+			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "1", ResourceType: common.Run,
@@ -474,6 +528,15 @@ func TestCreateOrUpdateRun_UpdateSuccess(t *testing.T) {
 			ScheduledAtInSec: 1,
 			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
 			Conditions:       "done",
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "1",
+					NodeID:      "node1",
+					Name:        "dummymetric",
+					NumberValue: 1.0,
+					Format:      "PERCENTAGE",
+				},
+			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "1", ResourceType: common.Run,
@@ -607,6 +670,15 @@ func TestCreateOrUpdateRun_BadStorageStateValue(t *testing.T) {
 			CreatedAtInSec:   1,
 			ScheduledAtInSec: 1,
 			Conditions:       "Running",
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "1",
+					NodeID:      "node1",
+					Name:        "dummymetric",
+					NumberValue: 1.0,
+					Format:      "PERCENTAGE",
+				},
+			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "1", ResourceType: common.Run,
@@ -651,6 +723,15 @@ func TestTerminateRun(t *testing.T) {
 			ScheduledAtInSec: 1,
 			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
 			Conditions:       "Terminating",
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "1",
+					NodeID:      "node1",
+					Name:        "dummymetric",
+					NumberValue: 1.0,
+					Format:      "PERCENTAGE",
+				},
+			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "1", ResourceType: common.Run,
@@ -914,6 +995,15 @@ func TestArchiveRun_IncludedInRunList(t *testing.T) {
 			ScheduledAtInSec: 1,
 			StorageState:     api.Run_STORAGESTATE_ARCHIVED.String(),
 			Conditions:       "Running",
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "1",
+					NodeID:      "node1",
+					Name:        "dummymetric",
+					NumberValue: 1.0,
+					Format:      "PERCENTAGE",
+				},
+			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "1", ResourceType: common.Run,
