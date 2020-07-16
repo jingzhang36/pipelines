@@ -220,14 +220,6 @@ func (s *RunStore) GetRun(runId string) (*model.RunDetail, error) {
 	return runs[0], nil
 }
 
-func AppendRd(column string) string {
-	return "rd." + column
-}
-
-func AppendSubq(column string) string {
-	return "subq." + column
-}
-
 func Map(vs []string, f func(string) string) []string {
 	vsm := make([]string, len(vs))
 	for i, v := range vs {
@@ -250,9 +242,6 @@ func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.Sele
 
 	metricConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rm.Payload", ","), `"]"`}, "")
 	columns2 := append(Map(runColumns, func(column string) string { return "subq." + column }), "subq.refs", metricConcatQuery+" AS metrics")
-	if opts.SortByFieldIsRunMetric {
-		columns2 = append(columns2, "subq."+opts.SortByFieldName)
-	}
 	return sq.
 		Select(columns2...). //"subq.*", metricConcatQuery+" AS metrics").
 		FromSelect(subQ, "subq").
