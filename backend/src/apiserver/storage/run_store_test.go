@@ -367,10 +367,10 @@ func TestListRuns_Pagination_LessThanPageSize(t *testing.T) {
 			Conditions:       "done",
 			Metrics: []*model.RunMetric{
 				{
-					RunUUID:     "1",
-					NodeID:      "node1",
+					RunUUID:     "2",
+					NodeID:      "node2",
 					Name:        "dummymetric",
-					NumberValue: 1.0,
+					NumberValue: 2.0,
 					Format:      "PERCENTAGE",
 				},
 			},
@@ -866,7 +866,16 @@ func TestListRuns_WithMetrics(t *testing.T) {
 					ReferenceType: common.Experiment, Relationship: common.Creator,
 				},
 			},
-			Metrics: []*model.RunMetric{metric1, metric2},
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "1",
+					NodeID:      "node1",
+					Name:        "dummymetric",
+					NumberValue: 1.0,
+					Format:      "PERCENTAGE",
+				},
+				metric1,
+				metric2},
 		},
 		{
 			UUID:             "2",
@@ -884,7 +893,15 @@ func TestListRuns_WithMetrics(t *testing.T) {
 					ReferenceType: common.Experiment, Relationship: common.Creator,
 				},
 			},
-			Metrics: []*model.RunMetric{metric3},
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "2",
+					NodeID:      "node2",
+					Name:        "dummymetric",
+					NumberValue: 2.0,
+					Format:      "PERCENTAGE",
+				},
+				metric3},
 		},
 	}
 
