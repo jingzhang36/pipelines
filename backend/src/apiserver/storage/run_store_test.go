@@ -16,6 +16,7 @@ package storage
 
 import (
 	"fmt"
+	"sort"
 	"testing"
 
 	sq "github.com/Masterminds/squirrel"
@@ -27,6 +28,12 @@ import (
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/codes"
 )
+
+type RunMetricSorter []*model.RunMetric
+
+func (r RunMetricSorter) Len() int           { return len(r) }
+func (r RunMetricSorter) Less(i, j int) bool { return r[i].Name < r[j].Name }
+func (r RunMetricSorter) Swap(i, j int)      { r[i], r[j] = r[j], r[i] }
 
 func initializeRunStore() (*DB, *RunStore) {
 	db := NewFakeDbOrFatal()
@@ -905,11 +912,17 @@ func TestListRuns_WithMetrics(t *testing.T) {
 		},
 	}
 
-	opts, err := list.NewOptions(&model.Run{}, 2, "", nil)
+	opts, err := list.NewOptions(&model.Run{}, 2, "id", nil)
 	assert.Nil(t, err)
 	runs, total_size, _, err := runStore.ListRuns(&common.FilterContext{}, opts)
 	assert.Equal(t, 3, total_size)
 	assert.Nil(t, err)
+	for _, run := range expectedRuns {
+		sort.Sort(run.Metrics)
+	}
+	for _, run := range runs {
+		sort.Sort(run.Metrics)
+	}
 	assert.Equal(t, expectedRuns, runs, "Unexpected Run listed.")
 }
 
