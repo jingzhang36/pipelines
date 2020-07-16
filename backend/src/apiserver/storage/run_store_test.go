@@ -116,6 +116,24 @@ func initializeRunStore() (*DB, *RunStore) {
 	runStore.CreateRun(run1)
 	runStore.CreateRun(run2)
 	runStore.CreateRun(run3)
+
+	metric1 := &model.RunMetric{
+		RunUUID:     "1",
+		NodeID:      "node1",
+		Name:        "dummymetric",
+		NumberValue: 1.0,
+		Format:      "PERCENTAGE",
+	}
+	metric2 := &model.RunMetric{
+		RunUUID:     "2",
+		NodeID:      "node2",
+		Name:        "dummymetric",
+		NumberValue: 2.0,
+		Format:      "PERCENTAGE",
+	}
+	runStore.ReportMetric(metric1)
+	runStore.ReportMetric(metric2)
+
 	return db, runStore
 }
 
@@ -135,8 +153,11 @@ func TestListRuns_Pagination(t *testing.T) {
 			Conditions:       "Running",
 			Metrics: []*model.RunMetric{
 				{
+					RunUUID:     "1",
+					NodeID:      "node1",
 					Name:        "dummymetric",
 					NumberValue: 1.0,
+					Format:      "PERCENTAGE",
 				},
 			},
 			ResourceReferences: []*model.ResourceReference{
@@ -159,8 +180,11 @@ func TestListRuns_Pagination(t *testing.T) {
 	// 		Conditions:       "done",
 	// 		Metrics: []*model.RunMetric{
 	// 			{
+	// RunUUID:     "2",
+	// NodeID:      "node2",
 	// 				Name:        "dummymetric",
 	// 				NumberValue: 2.0,
+	// Format:      "PERCENTAGE",
 	// 			},
 	// 		},
 	// 		ResourceReferences: []*model.ResourceReference{
