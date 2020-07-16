@@ -403,19 +403,20 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 	elemName := elem.Type().Name()
 	glog.Infof("next page token: elem name: %+v\n", elemName)
 
-	sortByField := elem.FieldByName(o.SortByFieldName)
-	glog.Infof("next page token: sort field: %+v for %+v\n", sortByField, elem.FieldByName)
-	if !sortByField.IsValid() {
-		return nil, util.NewInvalidInputError("cannot sort by field %q on type %q", o.SortByFieldName, elemName)
-	}
-
 	keyField := elem.FieldByName(listable.PrimaryKeyColumnName())
 	glog.Infof("next page token: key field: %+v for %+v\n", keyField, listable.PrimaryKeyColumnName)
 	if !keyField.IsValid() {
 		return nil, util.NewInvalidInputError("type %q does not have key field %q", elemName, o.KeyFieldName)
 	}
 
+	// Either SortByFieldName or SortByRunMetricName is specified.
+	sortByField := elem.FieldByName(o.SortByFieldName)
 	var runMetricFieldValue interface{}
+	glog.Infof("next page token: sort field: %+v for %+v\n", sortByField, elem.FieldByName)
+	if !sortByField.IsValid() {
+		return nil, util.NewInvalidInputError("cannot sort by field %q on type %q", o.SortByFieldName, elemName)
+	}
+
 	if elemName == "Run" && len(o.SortByRunMetricName) > 0 {
 		runMetrics := elem.FieldByName("Metrics")
 		if !runMetrics.IsValid() {
