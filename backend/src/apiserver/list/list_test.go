@@ -1,7 +1,6 @@
 package list
 
 import (
-	"reflect"
 	"testing"
 
 	"github.com/kubeflow/pipelines/backend/src/apiserver/common"
@@ -9,7 +8,6 @@ import (
 	"github.com/kubeflow/pipelines/backend/src/common/util"
 	"github.com/stretchr/testify/assert"
 
-	sq "github.com/Masterminds/squirrel"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	api "github.com/kubeflow/pipelines/backend/api/go_client"
@@ -167,122 +165,6 @@ func TestValidatePageSize(t *testing.T) {
 	}
 }
 
-func TestAddPaginationAndFilterToSelect(t *testing.T) {
-	protoFilter := &api.Filter{
-		Predicates: []*api.Predicate{
-			&api.Predicate{
-				Key:   "Name",
-				Op:    api.Predicate_EQUALS,
-				Value: &api.Predicate_StringValue{StringValue: "SomeName"},
-			},
-		},
-	}
-	f, err := filter.New(protoFilter)
-	if err != nil {
-		t.Fatalf("failed to parse filter proto %+v: %v", protoFilter, err)
-	}
-
-	tests := []struct {
-		in       *Options
-		wantSQL  string
-		wantArgs []interface{}
-	}{
-		{
-			in: &Options{
-				PageSize: 123,
-				token: &token{
-					SortByFieldName:  "SortField",
-					SortByFieldValue: "value",
-					KeyFieldName:     "KeyField",
-					KeyFieldValue:    1111,
-					IsDesc:           true,
-				},
-			},
-			wantSQL:  "SELECT * FROM MyTable WHERE (SortField < ? OR (SortField = ? AND KeyField <= ?)) ORDER BY SortField DESC, KeyField DESC LIMIT 124",
-			wantArgs: []interface{}{"value", "value", 1111},
-		},
-		{
-			in: &Options{
-				PageSize: 123,
-				token: &token{
-					SortByFieldName:  "SortField",
-					SortByFieldValue: "value",
-					KeyFieldName:     "KeyField",
-					KeyFieldValue:    1111,
-					IsDesc:           false,
-				},
-			},
-			wantSQL:  "SELECT * FROM MyTable WHERE (SortField > ? OR (SortField = ? AND KeyField >= ?)) ORDER BY SortField ASC, KeyField ASC LIMIT 124",
-			wantArgs: []interface{}{"value", "value", 1111},
-		},
-		{
-			in: &Options{
-				PageSize: 123,
-				token: &token{
-					SortByFieldName:  "SortField",
-					SortByFieldValue: "value",
-					KeyFieldName:     "KeyField",
-					KeyFieldValue:    1111,
-					IsDesc:           false,
-					Filter:           f,
-				},
-			},
-			wantSQL:  "SELECT * FROM MyTable WHERE (SortField > ? OR (SortField = ? AND KeyField >= ?)) AND Name = ? ORDER BY SortField ASC, KeyField ASC LIMIT 124",
-			wantArgs: []interface{}{"value", "value", 1111, "SomeName"},
-		},
-		{
-			in: &Options{
-				PageSize: 123,
-				token: &token{
-					SortByFieldName: "SortField",
-					KeyFieldName:    "KeyField",
-					KeyFieldValue:   1111,
-					IsDesc:          true,
-				},
-			},
-			wantSQL:  "SELECT * FROM MyTable ORDER BY SortField DESC, KeyField DESC LIMIT 124",
-			wantArgs: nil,
-		},
-		{
-			in: &Options{
-				PageSize: 123,
-				token: &token{
-					SortByFieldName:  "SortField",
-					SortByFieldValue: "value",
-					KeyFieldName:     "KeyField",
-					IsDesc:           false,
-				},
-			},
-			wantSQL:  "SELECT * FROM MyTable ORDER BY SortField ASC, KeyField ASC LIMIT 124",
-			wantArgs: nil,
-		},
-		{
-			in: &Options{
-				PageSize: 123,
-				token: &token{
-					SortByFieldName:  "SortField",
-					SortByFieldValue: "value",
-					KeyFieldName:     "KeyField",
-					IsDesc:           false,
-					Filter:           f,
-				},
-			},
-			wantSQL:  "SELECT * FROM MyTable WHERE Name = ? ORDER BY SortField ASC, KeyField ASC LIMIT 124",
-			wantArgs: []interface{}{"SomeName"},
-		},
-	}
-
-	for _, test := range tests {
-		sql := sq.Select("*").From("MyTable")
-		gotSQL, gotArgs, err := test.in.AddFilterToSelect(test.in.AddPaginationToSelect(sql)).ToSql()
-
-		if gotSQL != test.wantSQL || !reflect.DeepEqual(gotArgs, test.wantArgs) || err != nil {
-			t.Errorf("BuildListSQLQuery(%+v) =\nGot: %q, %v, %v\nWant: %q, %v, nil",
-				test.in, gotSQL, gotArgs, err, test.wantSQL, test.wantArgs)
-		}
-	}
-}
-
 func TestTokenSerialization(t *testing.T) {
 	protoFilter := &api.Filter{Predicates: []*api.Predicate{
 		&api.Predicate{
@@ -367,7 +249,7 @@ func TestTokenSerialization(t *testing.T) {
 	}
 }
 
-func TestMatches(t *testing.T) {
+func TestFilterMatches(t *testing.T) {
 	protoFilter1 := &api.Filter{
 		Predicates: []*api.Predicate{
 			&api.Predicate{
@@ -394,47 +276,6 @@ func TestMatches(t *testing.T) {
 	f2, err := filter.New(protoFilter2)
 	if err != nil {
 		t.Fatalf("failed to parse filter proto %+v: %v", protoFilter2, err)
-	}
-
-	tests := []struct {
-		o1   *Options
-		o2   *Options
-		want bool
-	}{
-		{
-			o1:   &Options{token: &token{SortByFieldName: "SortField1", IsDesc: true}},
-			o2:   &Options{token: &token{SortByFieldName: "SortField2", IsDesc: true}},
-			want: false,
-		},
-		{
-			o1:   &Options{token: &token{SortByFieldName: "SortField1", IsDesc: true}},
-			o2:   &Options{token: &token{SortByFieldName: "SortField1", IsDesc: true}},
-			want: true,
-		},
-		{
-			o1:   &Options{token: &token{SortByFieldName: "SortField1", IsDesc: true}},
-			o2:   &Options{token: &token{SortByFieldName: "SortField1", IsDesc: false}},
-			want: false,
-		},
-		{
-			o1:   &Options{token: &token{Filter: f1}},
-			o2:   &Options{token: &token{Filter: f1}},
-			want: true,
-		},
-		{
-			o1:   &Options{token: &token{Filter: f1}},
-			o2:   &Options{token: &token{Filter: f2}},
-			want: false,
-		},
-	}
-
-	for _, test := range tests {
-		got := test.o1.Matches(test.o2)
-
-		if got != test.want {
-			t.Errorf("Matches(%+v, %+v) = %v, Want nil %v", test.o1, test.o2, got, test.want)
-			continue
-		}
 	}
 }
 
@@ -591,8 +432,4 @@ func TestFilterOnNamesapce(t *testing.T) {
 				test.in, gotSql, gotErr, test.wantSql, test.wantErr)
 		}
 	}
-}
-
-func TestSortByRunMetrics(t *testing.T) {
-
 }
