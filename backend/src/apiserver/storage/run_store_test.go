@@ -147,30 +147,30 @@ func TestListRuns_Pagination(t *testing.T) {
 				},
 			},
 		}}
-	expectedSecondPageRuns := []*model.Run{
-		{
-			UUID:             "2",
-			Name:             "run2",
-			DisplayName:      "run2",
-			Namespace:        "n2",
-			CreatedAtInSec:   2,
-			ScheduledAtInSec: 2,
-			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
-			Conditions:       "done",
-			Metrics: []*model.RunMetric{
-				{
-					Name:        "dummymetric",
-					NumberValue: 2.0,
-				},
-			},
-			ResourceReferences: []*model.ResourceReference{
-				{
-					ResourceUUID: "2", ResourceType: common.Run,
-					ReferenceUUID: defaultFakeExpId, ReferenceName: "e1",
-					ReferenceType: common.Experiment, Relationship: common.Creator,
-				},
-			},
-		}}
+	// expectedSecondPageRuns := []*model.Run{
+	// 	{
+	// 		UUID:             "2",
+	// 		Name:             "run2",
+	// 		DisplayName:      "run2",
+	// 		Namespace:        "n2",
+	// 		CreatedAtInSec:   2,
+	// 		ScheduledAtInSec: 2,
+	// 		StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
+	// 		Conditions:       "done",
+	// 		Metrics: []*model.RunMetric{
+	// 			{
+	// 				Name:        "dummymetric",
+	// 				NumberValue: 2.0,
+	// 			},
+	// 		},
+	// 		ResourceReferences: []*model.ResourceReference{
+	// 			{
+	// 				ResourceUUID: "2", ResourceType: common.Run,
+	// 				ReferenceUUID: defaultFakeExpId, ReferenceName: "e1",
+	// 				ReferenceType: common.Experiment, Relationship: common.Creator,
+	// 			},
+	// 		},
+	// 	}}
 
 	opts, err := list.NewOptions(&model.Run{}, 1, "metric:dummymetric", nil)
 	assert.Nil(t, err)

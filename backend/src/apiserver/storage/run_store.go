@@ -267,7 +267,7 @@ func (s *RunStore) scanRowsToRunDetails(rows *sql.Rows) ([]*model.RunDetail, err
 			pipelineName, pipelineSpecManifest, workflowSpecManifest, parameters, conditions, pipelineRuntimeManifest,
 			workflowRuntimeManifest string
 		var createdAtInSec, scheduledAtInSec, finishedAtInSec int64
-		var metricsInString, resourceReferencesInString sortbymetric sql.NullString
+		var metricsInString, resourceReferencesInString, sortbymetric sql.NullString
 		err := rows.Scan(
 			&uuid,
 			&experimentUUID,
