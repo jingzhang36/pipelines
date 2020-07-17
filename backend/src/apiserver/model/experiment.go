@@ -47,6 +47,6 @@ func (e *Experiment) GetModelName() string {
 	return "experiments"
 }
 
-func (e *experiment) GetFieldValue(name string) interface{} {
+func (e *Experiment) GetFieldValue(name string) interface{} {
 	return nil
 }

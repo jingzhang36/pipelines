@@ -386,7 +386,7 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 		// if !found {
 		// 	return nil, util.NewInvalidInputError("Unable to find run metric %s", o.SortByFieldName)
 		// }
-		sortByField = GetFieldValue(o.SortByFieldName)
+		sortByField = listable.GetFieldValue(o.SortByFieldName)
 		if sortByField == nil {
 			return nil, util.NewInvalidInputError("Unable to find run metric %s", o.SortByFieldName)
 		}
