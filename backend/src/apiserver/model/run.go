@@ -96,20 +96,20 @@ func (r *Run) GetFieldValue(name string) interface{} {
 	// "name" could be a field in Run type or a name inside an array typed field
 	// in Run type
 	// First, try to find the value if "name" is a field in Run type
-	switch ToLower(name) {
-	case "uuid":
+	switch name {
+	case "UUID":
 		return r.UUID
-	case "displayname":
+	case "DisplayName":
 		return r.DisplayName
-	case "createdatinsec":
+	case "CreatedAtInSec":
 		return r.CreatedAtInSec
-	case "description":
+	case "Description":
 		return r.Description
-	case "scheduledatinsec":
+	case "ScheduledAtInSec":
 		return r.ScheduledAtInSec
-	case "storagestate":
+	case "StorageState":
 		return r.StorageState
-	case "conditions":
+	case "Conditions":
 		return r.Conditions
 	}
 	// Second, try to find the match of "name" inside an array typed field
