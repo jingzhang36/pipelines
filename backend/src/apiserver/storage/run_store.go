@@ -228,7 +228,10 @@ func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.Sele
 	// if opts != nil && opts.SortByFieldIsRunMetric {
 	// 	columnsAfterJoiningResourceReferences = append(columnsAfterJoiningResourceReferences, "rd."+opts.SortByFieldName)
 	// }
-	columnsAfterJoiningResourceReferences = append(runColumns, resourceRefConcatQuery+" AS refs", opts.SortByFieldName)
+	columnsAfterJoiningResourceReferences := append(runColumns, resourceRefConcatQuery+" AS refs")
+	if opts != nil && opts.SortByFieldIsRunMetric {
+		columnsAfterJoiningResourceReferences = append(columnsAfterJoiningResourceReferences, opts.SortByFieldName)
+	}
 	subQ := sq.
 		Select(columnsAfterJoiningResourceReferences...).
 		FromSelect(filteredSelectBuilder, "rd").
@@ -236,7 +239,7 @@ func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.Sele
 		GroupBy("rd.UUID")
 
 	// TODO(jingzhang36): address the case where some runs don't have the metric used in order by.
-	metricConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rm.Payload", ","), `"]"`}, "")
+	// metricConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rm.Payload", ","), `"]"`}, "")
 	// columnsAfterJoiningRunMetrics := append(Map(runColumns, func(column string) string { return "subq." + column }), "subq.refs", metricConcatQuery+" AS metrics")
 	columnsAfterJoiningRunMetrics := append(runColumns, "refs", metricConcatQuery+" AS metrics")
 	return sq.
