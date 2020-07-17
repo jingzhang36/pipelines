@@ -78,9 +78,6 @@ type RunStore struct {
 // matching the supplied filters and resource references.
 func (s *RunStore) ListRuns(
 	filterContext *common.FilterContext, opts *list.Options) ([]*model.Run, int, string, error) {
-	// opts.PageSize = 1
-	// opts.SortByFieldName = "accuracy_score"
-	// opts.SortByFieldIsRunMetric = true
 	errorF := func(err error) ([]*model.Run, int, string, error) {
 		return nil, 0, "", util.NewInternalServerError(err, "Failed to list runs: %v", err)
 	}
@@ -176,25 +173,22 @@ func (s *RunStore) buildSelectRunsQuery(selectCount bool, opts *list.Options,
 		sqlBuilder = opts.AddSortByRunMetricToSelect(sqlBuilder)
 		sqlBuilder = opts.AddPaginationToSelect(sqlBuilder)
 		sqlBuilder = s.addMetricsAndResourceReferences(sqlBuilder, opts)
-		sqlBuilder = opts.AddOrderBy(sqlBuilder)
+		sqlBuilder = opts.AddSortingToSelect(sqlBuilder)
 	}
 	sql, args, err := sqlBuilder.ToSql()
 	if err != nil {
 		return "", nil, util.NewInternalServerError(err, "Failed to list runs: %v", err)
 	}
-	glog.Infof("sql: %+v\n", sql)
-	fmt.Printf("sql: %+v\n", sql)
 	return sql, args, err
 }
 
 // GetRun Get the run manifest from Workflow CRD
 func (s *RunStore) GetRun(runId string) (*model.RunDetail, error) {
-	opts, err := list.NewOptions(&model.Run{}, 1, "", nil)
 	sql, args, err := s.addMetricsAndResourceReferences(
 		sq.Select(runColumns...).
 			From("run_details").
 			Where(sq.Eq{"UUID": runId}).
-			Limit(1), opts).
+			Limit(1), nil).
 		ToSql()
 
 	if err != nil {
@@ -230,21 +224,23 @@ func Map(vs []string, f func(string) string) []string {
 
 func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.SelectBuilder, opts *list.Options) sq.SelectBuilder {
 	resourceRefConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rr.Payload", ","), `"]"`}, "")
-	columns1 := append(Map(runColumns, func(column string) string { return "rd." + column }), resourceRefConcatQuery+" AS refs")
-	if opts.SortByFieldIsRunMetric {
-		columns1 = append(columns1, "rd."+opts.SortByFieldName)
-	}
+	// columnsAfterJoiningResourceReferences := append(Map(runColumns, func(column string) string { return "rd." + column }), resourceRefConcatQuery+" AS refs")
+	// if opts != nil && opts.SortByFieldIsRunMetric {
+	// 	columnsAfterJoiningResourceReferences = append(columnsAfterJoiningResourceReferences, "rd."+opts.SortByFieldName)
+	// }
+	columnsAfterJoiningResourceReferences = append(runColumns, resourceRefConcatQuery+" AS refs", opts.SortByFieldName)
 	subQ := sq.
-		Select(columns1...). //"rd.*", resourceRefConcatQuery+" AS refs").
+		Select(columnsAfterJoiningResourceReferences...).
 		FromSelect(filteredSelectBuilder, "rd").
 		LeftJoin("resource_references AS rr ON rr.ResourceType='Run' AND rd.UUID=rr.ResourceUUID").
 		GroupBy("rd.UUID")
 
 	// TODO(jingzhang36): address the case where some runs don't have the metric used in order by.
 	metricConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rm.Payload", ","), `"]"`}, "")
-	columns2 := append(Map(runColumns, func(column string) string { return "subq." + column }), "subq.refs", metricConcatQuery+" AS metrics")
+	// columnsAfterJoiningRunMetrics := append(Map(runColumns, func(column string) string { return "subq." + column }), "subq.refs", metricConcatQuery+" AS metrics")
+	columnsAfterJoiningRunMetrics := append(runColumns, "refs", metricConcatQuery+" AS metrics")
 	return sq.
-		Select(columns2...). //"subq.*", metricConcatQuery+" AS metrics").
+		Select(columnsAfterJoiningRunMetrics...).
 		FromSelect(subQ, "subq").
 		LeftJoin("run_metrics AS rm ON subq.UUID=rm.RunUUID").
 		GroupBy("subq.UUID")

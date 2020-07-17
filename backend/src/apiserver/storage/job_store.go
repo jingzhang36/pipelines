@@ -135,7 +135,7 @@ func (s *JobStore) buildSelectJobsQuery(selectCount bool, opts *list.Options,
 	if !selectCount {
 		sqlBuilder = opts.AddPaginationToSelect(sqlBuilder)
 		sqlBuilder = s.addResourceReferences(sqlBuilder)
-		sqlBuilder = opts.AddOrderBy(sqlBuilder)
+		sqlBuilder = opts.AddSortingToSelect(sqlBuilder)
 	}
 	sql, args, err := sqlBuilder.ToSql()
 	if err != nil {

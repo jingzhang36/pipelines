@@ -147,6 +147,67 @@ func TestListRuns_Pagination(t *testing.T) {
 			ScheduledAtInSec: 1,
 			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
 			Conditions:       "Running",
+			ResourceReferences: []*model.ResourceReference{
+				{
+					ResourceUUID: "1", ResourceType: common.Run,
+					ReferenceUUID: defaultFakeExpId, ReferenceName: "e1",
+					ReferenceType: common.Experiment, Relationship: common.Creator,
+				},
+			},
+		}}
+	expectedSecondPageRuns := []*model.Run{
+		{
+			UUID:             "2",
+			Name:             "run2",
+			DisplayName:      "run2",
+			Namespace:        "n2",
+			CreatedAtInSec:   2,
+			ScheduledAtInSec: 2,
+			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
+			Conditions:       "done",
+			ResourceReferences: []*model.ResourceReference{
+				{
+					ResourceUUID: "2", ResourceType: common.Run,
+					ReferenceUUID: defaultFakeExpId, ReferenceName: "e1",
+					ReferenceType: common.Experiment, Relationship: common.Creator,
+				},
+			},
+		}}
+
+	opts, err := list.NewOptions(&model.Run{}, 1, "", nil)
+	assert.Nil(t, err)
+
+	runs, total_size, nextPageToken, err := runStore.ListRuns(
+		&common.FilterContext{ReferenceKey: &common.ReferenceKey{Type: common.Experiment, ID: defaultFakeExpId}}, opts)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, total_size)
+	assert.Equal(t, expectedFirstPageRuns, runs, "Unexpected Run listed.")
+	assert.NotEmpty(t, nextPageToken)
+
+	opts, err = list.NewOptionsFromToken(nextPageToken, 1)
+	assert.Nil(t, err)
+	runs, total_size, nextPageToken, err = runStore.ListRuns(
+		&common.FilterContext{ReferenceKey: &common.ReferenceKey{Type: common.Experiment, ID: defaultFakeExpId}}, opts)
+	assert.Nil(t, err)
+	assert.Equal(t, 2, total_size)
+	assert.Equal(t, expectedSecondPageRuns, runs, "Unexpected Run listed.")
+	assert.Empty(t, nextPageToken)
+}
+
+func TestListRuns_Pagination_WithSortingOnMetrics(t *testing.T) {
+	db, runStore := initializeRunStore()
+	defer db.Close()
+
+	expectedFirstPageRuns := []*model.Run{
+		{
+			UUID:             "1",
+			Name:             "run1",
+			DisplayName:      "run1",
+			Namespace:        "n1",
+			CreatedAtInSec:   1,
+			ScheduledAtInSec: 1,
+			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
+			Conditions:       "Running",
 			Metrics: []*model.RunMetric{
 				{
 					RunUUID:     "1",
