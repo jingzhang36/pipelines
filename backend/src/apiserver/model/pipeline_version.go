@@ -75,5 +75,6 @@ func (p *PipelineVersion) GetModelName() string {
 }
 
 func (p *PipelineVersion) GetFieldValue(name string) interface{} {
+	// TODO(jingzhang36): follow the example of GetFieldValue in run.go
 	return nil
 }

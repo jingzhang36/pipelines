@@ -106,6 +106,6 @@ func (j *Job) GetModelName() string {
 }
 
 func (j *Job) GetFieldValue(name string) interface{} {
-	// TODO
+	// TODO(jingzhang36): follow the example of GetFieldValue in run.go
 	return nil
 }

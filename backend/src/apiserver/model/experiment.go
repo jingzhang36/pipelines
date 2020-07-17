@@ -48,5 +48,6 @@ func (e *Experiment) GetModelName() string {
 }
 
 func (e *Experiment) GetFieldValue(name string) interface{} {
+	// TODO(jingzhang36): follow the example of GetFieldValue in run.go
 	return nil
 }

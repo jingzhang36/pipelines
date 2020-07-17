@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/golang/glog"
 	api "github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/common"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/filter"
@@ -339,7 +340,7 @@ type Listable interface {
 	APIToModelFieldMap() map[string]string
 	// GetModelName returns table name used as sort field prefix.
 	GetModelName() string
-	//
+	// Find the value of a given field in a listable object.
 	GetFieldValue(name string) interface{}
 }
 
@@ -359,6 +360,9 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 	elemName := elem.Type().Name()
 
 	var sortByField interface{}
+	// TODO(jingzhang36): this if-else block can be simplified to one call to
+	// GetFieldValue after all the models (run, job, experiment, etc.) implement
+	// GetFieldValue method in listable interface.
 	if !o.SortByFieldIsRunMetric {
 		if value := elem.FieldByName(o.SortByFieldName); value.IsValid() {
 			sortByField = value.Interface()
@@ -386,7 +390,9 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 		// if !found {
 		// 	return nil, util.NewInvalidInputError("Unable to find run metric %s", o.SortByFieldName)
 		// }
+		glog.Info("call GetFieldValue")
 		sortByField = listable.GetFieldValue(o.SortByFieldName)
+		glog.Infof("call GetFieldValue get: %+v\n", sortByField)
 		if sortByField == nil {
 			return nil, util.NewInvalidInputError("Unable to find run metric %s", o.SortByFieldName)
 		}
