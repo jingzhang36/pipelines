@@ -147,6 +147,15 @@ func TestListRuns_Pagination(t *testing.T) {
 			ScheduledAtInSec: 1,
 			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
 			Conditions:       "Running",
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "1",
+					NodeID:      "node1",
+					Name:        "dummymetric",
+					NumberValue: 1.0,
+					Format:      "PERCENTAGE",
+				},
+			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "1", ResourceType: common.Run,
@@ -165,6 +174,15 @@ func TestListRuns_Pagination(t *testing.T) {
 			ScheduledAtInSec: 2,
 			StorageState:     api.Run_STORAGESTATE_AVAILABLE.String(),
 			Conditions:       "done",
+			Metrics: []*model.RunMetric{
+				{
+					RunUUID:     "2",
+					NodeID:      "node2",
+					Name:        "dummymetric",
+					NumberValue: 2.0,
+					Format:      "PERCENTAGE",
+				},
+			},
 			ResourceReferences: []*model.ResourceReference{
 				{
 					ResourceUUID: "2", ResourceType: common.Run,

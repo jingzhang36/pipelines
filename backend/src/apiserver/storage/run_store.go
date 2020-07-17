@@ -214,6 +214,7 @@ func (s *RunStore) GetRun(runId string) (*model.RunDetail, error) {
 	return runs[0], nil
 }
 
+// Apply func f to every string in a given string slice.
 func Map(vs []string, f func(string) string) []string {
 	vsm := make([]string, len(vs))
 	for i, v := range vs {
@@ -224,13 +225,11 @@ func Map(vs []string, f func(string) string) []string {
 
 func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.SelectBuilder, opts *list.Options) sq.SelectBuilder {
 	resourceRefConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rr.Payload", ","), `"]"`}, "")
-	// columnsAfterJoiningResourceReferences := append(Map(runColumns, func(column string) string { return "rd." + column }), resourceRefConcatQuery+" AS refs")
-	// if opts != nil && opts.SortByFieldIsRunMetric {
-	// 	columnsAfterJoiningResourceReferences = append(columnsAfterJoiningResourceReferences, "rd."+opts.SortByFieldName)
-	// }
-	columnsAfterJoiningResourceReferences := append(runColumns, resourceRefConcatQuery+" AS refs")
+	columnsAfterJoiningResourceReferences := append(
+		Map(runColumns, func(column string) string { return "rd." + column }), // Add prefix "rd." to runColumns
+		resourceRefConcatQuery+" AS refs")
 	if opts != nil && opts.SortByFieldIsRunMetric {
-		columnsAfterJoiningResourceReferences = append(columnsAfterJoiningResourceReferences, opts.SortByFieldName)
+		columnsAfterJoiningResourceReferences = append(columnsAfterJoiningResourceReferences, "rd."+opts.SortByFieldName)
 	}
 	subQ := sq.
 		Select(columnsAfterJoiningResourceReferences...).
@@ -239,9 +238,11 @@ func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.Sele
 		GroupBy("rd.UUID")
 
 	// TODO(jingzhang36): address the case where some runs don't have the metric used in order by.
-	// metricConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rm.Payload", ","), `"]"`}, "")
-	// columnsAfterJoiningRunMetrics := append(Map(runColumns, func(column string) string { return "subq." + column }), "subq.refs", metricConcatQuery+" AS metrics")
-	columnsAfterJoiningRunMetrics := append(runColumns, "refs", metricConcatQuery+" AS metrics")
+	metricConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rm.Payload", ","), `"]"`}, "")
+	columnsAfterJoiningRunMetrics := append(
+		Map(runColumns, func(column string) string { return "subq." + column }), // Add prefix "subq." to runColumns
+		"subq.refs",
+		metricConcatQuery+" AS metrics")
 	return sq.
 		Select(columnsAfterJoiningRunMetrics...).
 		FromSelect(subQ, "subq").
