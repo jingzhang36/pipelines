@@ -153,7 +153,7 @@ func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api
 		if ok {
 			token.SortByFieldName = n
 		} else if strings.HasPrefix(queryList[0], "metric:") {
-			// Sorting on metrics is only available on runs.
+			// Sorting on metrics is only available on certain runs.
 			model := reflect.ValueOf(listable).Elem().Type().Name()
 			if model != "Run" {
 				return nil, util.NewInvalidInputError("Invalid sorting field: %q on %q : %s", queryList[0], model, err)
@@ -237,6 +237,7 @@ func (o *Options) AddSortByRunMetricToSelect(sqlBuilder sq.SelectBuilder) sq.Sel
 	if !o.SortByFieldIsRunMetric {
 		return sqlBuilder
 	}
+	// TODO(jingzhang36): address the case where runs doesn't have the specified metric.
 	return sq.
 		Select("selected_runs.*, run_metrics.numbervalue as "+o.SortByFieldName).
 		FromSelect(sqlBuilder, "selected_runs").

@@ -240,6 +240,7 @@ func (s *RunStore) addMetricsAndResourceReferences(filteredSelectBuilder sq.Sele
 		LeftJoin("resource_references AS rr ON rr.ResourceType='Run' AND rd.UUID=rr.ResourceUUID").
 		GroupBy("rd.UUID")
 
+	// TODO(jingzhang36): address the case where some runs don't have the metric used in order by.
 	metricConcatQuery := s.db.Concat([]string{`"["`, s.db.GroupConcat("rm.Payload", ","), `"]"`}, "")
 	columns2 := append(Map(runColumns, func(column string) string { return "subq." + column }), "subq.refs", metricConcatQuery+" AS metrics")
 	return sq.
