@@ -30,8 +30,6 @@ import (
 	"github.com/kubeflow/pipelines/backend/src/apiserver/common"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/filter"
 	"github.com/kubeflow/pipelines/backend/src/common/util"
-
-	"github.com/kubeflow/pipelines/backend/src/apiserver/model"
 )
 
 // token represents a WHERE clause when making a ListXXX query. It can either
@@ -341,6 +339,8 @@ type Listable interface {
 	APIToModelFieldMap() map[string]string
 	// GetModelName returns table name used as sort field prefix.
 	GetModelName() string
+	//
+	GetFieldValue(name string) interface{}
 }
 
 // NextPageToken returns a string that can be used to fetch the subsequent set
@@ -366,24 +366,28 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 			return nil, util.NewInvalidInputError("cannot sort by field %q on type %q", o.SortByFieldName, elemName)
 		}
 	} else {
-		// Sort by run metrics
-		runMetrics := elem.FieldByName("Metrics")
-		if !runMetrics.IsValid() {
-			return nil, util.NewInvalidInputError("Unable to find run metrics")
-		}
-		metrics, ok := runMetrics.Interface().([]*model.RunMetric)
-		if !ok {
-			return nil, util.NewInvalidInputError("Unable to parse run metrics")
-		}
-		// Find the metric inside metrics that matches the o.SortByFieldName
-		found := false
-		for _, metric := range metrics {
-			if metric.Name == o.SortByFieldName {
-				sortByField = metric.NumberValue
-				found = true
-			}
-		}
-		if !found {
+		// // Sort by run metrics
+		// runMetrics := elem.FieldByName("Metrics")
+		// if !runMetrics.IsValid() {
+		// 	return nil, util.NewInvalidInputError("Unable to find run metrics")
+		// }
+		// metrics, ok := runMetrics.Interface().([]*model.RunMetric)
+		// if !ok {
+		// 	return nil, util.NewInvalidInputError("Unable to parse run metrics")
+		// }
+		// // Find the metric inside metrics that matches the o.SortByFieldName
+		// found := false
+		// for _, metric := range metrics {
+		// 	if metric.Name == o.SortByFieldName {
+		// 		sortByField = metric.NumberValue
+		// 		found = true
+		// 	}
+		// }
+		// if !found {
+		// 	return nil, util.NewInvalidInputError("Unable to find run metric %s", o.SortByFieldName)
+		// }
+		sortByField = GetFieldValue(o.SortByFieldName)
+		if sortByField == nil {
 			return nil, util.NewInvalidInputError("Unable to find run metric %s", o.SortByFieldName)
 		}
 	}

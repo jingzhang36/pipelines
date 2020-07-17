@@ -91,3 +91,17 @@ func (r *Run) GetModelName() string {
 	// and thus as prefix in sorting fields.
 	return ""
 }
+
+func (r *Run) GetFieldValue(name string) interface{} {
+	// "name" could be a field in Run type or a name inside an array typed field
+	// in Run type
+	// First try to find the value if "name" is a field in Run type
+	// TODO
+	// Second try to find the match of "name" inside an array typed field
+	for _, metric := range r.Metrics {
+		if metric.Name == name {
+			return metric.NumberValue
+		}
+	}
+	return nil
+}

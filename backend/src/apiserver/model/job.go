@@ -104,3 +104,8 @@ func (k *Job) APIToModelFieldMap() map[string]string {
 func (j *Job) GetModelName() string {
 	return "jobs"
 }
+
+func (j *Job) GetFieldValue(name string) interface{} {
+	// TODO
+	return nil
+}

@@ -46,3 +46,7 @@ func (e *Experiment) APIToModelFieldMap() map[string]string {
 func (e *Experiment) GetModelName() string {
 	return "experiments"
 }
+
+func (e *experiment) GetFieldValue(name string) interface{} {
+	return nil
+}
