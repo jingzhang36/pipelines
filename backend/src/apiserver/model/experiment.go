@@ -72,3 +72,11 @@ func (e *Experiment) GetFieldValue(name string) interface{} {
 		return nil
 	}
 }
+
+func (e *Experiment) GetSortByFieldPrefix(name string) string {
+	return e.GetModelName()
+}
+
+func (e *Experiment) GetKeyFieldPrefix() string {
+	return e.GetModelName()
+}

@@ -107,7 +107,6 @@ func (r *Run) GetField(name string) (string, bool) {
 	return "", false
 }
 
-//
 func (r *Run) GetFieldValue(name string) interface{} {
 	// "name" could be a field in Run type or a name inside an array typed field
 	// in Run type
@@ -135,4 +134,21 @@ func (r *Run) GetFieldValue(name string) interface{} {
 		}
 	}
 	return nil
+}
+
+func (r *Run) IsRegularField(name string) bool {
+	_, ok := runAPIToModelFieldMap[name]
+	return ok
+}
+
+func (r *Run) GetSortByFieldPrefix(name string) string {
+	if r.IsRegularField(name) {
+		return r.GetModelName()
+	} else {
+		return ""
+	}
+}
+
+func (r *Run) GetKeyFieldPrefix() string {
+	return r.GetModelName()
 }

@@ -126,3 +126,11 @@ func (j *Job) GetFieldValue(name string) interface{} {
 		return nil
 	}
 }
+
+func (j *Job) GetSortByFieldPrefix(name string) string {
+	return j.GetModelName()
+}
+
+func (j *Job) GetKeyFieldPrefix() string {
+	return j.GetModelName()
+}

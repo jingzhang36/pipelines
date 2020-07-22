@@ -100,3 +100,11 @@ func (p *Pipeline) GetFieldValue(name string) interface{} {
 		return nil
 	}
 }
+
+func (p *Pipeline) GetSortByFieldPrefix(name string) string {
+	return p.GetModelName()
+}
+
+func (p *Pipeline) GetKeyFieldPrefix() string {
+	return p.GetModelName()
+}

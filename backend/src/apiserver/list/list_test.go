@@ -56,7 +56,6 @@ func (f *fakeListable) GetField(name string) (string, bool) {
 	}
 	if strings.HasPrefix(name, "metric:") {
 		return name[7:], true
-		// token.SortByFieldIsRunMetric = true
 	}
 	return "", false
 }
@@ -162,16 +161,16 @@ func TestNextPageToken_ValidTokens(t *testing.T) {
 			inOpts: &Options{
 				PageSize: 10,
 				token: &token{
-					SortByFieldName: "m1", SortByFieldIsRunMetric: true, IsDesc: false,
+					SortByFieldName: "m1" /*SortByFieldIsRunMetric: true,*/, IsDesc: false,
 				},
 			},
 			want: &token{
-				SortByFieldName:        "m1",
-				SortByFieldValue:       1.0,
-				SortByFieldIsRunMetric: true,
-				KeyFieldName:           "PrimaryKey",
-				KeyFieldValue:          "uuid123",
-				IsDesc:                 false,
+				SortByFieldName:  "m1",
+				SortByFieldValue: 1.0,
+				// SortByFieldIsRunMetric: true,
+				KeyFieldName:  "PrimaryKey",
+				KeyFieldValue: "uuid123",
+				IsDesc:        false,
 			},
 		},
 	}
