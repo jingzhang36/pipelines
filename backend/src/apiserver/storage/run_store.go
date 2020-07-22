@@ -170,7 +170,7 @@ func (s *RunStore) buildSelectRunsQuery(selectCount bool, opts *list.Options,
 	// If we're not just counting, then also add select columns and perform a left join
 	// to get resource reference information. Also add pagination.
 	if !selectCount {
-		sqlBuilder = AddSortByRunMetricToSelect(sqlBuilder, opts)
+		sqlBuilder = s.AddSortByRunMetricToSelect(sqlBuilder, opts)
 		sqlBuilder = opts.AddPaginationToSelect(sqlBuilder)
 		sqlBuilder = s.addMetricsAndResourceReferences(sqlBuilder, opts)
 		sqlBuilder = opts.AddSortingToSelect(sqlBuilder)
@@ -623,7 +623,7 @@ func (s *RunStore) TerminateRun(runId string) error {
 
 // Add a metric as a new field to the select clause by join the passed-in SQL query with run_metrics table.
 // With the metric as a field in the select clause enable sorting on this metric afterwards.
-func (s *RunStore) AddSortByRunMetricToSelect(sqlBuilder sq.SelectBuilder, opts list.Options) sq.SelectBuilder {
+func (s *RunStore) AddSortByRunMetricToSelect(sqlBuilder sq.SelectBuilder, opts *list.Options) sq.SelectBuilder {
 	var r model.Run
 	if r.IsRegularField(opts.SortByFieldName) {
 		return sqlBuilder

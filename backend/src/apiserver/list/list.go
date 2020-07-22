@@ -206,8 +206,8 @@ func (o *Options) AddSortingToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuild
 	// 	keyFieldPrefix = o.ModelName + "."
 	// 	sortByFieldPrefix = o.ModelName + "."
 	// }
-	keyFieldPrefix := o.Model.GetKeyFieldPrefix()
-	sortByFieldPrefix := o.Model.GetSortByFieldPrefix(o.SortByFieldName)
+	keyFieldPrefix := (*o.Model).GetKeyFieldPrefix()
+	sortByFieldPrefix := (*o.Model).GetSortByFieldPrefix(o.SortByFieldName)
 
 	// If next row's value is specified, set those values in the clause.
 	if o.SortByFieldValue != nil && o.KeyFieldValue != nil {
