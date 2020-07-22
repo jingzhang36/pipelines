@@ -49,6 +49,17 @@ func (f *fakeListable) GetModelName() string {
 	return ""
 }
 
+func (f *fakeListable) GetField(name string) (string, ok) {
+	if field, ok := fakeAPIToModelMap[name]; ok {
+		return field, true
+	}
+	if strings.HasPrefix(name, "metric:") {
+		return name[7:], true
+		// token.SortByFieldIsRunMetric = true
+	}
+	return "", false
+}
+
 func (f *fakeListable) GetFieldValue(name string) interface{} {
 	switch name {
 	case "CreatedTimestamp":

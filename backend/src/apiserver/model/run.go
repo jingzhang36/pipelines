@@ -14,6 +14,10 @@
 
 package model
 
+import (
+	"strings"
+)
+
 type Run struct {
 	UUID               string `gorm:"column:UUID; not null; primary_key"`
 	ExperimentUUID     string `gorm:"column:ExperimentUUID; not null;"`
@@ -92,6 +96,18 @@ func (r *Run) GetModelName() string {
 	return ""
 }
 
+func (r *Run) GetField(name string) (string, bool) {
+	if field, ok := runAPIToModelFieldMap[name]; ok {
+		return field, true
+	}
+	if strings.HasPrefix(name, "metric:") {
+		return name[7:], true
+		// token.SortByFieldIsRunMetric = true
+	}
+	return "", false
+}
+
+//
 func (r *Run) GetFieldValue(name string) interface{} {
 	// "name" could be a field in Run type or a name inside an array typed field
 	// in Run type

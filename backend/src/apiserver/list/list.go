@@ -149,20 +149,15 @@ func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api
 	token.SortByFieldName = listable.DefaultSortField()
 	token.SortByFieldIsRunMetric = false
 	if len(queryList) > 0 {
-		var err error
-		n, ok := listable.APIToModelFieldMap()[queryList[0]]
+		n, ok := listable.GetField(queryList[0])
 		if ok {
 			token.SortByFieldName = n
-		} else if strings.HasPrefix(queryList[0], "metric:") {
-			// Sorting on metrics is only available on certain runs.
-			model := reflect.ValueOf(listable).Elem().Type().Name()
-			if model != "Run" {
-				return nil, util.NewInvalidInputError("Invalid sorting field: %q on %q : %s", queryList[0], model, err)
+			// TMP hack. Don't submit
+			if _, ok := listable.APIToModelFieldMap()[queryList[0]]; !ok {
+				token.SortByFieldIsRunMetric = true
 			}
-			token.SortByFieldName = queryList[0][7:]
-			token.SortByFieldIsRunMetric = true
 		} else {
-			return nil, util.NewInvalidInputError("Invalid sorting field: %q: %s", queryList[0], err)
+			return nil, util.NewInvalidInputError("Invalid sorting field: %q on listable type %s", queryList[0], reflect.ValueOf(listable).Elem().Type().Name())
 		}
 	}
 
@@ -345,8 +340,12 @@ type Listable interface {
 	APIToModelFieldMap() map[string]string
 	// GetModelName returns table name used as sort field prefix.
 	GetModelName() string
+	// Get a valid field for sorting/filter in a listable object from the given string.
+	GetField(name string) (string, bool)
 	// Find the value of a given field in a listable object.
 	GetFieldValue(name string) interface{}
+	// Add sort field if the sorting field is not already in.
+	// AddSortByField(name string) error
 }
 
 // NextPageToken returns a string that can be used to fetch the subsequent set
