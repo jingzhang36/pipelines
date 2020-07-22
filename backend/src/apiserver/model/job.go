@@ -105,6 +105,13 @@ func (j *Job) GetModelName() string {
 	return "jobs"
 }
 
+func (j *Job) GetField(name string) (string, bool) {
+	if field, ok := jobAPIToModelFieldMap[name]; ok {
+		return field, true
+	}
+	return "", false
+}
+
 func (j *Job) GetFieldValue(name string) interface{} {
 	switch name {
 	case "UUID":
