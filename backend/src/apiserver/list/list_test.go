@@ -77,6 +77,14 @@ func (f *fakeListable) GetFieldValue(name string) interface{} {
 	return nil
 }
 
+func (f *fakeListable) GetSortByFieldPrefix(name string) string {
+	return ""
+}
+
+func (f *fakeListable) GetKeyFieldPrefix() string {
+	return ""
+}
+
 func TestNextPageToken_ValidTokens(t *testing.T) {
 	l := &fakeListable{PrimaryKey: "uuid123", FakeName: "Fake", CreatedTimestamp: 1234, Metrics: []*fakeMetric{
 		{
