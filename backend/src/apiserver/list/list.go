@@ -367,7 +367,11 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 		return nil, util.NewInvalidInputError("type %q does not have key field %q", elemName, o.KeyFieldName)
 	}
 
-	return &token{
+	modelValue := &listable
+	fmt.Println("1")
+	fmt.Printf("%T\n", modelValue)
+	fmt.Printf("%+v\n", *modelValue)
+	res := &token{
 		SortByFieldName:  o.SortByFieldName,
 		SortByFieldValue: sortByField,
 		KeyFieldName:     listable.PrimaryKeyColumnName(),
@@ -375,8 +379,11 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 		IsDesc:           o.IsDesc,
 		Filter:           o.Filter,
 		ModelName:        o.ModelName,
-		Model:            &listable,
-	}, nil
+		Model:            modelValue,
+	}
+	fmt.Printf("%+v\n", res)
+
+	return res, nil
 }
 
 const (

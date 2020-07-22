@@ -28,11 +28,11 @@ type fakeListable struct {
 	Metrics          []*fakeMetric
 }
 
-func (f fakeListable) PrimaryKeyColumnName() string {
+func (f *fakeListable) PrimaryKeyColumnName() string {
 	return "PrimaryKey"
 }
 
-func (f fakeListable) DefaultSortField() string {
+func (f *fakeListable) DefaultSortField() string {
 	return "CreatedTimestamp"
 }
 
@@ -42,15 +42,15 @@ var fakeAPIToModelMap = map[string]string{
 	"id":        "PrimaryKey",
 }
 
-func (f fakeListable) APIToModelFieldMap() map[string]string {
+func (f *fakeListable) APIToModelFieldMap() map[string]string {
 	return fakeAPIToModelMap
 }
 
-func (f fakeListable) GetModelName() string {
+func (f *fakeListable) GetModelName() string {
 	return ""
 }
 
-func (f fakeListable) GetField(name string) (string, bool) {
+func (f *fakeListable) GetField(name string) (string, bool) {
 	if field, ok := fakeAPIToModelMap[name]; ok {
 		return field, true
 	}
@@ -60,7 +60,7 @@ func (f fakeListable) GetField(name string) (string, bool) {
 	return "", false
 }
 
-func (f fakeListable) GetFieldValue(name string) interface{} {
+func (f *fakeListable) GetFieldValue(name string) interface{} {
 	switch name {
 	case "CreatedTimestamp":
 		return f.CreatedTimestamp
@@ -77,11 +77,11 @@ func (f fakeListable) GetFieldValue(name string) interface{} {
 	return nil
 }
 
-func (f fakeListable) GetSortByFieldPrefix(name string) string {
+func (f *fakeListable) GetSortByFieldPrefix(name string) string {
 	return ""
 }
 
-func (f fakeListable) GetKeyFieldPrefix() string {
+func (f *fakeListable) GetKeyFieldPrefix() string {
 	return ""
 }
 
@@ -96,8 +96,6 @@ func TestNextPageToken_ValidTokens(t *testing.T) {
 			Value: 2.0,
 		},
 	}}
-
-	var modelValue Listable = *l
 
 	protoFilter := &api.Filter{Predicates: []*api.Predicate{
 		&api.Predicate{
@@ -124,7 +122,6 @@ func TestNextPageToken_ValidTokens(t *testing.T) {
 				KeyFieldName:     "PrimaryKey",
 				KeyFieldValue:    "uuid123",
 				IsDesc:           true,
-				Model:            &modelValue,
 			},
 		},
 		{
