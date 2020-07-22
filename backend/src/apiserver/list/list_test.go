@@ -2,6 +2,7 @@ package list
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/kubeflow/pipelines/backend/src/apiserver/common"
@@ -16,8 +17,8 @@ import (
 )
 
 type fakeMetric struct {
-	Name: string
-	Value: float64
+	Name  string
+	Value float64
 }
 
 type fakeListable struct {
@@ -49,7 +50,7 @@ func (f *fakeListable) GetModelName() string {
 	return ""
 }
 
-func (f *fakeListable) GetField(name string) (string, ok) {
+func (f *fakeListable) GetField(name string) (string, bool) {
 	if field, ok := fakeAPIToModelMap[name]; ok {
 		return field, true
 	}
@@ -80,11 +81,11 @@ func (f *fakeListable) GetFieldValue(name string) interface{} {
 func TestNextPageToken_ValidTokens(t *testing.T) {
 	l := &fakeListable{PrimaryKey: "uuid123", FakeName: "Fake", CreatedTimestamp: 1234, Metrics: []*fakeMetric{
 		{
-			Name: "m1",
+			Name:  "m1",
 			Value: 1.0,
 		},
 		{
-			Name: "m2",
+			Name:  "m2",
 			Value: 2.0,
 		},
 	}}
@@ -161,16 +162,16 @@ func TestNextPageToken_ValidTokens(t *testing.T) {
 			inOpts: &Options{
 				PageSize: 10,
 				token: &token{
-					SortByFieldName: "metric:m1", IsDesc: false,
+					SortByFieldName: "m1", SortByFieldIsRunMetric: true, IsDesc: false,
 				},
 			},
 			want: &token{
-				SortByFieldName:  "m1",
-				SortByFieldValue: "1.0",
+				SortByFieldName:        "m1",
+				SortByFieldValue:       1.0,
 				SortByFieldIsRunMetric: true,
-				KeyFieldName:     "PrimaryKey",
-				KeyFieldValue:    "uuid123",
-				IsDesc:           false,
+				KeyFieldName:           "PrimaryKey",
+				KeyFieldValue:          "uuid123",
+				IsDesc:                 false,
 			},
 		},
 	}
