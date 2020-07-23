@@ -2,7 +2,6 @@ package storage
 
 import (
 	"database/sql"
-	"encoding/json"
 
 	"fmt"
 
@@ -35,11 +34,11 @@ type ExperimentStore struct {
 // Runs two SQL queries in a transaction to return a list of matching experiments, as well as their
 // total_size. The total_size does not reflect the page size.
 func (s *ExperimentStore) ListExperiments(filterContext *common.FilterContext, opts *list.Options) ([]*model.Experiment, int, string, error) {
-	//
-	if opts.Model == nil && opts.ModelMessage != nil {
-		opts.Model = &model.Experiment{}
-		json.Unmarshal(opts.ModelMessage, opts.Model) // check error
-	}
+	// //
+	// if opts.Model == nil && opts.ModelMessage != nil {
+	// 	opts.Model = &model.Experiment{}
+	// 	json.Unmarshal(opts.ModelMessage, opts.Model) // check error
+	// }
 
 	errorF := func(err error) ([]*model.Experiment, int, string, error) {
 		return nil, 0, "", util.NewInternalServerError(err, "Failed to list experiments: %v", err)

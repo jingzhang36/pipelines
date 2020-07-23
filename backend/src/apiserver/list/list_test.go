@@ -924,3 +924,64 @@ func TestFilterOnNamesapce(t *testing.T) {
 		}
 	}
 }
+
+func TestAddSortingToSelectWithPipelineVersionModel(t *testing.T) {
+	listable := &PipelineVersion{
+		UUID:           "version_id_1",
+		CreatedAtInSec: 1,
+		Name:           "version_name_1",
+		Parameters:     "",
+		PipelineId:     "pipeline_id_1",
+		Status:         PipelineVersionReady,
+		CodeSourceUrl:  "",
+	}
+	protoFilter := &api.Filter{}
+	listableOptions, err := list.NewOptions(listable, 10, "name", protoFilter)
+	assert.Nil(t, err)
+	sqlBuilder := sq.Select("*").From("pipeline_versions")
+	sql, _, err := listableOptions.AddSortingToSelect(sqlBuilder).ToSql()
+	assert.Nil(t, err)
+
+	assert.Contains(t, sql, "pipeline_versions.Name") // sorting field
+	assert.Contains(t, sql, "pipeline_versions.UUID") // primary key field
+}
+
+func TestAddStatusFilterToSelectWithRunModel(t *testing.T) {
+	listable := &Run{
+		UUID:           "run_id_1",
+		CreatedAtInSec: 1,
+		Name:           "run_name_1",
+		Conditions:     "Succeeded",
+	}
+	protoFilter := &api.Filter{}
+	protoFilter.Predicates = []*api.Predicate{
+		{
+			Key:   "status",
+			Op:    api.Predicate_EQUALS,
+			Value: &api.Predicate_StringValue{StringValue: "Succeeded"},
+		},
+	}
+	listableOptions, err := list.NewOptions(listable, 10, "name", protoFilter)
+	assert.Nil(t, err)
+	sqlBuilder := sq.Select("*").From("run_details")
+	sql, args, err := listableOptions.AddFilterToSelect(sqlBuilder).ToSql()
+	assert.Nil(t, err)
+	assert.Contains(t, sql, "WHERE Conditions = ?") // filtering on status, aka Conditions in db
+	assert.Contains(t, args, "Succeeded")
+
+	notEqualProtoFilter := &api.Filter{}
+	notEqualProtoFilter.Predicates = []*api.Predicate{
+		{
+			Key:   "status",
+			Op:    api.Predicate_NOT_EQUALS,
+			Value: &api.Predicate_StringValue{StringValue: "somevalue"},
+		},
+	}
+	listableOptions, err = list.NewOptions(listable, 10, "name", notEqualProtoFilter)
+	assert.Nil(t, err)
+	sqlBuilder = sq.Select("*").From("run_details")
+	sql, args, err = listableOptions.AddFilterToSelect(sqlBuilder).ToSql()
+	assert.Nil(t, err)
+	assert.Contains(t, sql, "WHERE Conditions <> ?") // filtering on status, aka Conditions in db
+	assert.Contains(t, args, "somevalue")
+}
