@@ -29,6 +29,7 @@ import (
 	api "github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/common"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/filter"
+	"github.com/kubeflow/pipelines/backend/src/apiserver/model"
 	"github.com/kubeflow/pipelines/backend/src/common/util"
 )
 
@@ -84,9 +85,50 @@ func (t *token) unmarshal(pageToken string) error {
 		return errorF(err)
 	}
 
-	// Cyclic dependency
-	// model := &model.Run{}
-	// json.Unmarshal(t.ModelMessage, model)
+	if t.ModelMessage != nil {
+		switch t.ModelType {
+		case "Run":
+			model := &model.Run{}
+			err = json.Unmarshal(t.ModelMessage, model)
+			if err != nil {
+				return errorF(err)
+			}
+			t.Model = model
+			break
+		case "Job":
+			model := &model.Job{}
+			err = json.Unmarshal(t.ModelMessage, model)
+			if err != nil {
+				return errorF(err)
+			}
+			t.Model = model
+			break
+		case "Experiment":
+			model := &model.Experiment{}
+			err = json.Unmarshal(t.ModelMessage, model)
+			if err != nil {
+				return errorF(err)
+			}
+			t.Model = model
+			break
+		case "Pipeline":
+			model := &model.Pipeline{}
+			err = json.Unmarshal(t.ModelMessage, model)
+			if err != nil {
+				return errorF(err)
+			}
+			t.Model = model
+			break
+		case "PipelineVersion":
+			model := &model.PipelineVersion{}
+			err = json.Unmarshal(t.ModelMessage, model)
+			if err != nil {
+				return errorF(err)
+			}
+			t.Model = model
+			break
+		}
+	}
 
 	return nil
 }
