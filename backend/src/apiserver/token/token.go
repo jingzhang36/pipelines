@@ -29,7 +29,7 @@ import (
 	api "github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/common"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/filter"
-	Listable "github.com/kubeflow/pipelines/backend/src/apiserver/list:Listable"
+	"github.com/kubeflow/pipelines/backend/src/apiserver/list"
 	"github.com/kubeflow/pipelines/backend/src/common/util"
 )
 
@@ -64,7 +64,7 @@ type token struct {
 	Filter *filter.Filter
 
 	// The model or listable interface this token is applied to
-	Model Listable `json:"-"`
+	Model list.Listable `json:"-"`
 	// ModelType and the ModelData are needed to unmarshal data correctly to
 	// a specific underlying model of Listable, and this specific model is to be
 	// stored in the above Model field
@@ -149,7 +149,7 @@ func NewOptionsFromToken(nextPageToken string, pageSize int) (*Options, error) {
 // NewOptions creates a new Options struct for the given listable. It uses
 // sorting and filtering criteria parsed from sortBy and filterProto
 // respectively.
-func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api.Filter) (*Options, error) {
+func NewOptions(listable list.Listable, pageSize int, sortBy string, filterProto *api.Filter) (*Options, error) {
 	pageSize, err := validatePageSize(pageSize)
 	if err != nil {
 		return nil, err
@@ -324,7 +324,7 @@ func ScanRowToTotalSize(rows *sql.Rows) (int, error) {
 // NextPageToken returns a string that can be used to fetch the subsequent set
 // of results using the same listing options in o, starting with listable as the
 // first record.
-func (o *Options) NextPageToken(listable Listable) (string, error) {
+func (o *Options) NextPageToken(listable list.Listable) (string, error) {
 	t, err := o.nextPageToken(listable)
 	if err != nil {
 		return "", err
@@ -335,7 +335,7 @@ func (o *Options) NextPageToken(listable Listable) (string, error) {
 	return t.marshal()
 }
 
-func (o *Options) nextPageToken(listable Listable) (*token, error) {
+func (o *Options) nextPageToken(listable list.Listable) (*token, error) {
 	elem := reflect.ValueOf(listable).Elem()
 	elemName := elem.Type().Name()
 

@@ -14,6 +14,7 @@
 
 // Package list contains types and methods for performing ListXXX operations on
 // models like model.Run, model.Job, model.Experiment, model.Pipeline, model.PipelineVersion.
+// TODO(jingzhang36): also seems ok if merge this package to package model.
 package list
 
 // Listable is an interface that should be implemented by any resource/model
