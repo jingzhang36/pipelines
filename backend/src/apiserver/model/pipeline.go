@@ -102,9 +102,9 @@ func (p *Pipeline) GetFieldValue(name string) interface{} {
 }
 
 func (p *Pipeline) GetSortByFieldPrefix(name string) string {
-	return p.GetModelName()
+	return "pipelines."
 }
 
 func (p *Pipeline) GetKeyFieldPrefix() string {
-	return p.GetModelName()
+	return "pipelines."
 }

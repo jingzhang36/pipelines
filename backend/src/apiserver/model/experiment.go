@@ -74,9 +74,9 @@ func (e *Experiment) GetFieldValue(name string) interface{} {
 }
 
 func (e *Experiment) GetSortByFieldPrefix(name string) string {
-	return e.GetModelName()
+	return "experiments."
 }
 
 func (e *Experiment) GetKeyFieldPrefix() string {
-	return e.GetModelName()
+	return "experiments."
 }
