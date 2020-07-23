@@ -371,6 +371,7 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 	fmt.Println("1")
 	fmt.Printf("%T\n", modelValue)
 	fmt.Printf("%+v\n", *modelValue)
+	fmt.Printf("%+v\n", modelValue)
 	res := &token{
 		SortByFieldName:  o.SortByFieldName,
 		SortByFieldValue: sortByField,
