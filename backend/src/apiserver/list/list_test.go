@@ -97,16 +97,16 @@ func TestNextPageToken_ValidTokens(t *testing.T) {
 		},
 	}}
 
-	// protoFilter := &api.Filter{Predicates: []*api.Predicate{
-	// 	&api.Predicate{
-	// 		Key:   "name",
-	// 		Op:    api.Predicate_EQUALS,
-	// 		Value: &api.Predicate_StringValue{StringValue: "SomeName"},
-	// 	}}}
-	// testFilter, err := filter.New(protoFilter)
-	// if err != nil {
-	// 	t.Fatalf("failed to parse filter proto %+v: %v", protoFilter, err)
-	// }
+	protoFilter := &api.Filter{Predicates: []*api.Predicate{
+		&api.Predicate{
+			Key:   "name",
+			Op:    api.Predicate_EQUALS,
+			Value: &api.Predicate_StringValue{StringValue: "SomeName"},
+		}}}
+	testFilter, err := filter.New(protoFilter)
+	if err != nil {
+		t.Fatalf("failed to parse filter proto %+v: %v", protoFilter, err)
+	}
 
 	tests := []struct {
 		inOpts *Options

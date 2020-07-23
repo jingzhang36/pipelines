@@ -44,11 +44,6 @@ type token struct {
 	// SortByFieldValue is the value of the sorted field of the next row to be
 	// returned.
 	SortByFieldValue interface{}
-	// SortByFieldIsRunMetric indicates whether the SortByFieldName field is
-	// a run metric field or not.
-	// TODO(jingzhang36): find a way to move this model specific field to model
-	// instead of keeping in the generic token struct
-	// SortByFieldIsRunMetric bool
 
 	// KeyFieldName is the name of the primary key for the model being queried.
 	KeyFieldName string
@@ -108,7 +103,7 @@ type Options struct {
 // Matches returns trues if the sorting and filtering criteria in o matches that
 // of the one supplied in opts.
 func (o *Options) Matches(opts *Options) bool {
-	return o.SortByFieldName == opts.SortByFieldName && /*o.SortByFieldIsRunMetric == opts.SortByFieldIsRunMetric && */
+	return o.SortByFieldName == opts.SortByFieldName &&
 		o.IsDesc == opts.IsDesc &&
 		reflect.DeepEqual(o.Filter, opts.Filter)
 }
@@ -194,18 +189,6 @@ func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBu
 // AddSortingToSelect adds Order By clause.
 func (o *Options) AddSortingToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
 	// When sorting by a direct field in the listable model (i.e., name in Run or uuid in Pipeline), a sortByFieldPrefix can be specified; when sorting by a field in an array-typed dictionary (i.e., a run metric inside the metrics in Run), a sortByFieldPrefix is not needed.
-	// var keyFieldPrefix string
-	// var sortByFieldPrefix string
-	// if len(o.ModelName) == 0 {
-	// 	keyFieldPrefix = ""
-	// 	sortByFieldPrefix = ""
-	// } else if o.SortByFieldIsRunMetric {
-	// 	keyFieldPrefix = o.ModelName + "."
-	// 	sortByFieldPrefix = ""
-	// } else {
-	// 	keyFieldPrefix = o.ModelName + "."
-	// 	sortByFieldPrefix = o.ModelName + "."
-	// }
 	keyFieldPrefix := o.Model.GetKeyFieldPrefix()
 	sortByFieldPrefix := o.Model.GetSortByFieldPrefix(o.SortByFieldName)
 
