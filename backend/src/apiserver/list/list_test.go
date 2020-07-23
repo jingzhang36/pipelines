@@ -112,74 +112,73 @@ func TestNextPageToken_ValidTokens(t *testing.T) {
 		inOpts *Options
 		want   *token
 	}{
-		// {
-		// 	inOpts: &Options{
-		// 		PageSize: 10, token: &token{SortByFieldName: "CreatedTimestamp", IsDesc: true},
-		// 	},
-		// 	want: &token{
-		// 		SortByFieldName:  "CreatedTimestamp",
-		// 		SortByFieldValue: int64(1234),
-		// 		KeyFieldName:     "PrimaryKey",
-		// 		KeyFieldValue:    "uuid123",
-		// 		IsDesc:           true,
-		// 	},
-		// },
-		// {
-		// 	inOpts: &Options{
-		// 		PageSize: 10, token: &token{SortByFieldName: "PrimaryKey", IsDesc: true},
-		// 	},
-		// 	want: &token{
-		// 		SortByFieldName:  "PrimaryKey",
-		// 		SortByFieldValue: "uuid123",
-		// 		KeyFieldName:     "PrimaryKey",
-		// 		KeyFieldValue:    "uuid123",
-		// 		IsDesc:           true,
-		// 	},
-		// },
-		// {
-		// 	inOpts: &Options{
-		// 		PageSize: 10, token: &token{SortByFieldName: "FakeName", IsDesc: false},
-		// 	},
-		// 	want: &token{
-		// 		SortByFieldName:  "FakeName",
-		// 		SortByFieldValue: "Fake",
-		// 		KeyFieldName:     "PrimaryKey",
-		// 		KeyFieldValue:    "uuid123",
-		// 		IsDesc:           false,
-		// 	},
-		// },
-		// {
-		// 	inOpts: &Options{
-		// 		PageSize: 10,
-		// 		token: &token{
-		// 			SortByFieldName: "FakeName", IsDesc: false,
-		// 			Filter: testFilter,
-		// 		},
-		// 	},
-		// 	want: &token{
-		// 		SortByFieldName:  "FakeName",
-		// 		SortByFieldValue: "Fake",
-		// 		KeyFieldName:     "PrimaryKey",
-		// 		KeyFieldValue:    "uuid123",
-		// 		IsDesc:           false,
-		// 		Filter:           testFilter,
-		// 	},
-		// },
+		{
+			inOpts: &Options{
+				PageSize: 10, token: &token{SortByFieldName: "CreatedTimestamp", IsDesc: true},
+			},
+			want: &token{
+				SortByFieldName:  "CreatedTimestamp",
+				SortByFieldValue: int64(1234),
+				KeyFieldName:     "PrimaryKey",
+				KeyFieldValue:    "uuid123",
+				IsDesc:           true,
+			},
+		},
+		{
+			inOpts: &Options{
+				PageSize: 10, token: &token{SortByFieldName: "PrimaryKey", IsDesc: true},
+			},
+			want: &token{
+				SortByFieldName:  "PrimaryKey",
+				SortByFieldValue: "uuid123",
+				KeyFieldName:     "PrimaryKey",
+				KeyFieldValue:    "uuid123",
+				IsDesc:           true,
+			},
+		},
+		{
+			inOpts: &Options{
+				PageSize: 10, token: &token{SortByFieldName: "FakeName", IsDesc: false},
+			},
+			want: &token{
+				SortByFieldName:  "FakeName",
+				SortByFieldValue: "Fake",
+				KeyFieldName:     "PrimaryKey",
+				KeyFieldValue:    "uuid123",
+				IsDesc:           false,
+			},
+		},
 		{
 			inOpts: &Options{
 				PageSize: 10,
 				token: &token{
-					SortByFieldName: "m1" /*SortByFieldIsRunMetric: true,*/, IsDesc: false,
+					SortByFieldName: "FakeName", IsDesc: false,
+					Filter: testFilter,
+				},
+			},
+			want: &token{
+				SortByFieldName:  "FakeName",
+				SortByFieldValue: "Fake",
+				KeyFieldName:     "PrimaryKey",
+				KeyFieldValue:    "uuid123",
+				IsDesc:           false,
+				Filter:           testFilter,
+			},
+		},
+		{
+			inOpts: &Options{
+				PageSize: 10,
+				token: &token{
+					SortByFieldName: "m1", IsDesc: false,
 				},
 			},
 			want: &token{
 				SortByFieldName:  "m1",
 				SortByFieldValue: 1.0,
-				// SortByFieldIsRunMetric: true,
-				KeyFieldName:  "PrimaryKey",
-				KeyFieldValue: "uuid123",
-				IsDesc:        false,
-				Model:         l,
+				KeyFieldName:     "PrimaryKey",
+				KeyFieldValue:    "uuid123",
+				IsDesc:           false,
+				Model:            l,
 			},
 		},
 	}
