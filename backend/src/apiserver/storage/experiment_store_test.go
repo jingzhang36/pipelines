@@ -1,8 +1,6 @@
 package storage
 
 import (
-	"encoding/json"
-	"strings"
 	"testing"
 
 	"fmt"
@@ -36,117 +34,7 @@ func createExperimentInNamespace(name string, namespace string) *model.Experimen
 	}
 }
 
-type fakeMetric struct {
-	Name  string
-	Value float64
-}
-
-type fakeListable struct {
-	PrimaryKey       string
-	FakeName         string
-	CreatedTimestamp int64
-	Metrics          []*fakeMetric
-}
-
-func (f *fakeListable) PrimaryKeyColumnName() string {
-	return "PrimaryKey"
-}
-
-func (f *fakeListable) DefaultSortField() string {
-	return "CreatedTimestamp"
-}
-
-var fakeAPIToModelMap = map[string]string{
-	"timestamp": "CreatedTimestamp",
-	"name":      "FakeName",
-	"id":        "PrimaryKey",
-}
-
-func (f *fakeListable) APIToModelFieldMap() map[string]string {
-	return fakeAPIToModelMap
-}
-
-func (f *fakeListable) GetModelName() string {
-	return ""
-}
-
-func (f *fakeListable) GetField(name string) (string, bool) {
-	if field, ok := fakeAPIToModelMap[name]; ok {
-		return field, true
-	}
-	if strings.HasPrefix(name, "metric:") {
-		return name[7:], true
-	}
-	return "", false
-}
-
-func (f *fakeListable) GetFieldValue(name string) interface{} {
-	switch name {
-	case "CreatedTimestamp":
-		return f.CreatedTimestamp
-	case "FakeName":
-		return f.FakeName
-	case "PrimaryKey":
-		return f.PrimaryKey
-	}
-	for _, metric := range f.Metrics {
-		if metric.Name == name {
-			return metric.Value
-		}
-	}
-	return nil
-}
-
-func (f *fakeListable) GetSortByFieldPrefix(name string) string {
-	return ""
-}
-
-func (f *fakeListable) GetKeyFieldPrefix() string {
-	return ""
-}
-
-type SpecificMarshal struct {
-	UniqueName string
-	List       *fakeListable
-}
-
-type GenericMarshal struct {
-	UniqueName  string
-	ListType    string
-	ListMessage json.RawMessage
-	List        list.Listable `json:"-"`
-}
-
 func TestListExperiments_Pagination(t *testing.T) {
-	l := &fakeListable{PrimaryKey: "uuid123", FakeName: "Fake", CreatedTimestamp: 1234, Metrics: []*fakeMetric{
-		{
-			Name:  "m1",
-			Value: 1.0,
-		},
-		{
-			Name:  "m2",
-			Value: 2.0,
-		},
-	}}
-	listMessage, err := json.Marshal(l)
-	tokenVar := &GenericMarshal{
-		UniqueName:  "just",
-		ListType:    "fakeListable",
-		ListMessage: listMessage,
-		List:        l,
-	}
-	fmt.Printf("A token: %+v\n", tokenVar)
-	mm, err := json.Marshal(tokenVar)
-	var tokenVar2 GenericMarshal
-	err = json.Unmarshal(mm, &tokenVar2)
-	fmt.Printf("A token back: %+v\n", tokenVar2)
-	if tokenVar2.ListType == "fakeListable" {
-		fakeList := &fakeListable{}
-		_ = json.Unmarshal(tokenVar2.ListMessage, fakeList)
-		tokenVar2.List = fakeList
-	}
-	fmt.Printf("A token back after fill: %+v\n", tokenVar2)
-
 	db := NewFakeDbOrFatal()
 	defer db.Close()
 	experimentStore := NewExperimentStore(db, util.NewFakeTimeForEpoch(), util.NewFakeUUIDGeneratorOrFatal(fakeID, nil))
