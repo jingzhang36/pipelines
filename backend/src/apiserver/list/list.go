@@ -65,11 +65,10 @@ type token struct {
 	// The model or listable interface this token is applied to
 	Model Listable `json:"-"`
 	// ModelType and the ModelData are needed to unmarshal data correctly to
-	// the specific underlying model of Listable, which is to be stored in the
-	// Model field
-	// ModelType string
-	// ModelData json.RawMessage
-
+	// a specific underlying model of Listable, and this specific model is to be
+	// stored in the above Model field
+	ModelType    string
+	ModelMessage json.RawMessage
 }
 
 func (t *token) unmarshal(pageToken string) error {
@@ -85,10 +84,21 @@ func (t *token) unmarshal(pageToken string) error {
 		return errorF(err)
 	}
 
+	// Cyclic dependency
+	// model := &model.Run{}
+	// json.Unmarshal(t.ModelMessage, model)
+
 	return nil
 }
 
 func (t *token) marshal() (string, error) {
+	t.ModelType = reflect.ValueOf(t.Model).Elem().Type().Name()
+	fmt.Printf("!: %+v\n", t.ModelType)
+	modelMessage, err := json.Marshal(t.Model)
+	if err != nil {
+		return "", util.NewInternalServerError(err, "Failed to serialize the listable object in page token.")
+	}
+	t.ModelMessage = modelMessage
 	b, err := json.Marshal(t)
 	if err != nil {
 		return "", util.NewInternalServerError(err, "Failed to serialize page token.")
