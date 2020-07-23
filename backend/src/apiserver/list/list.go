@@ -368,10 +368,9 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 	}
 
 	modelValue := &listable
-	fmt.Println("1")
-	fmt.Printf("%T\n", modelValue)
-	fmt.Printf("%+v\n", *modelValue)
-	fmt.Printf("%+v\n", modelValue)
+	fmt.Printf("1: %T\n", modelValue)
+	fmt.Printf("2: %+v\n", *modelValue)
+	fmt.Printf("3: %+v\n", modelValue)
 	res := &token{
 		SortByFieldName:  o.SortByFieldName,
 		SortByFieldValue: sortByField,
@@ -382,7 +381,7 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 		ModelName:        o.ModelName,
 		Model:            modelValue,
 	}
-	fmt.Printf("%+v\n", res)
+	fmt.Printf("4: %+v\n", res)
 
 	return res, nil
 }
