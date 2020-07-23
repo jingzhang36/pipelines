@@ -105,9 +105,14 @@ func (f *fakeListable) GetKeyFieldPrefix() string {
 	return ""
 }
 
-type TestMarshal struct {
+type SpecificMarshal struct {
 	UniqueName string
 	List       *fakeListable
+}
+
+type GenericMarshal struct {
+	UniqueName string
+	List       list.Listable
 }
 
 func TestListExperiments_Pagination(t *testing.T) {
@@ -121,13 +126,13 @@ func TestListExperiments_Pagination(t *testing.T) {
 			Value: 2.0,
 		},
 	}}
-	tokenVar := &TestMarshal{
+	tokenVar := &SpecificMarshal{
 		UniqueName: "just",
 		List:       l,
 	}
 	fmt.Printf("A token: %+v\n", tokenVar)
 	mm, err := json.Marshal(tokenVar)
-	var tokenVar2 TestMarshal
+	var tokenVar2 GenericMarshal
 	err = json.Unmarshal(mm, &tokenVar2)
 	fmt.Printf("A token back: %+v\n", tokenVar2)
 
