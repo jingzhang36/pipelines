@@ -623,6 +623,7 @@ func (s *RunStore) TerminateRun(runId string) error {
 
 // Add a metric as a new field to the select clause by join the passed-in SQL query with run_metrics table.
 // With the metric as a field in the select clause enable sorting on this metric afterwards.
+// TODO(jingzhang36): example of resulting SQL query and explanation for it.
 func (s *RunStore) AddSortByRunMetricToSelect(sqlBuilder sq.SelectBuilder, opts *list.Options) sq.SelectBuilder {
 	var r model.Run
 	if r.IsRegularField(opts.SortByFieldName) {

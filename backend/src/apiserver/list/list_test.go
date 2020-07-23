@@ -937,7 +937,7 @@ func TestAddSortingToSelectWithPipelineVersionModel(t *testing.T) {
 		CodeSourceUrl:  "",
 	}
 	protoFilter := &api.Filter{}
-	listableOptions, err := list.NewOptions(listable, 10, "name", protoFilter)
+	listableOptions, err := NewOptions(listable, 10, "name", protoFilter)
 	assert.Nil(t, err)
 	sqlBuilder := sq.Select("*").From("pipeline_versions")
 	sql, _, err := listableOptions.AddSortingToSelect(sqlBuilder).ToSql()
@@ -962,7 +962,7 @@ func TestAddStatusFilterToSelectWithRunModel(t *testing.T) {
 			Value: &api.Predicate_StringValue{StringValue: "Succeeded"},
 		},
 	}
-	listableOptions, err := list.NewOptions(listable, 10, "name", protoFilter)
+	listableOptions, err := NewOptions(listable, 10, "name", protoFilter)
 	assert.Nil(t, err)
 	sqlBuilder := sq.Select("*").From("run_details")
 	sql, args, err := listableOptions.AddFilterToSelect(sqlBuilder).ToSql()
@@ -978,7 +978,7 @@ func TestAddStatusFilterToSelectWithRunModel(t *testing.T) {
 			Value: &api.Predicate_StringValue{StringValue: "somevalue"},
 		},
 	}
-	listableOptions, err = list.NewOptions(listable, 10, "name", notEqualProtoFilter)
+	listableOptions, err = NewOptions(listable, 10, "name", notEqualProtoFilter)
 	assert.Nil(t, err)
 	sqlBuilder = sq.Select("*").From("run_details")
 	sql, args, err = listableOptions.AddFilterToSelect(sqlBuilder).ToSql()
