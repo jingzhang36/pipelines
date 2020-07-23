@@ -60,22 +60,7 @@ func TestListExperiments_Pagination(t *testing.T) {
 		StorageState:   "STORAGESTATE_AVAILABLE",
 	}
 	experimentsExpected := []*model.Experiment{expectedExperiment1, expectedExperiment4}
-
-	filterProto := &api.Filter{
-		Predicates: []*api.Predicate{
-			&api.Predicate{
-				Key: "name",
-				Op:  api.Predicate_IN,
-				Value: &api.Predicate_StringValues{
-					StringValues: &api.StringValues{
-						Values: []string{"experiment1", "experiment2", "experiment3"},
-					},
-				},
-			},
-		},
-	}
-
-	opts, err := list.NewOptions(&model.Experiment{}, 2, "name", filterProto /*nil*/)
+	opts, err := list.NewOptions(&model.Experiment{}, 2, "name", nil)
 	assert.Nil(t, err)
 
 	experiments, total_size, nextPageToken, err := experimentStore.ListExperiments(&common.FilterContext{}, opts)
