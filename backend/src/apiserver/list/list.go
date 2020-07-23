@@ -330,9 +330,14 @@ type Listable interface {
 // first record.
 func (o *Options) NextPageToken(listable Listable) (string, error) {
 	t, err := o.nextPageToken(listable)
+	fmt.Printf("3 token: %+v\n", *t)
 	if err != nil {
 		return "", err
 	}
+	res, err := t.marshal()
+	var inverseToken token
+	err = inverseToken.unmarshal(res)
+	fmt.Printf("4 token: %+v\n", inverseToken)
 	return t.marshal()
 }
 
