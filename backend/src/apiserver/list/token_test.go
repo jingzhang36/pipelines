@@ -1,4 +1,4 @@
-package token
+package list
 
 import (
 	"encoding/json"

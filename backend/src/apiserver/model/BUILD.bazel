@@ -13,6 +13,7 @@ go_library(
         "pipeline_version.go",
         "resource_reference.go",
         "run.go",
+        "list.go",
     ],
     importpath = "github.com/kubeflow/pipelines/backend/src/apiserver/model",
     visibility = ["//visibility:public"],

@@ -15,7 +15,7 @@
 // Package list contains types and methods for performing ListXXX operations. In
 // particular, the package exports the Options struct, which can be used for
 // applying listing, filtering and pagination logic.
-package token
+package list
 
 import (
 	"database/sql"
@@ -29,7 +29,6 @@ import (
 	api "github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/common"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/filter"
-	"github.com/kubeflow/pipelines/backend/src/apiserver/list"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/model"
 	"github.com/kubeflow/pipelines/backend/src/common/util"
 )
@@ -65,7 +64,7 @@ type token struct {
 	Filter *filter.Filter
 
 	// The model or listable interface this token is applied to
-	Model list.Listable `json:"-"`
+	Model model.Listable `json:"-"`
 	// ModelType and the ModelData are needed to unmarshal data correctly to
 	// a specific underlying model of Listable, and this specific model is to be
 	// stored in the above Model field
@@ -191,7 +190,7 @@ func NewOptionsFromToken(nextPageToken string, pageSize int) (*Options, error) {
 // NewOptions creates a new Options struct for the given listable. It uses
 // sorting and filtering criteria parsed from sortBy and filterProto
 // respectively.
-func NewOptions(listable list.Listable, pageSize int, sortBy string, filterProto *api.Filter) (*Options, error) {
+func NewOptions(listable model.Listable, pageSize int, sortBy string, filterProto *api.Filter) (*Options, error) {
 	pageSize, err := validatePageSize(pageSize)
 	if err != nil {
 		return nil, err
@@ -366,7 +365,7 @@ func ScanRowToTotalSize(rows *sql.Rows) (int, error) {
 // NextPageToken returns a string that can be used to fetch the subsequent set
 // of results using the same listing options in o, starting with listable as the
 // first record.
-func (o *Options) NextPageToken(listable list.Listable) (string, error) {
+func (o *Options) NextPageToken(listable model.Listable) (string, error) {
 	t, err := o.nextPageToken(listable)
 	if err != nil {
 		return "", err
@@ -377,7 +376,7 @@ func (o *Options) NextPageToken(listable list.Listable) (string, error) {
 	return t.marshal()
 }
 
-func (o *Options) nextPageToken(listable list.Listable) (*token, error) {
+func (o *Options) nextPageToken(listable model.Listable) (*token, error) {
 	elem := reflect.ValueOf(listable).Elem()
 	elemName := elem.Type().Name()
 
