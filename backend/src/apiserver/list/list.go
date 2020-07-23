@@ -63,7 +63,13 @@ type token struct {
 	Filter *filter.Filter
 
 	// The model or listable interface this token is applied to
-	Model Listable
+	Model Listable `json:"-"`
+	// ModelType and the ModelData are needed to unmarshal data correctly to
+	// the specific underlying model of Listable, which is to be stored in the
+	// Model field
+	// ModelType string
+	// ModelData json.RawMessage
+
 }
 
 func (t *token) unmarshal(pageToken string) error {

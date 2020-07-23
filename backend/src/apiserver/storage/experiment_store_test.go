@@ -111,8 +111,10 @@ type SpecificMarshal struct {
 }
 
 type GenericMarshal struct {
-	UniqueName string
-	List       list.Listable
+	UniqueName  string
+	ListType    string
+	ListMessage json.RawMessage
+	List        list.Listable `json:"-"`
 }
 
 func TestListExperiments_Pagination(t *testing.T) {
@@ -126,15 +128,24 @@ func TestListExperiments_Pagination(t *testing.T) {
 			Value: 2.0,
 		},
 	}}
-	tokenVar := &SpecificMarshal{
-		UniqueName: "just",
-		List:       l,
+	listMessage, err := json.Marshal(l)
+	tokenVar := &GenericMarshal{
+		UniqueName:  "just",
+		ListType:    "fakeListable",
+		ListMessage: listMessage,
+		List:        l,
 	}
 	fmt.Printf("A token: %+v\n", tokenVar)
 	mm, err := json.Marshal(tokenVar)
 	var tokenVar2 GenericMarshal
 	err = json.Unmarshal(mm, &tokenVar2)
 	fmt.Printf("A token back: %+v\n", tokenVar2)
+	if tokenVar2.ListType == "fakeListable" {
+		fakeList := &fakeListable{}
+		_ = json.Unmarshal(tokenVar2.ListMessage, fakeList)
+		tokenVar2.List = fakeList
+	}
+	fmt.Printf("A token back after fill: %+v\n", tokenVar2)
 
 	db := NewFakeDbOrFatal()
 	defer db.Close()
