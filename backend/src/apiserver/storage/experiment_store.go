@@ -36,11 +36,10 @@ type ExperimentStore struct {
 // total_size. The total_size does not reflect the page size.
 func (s *ExperimentStore) ListExperiments(filterContext *common.FilterContext, opts *list.Options) ([]*model.Experiment, int, string, error) {
 	//
-	fmt.Printf("E1: %+v\n", opts.Model)
-	if (opts.Model == nil || opts.Model == &model.Experiment{}) && opts.ModelMessage != nil {
+	if opts.Model == nil && opts.ModelMessage != nil {
+		opts.Model = &model.Experiment{}
 		json.Unmarshal(opts.ModelMessage, opts.Model) // check error
 	}
-	fmt.Printf("E2: %+v\n", opts.Model)
 
 	errorF := func(err error) ([]*model.Experiment, int, string, error) {
 		return nil, 0, "", util.NewInternalServerError(err, "Failed to list experiments: %v", err)
