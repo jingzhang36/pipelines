@@ -1,6 +1,7 @@
 package list
 
 import (
+	"encoding/json"
 	"reflect"
 	"strings"
 	"testing"
@@ -611,6 +612,8 @@ func TestTokenSerialization(t *testing.T) {
 		t.Fatalf("failed to parse filter proto %+v: %v", protoFilter, err)
 	}
 
+	modelMessage, _ := json.Marshal(&fakeListable{})
+
 	tests := []struct {
 		in   *token
 		want *token
@@ -630,7 +633,8 @@ func TestTokenSerialization(t *testing.T) {
 				KeyFieldName:     "KeyField",
 				KeyFieldValue:    "string_key_value",
 				IsDesc:           true,
-				Model:            &fakeListable{}},
+				ModelType:        "fakeListable",
+				ModelMessage:     modelMessage},
 		},
 		// int values get deserialized as floats by JSON unmarshal.
 		{
@@ -647,7 +651,8 @@ func TestTokenSerialization(t *testing.T) {
 				KeyFieldName:     "KeyField",
 				KeyFieldValue:    float64(200),
 				IsDesc:           true,
-				Model:            &fakeListable{}},
+				ModelType:        "fakeListable",
+				ModelMessage:     modelMessage},
 		},
 		// has a filter.
 		{
@@ -667,7 +672,8 @@ func TestTokenSerialization(t *testing.T) {
 				KeyFieldValue:    float64(200),
 				IsDesc:           true,
 				Filter:           testFilter,
-				Model:            &fakeListable{},
+				ModelType:        "fakeListable",
+				ModelMessage:     modelMessage,
 			},
 		},
 	}

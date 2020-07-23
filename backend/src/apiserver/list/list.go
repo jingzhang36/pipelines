@@ -99,7 +99,8 @@ func (t *token) marshal() (string, error) {
 			return "", util.NewInternalServerError(err, "Failed to serialize the listable object in page token.")
 		}
 		t.ModelMessage = modelMessage
-	}
+	} // can we set empty raw message explicitly in case of nil model
+
 	b, err := json.Marshal(t)
 	if err != nil {
 		return "", util.NewInternalServerError(err, "Failed to serialize page token.")
