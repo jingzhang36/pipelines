@@ -122,6 +122,7 @@ func TestNextPageToken_ValidTokens(t *testing.T) {
 				KeyFieldName:     "PrimaryKey",
 				KeyFieldValue:    "uuid123",
 				IsDesc:           true,
+				Model:            l,
 			},
 		},
 		{
@@ -134,6 +135,7 @@ func TestNextPageToken_ValidTokens(t *testing.T) {
 				KeyFieldName:     "PrimaryKey",
 				KeyFieldValue:    "uuid123",
 				IsDesc:           true,
+				Model:            l,
 			},
 		},
 		{
@@ -146,6 +148,7 @@ func TestNextPageToken_ValidTokens(t *testing.T) {
 				KeyFieldName:     "PrimaryKey",
 				KeyFieldValue:    "uuid123",
 				IsDesc:           false,
+				Model:            l,
 			},
 		},
 		{
@@ -163,6 +166,7 @@ func TestNextPageToken_ValidTokens(t *testing.T) {
 				KeyFieldValue:    "uuid123",
 				IsDesc:           false,
 				Filter:           testFilter,
+				Model:            l,
 			},
 		},
 		{
