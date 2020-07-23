@@ -93,7 +93,6 @@ func (t *token) unmarshal(pageToken string) error {
 
 func (t *token) marshal() (string, error) {
 	t.ModelType = reflect.ValueOf(t.Model).Elem().Type().Name()
-	fmt.Printf("!: %+v\n", t.ModelType)
 	modelMessage, err := json.Marshal(t.Model)
 	if err != nil {
 		return "", util.NewInternalServerError(err, "Failed to serialize the listable object in page token.")
@@ -346,16 +345,12 @@ type Listable interface {
 // first record.
 func (o *Options) NextPageToken(listable Listable) (string, error) {
 	t, err := o.nextPageToken(listable)
-	fmt.Printf("3 token: %+v\n", *t)
-	fmt.Printf("3.5 token.filter: %+v\n", t.Filter)
 	if err != nil {
 		return "", err
 	}
 	res, err := t.marshal()
 	var inverseToken token
 	err = inverseToken.unmarshal(res)
-	fmt.Printf("4 token: %+v\n", inverseToken)
-	fmt.Printf("4.5 token.filter: %+v\n", inverseToken.Filter)
 	return t.marshal()
 }
 
