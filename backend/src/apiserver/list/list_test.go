@@ -1,7 +1,6 @@
 package list
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -180,20 +179,18 @@ func TestNextPageToken_ValidTokens(t *testing.T) {
 				KeyFieldName:  "PrimaryKey",
 				KeyFieldValue: "uuid123",
 				IsDesc:        false,
-				Model:         test,
+				Model:         l,
 			},
 		},
 	}
 
 	for _, test := range tests {
 		got, err := test.inOpts.nextPageToken(l)
-		assert.Nil(t, err)
-		fmt.Printf("1: %+v\n", reflect.ValueOf(*got.Model).Type())
 
-		// if !cmp.Equal(got, test.want, cmp.AllowUnexported(filter.Filter{})) || err != nil {
-		// 	t.Errorf("nextPageToken(%+v, %+v) =\nGot: %+v, %+v\nWant: %+v, <nil>\nDiff:\n%s",
-		// 		test.inOpts, l, got, err, test.want, cmp.Diff(test.want, got))
-		// }
+		if !cmp.Equal(got, test.want, cmp.AllowUnexported(filter.Filter{})) || err != nil {
+			t.Errorf("nextPageToken(%+v, %+v) =\nGot: %+v, %+v\nWant: %+v, <nil>\nDiff:\n%s",
+				test.inOpts, l, got, err, test.want, cmp.Diff(test.want, got))
+		}
 	}
 }
 

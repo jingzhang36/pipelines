@@ -68,7 +68,7 @@ type token struct {
 	Filter *filter.Filter
 
 	// The model or listable interface this token is applied to
-	Model *Listable
+	Model Listable
 }
 
 func (t *token) unmarshal(pageToken string) error {
@@ -144,7 +144,7 @@ func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api
 	token := &token{
 		KeyFieldName: listable.PrimaryKeyColumnName(),
 		ModelName:    listable.GetModelName(),
-		Model:        &listable}
+		Model:        listable}
 
 	// Ignore the case of the letter. Split query string by space.
 	queryList := strings.Fields(strings.ToLower(sortBy))
@@ -206,8 +206,8 @@ func (o *Options) AddSortingToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuild
 	// 	keyFieldPrefix = o.ModelName + "."
 	// 	sortByFieldPrefix = o.ModelName + "."
 	// }
-	keyFieldPrefix := (*o.Model).GetKeyFieldPrefix()
-	sortByFieldPrefix := (*o.Model).GetSortByFieldPrefix(o.SortByFieldName)
+	keyFieldPrefix := o.Model.GetKeyFieldPrefix()
+	sortByFieldPrefix := o.Model.GetSortByFieldPrefix(o.SortByFieldName)
 
 	// If next row's value is specified, set those values in the clause.
 	if o.SortByFieldValue != nil && o.KeyFieldValue != nil {
@@ -375,7 +375,7 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 		IsDesc:           o.IsDesc,
 		Filter:           o.Filter,
 		ModelName:        o.ModelName,
-		Model:            &listable,
+		Model:            listable,
 	}, nil
 }
 
