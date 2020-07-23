@@ -246,6 +246,7 @@ func TestNewOptions_FromValidSerializedToken(t *testing.T) {
 		KeyFieldName:     "KeyField",
 		KeyFieldValue:    "string_key_value",
 		IsDesc:           true,
+		Model:            &fakeListable{},
 	}
 
 	s, err := tok.marshal()
@@ -253,6 +254,9 @@ func TestNewOptions_FromValidSerializedToken(t *testing.T) {
 		t.Fatalf("failed to marshal token %+v: %v", tok, err)
 	}
 
+	tok.Model = nil
+	tok.ModelType = "fakeListable"
+	tok.ModelMessage, _ = json.Marshal(&fakeListable{})
 	want := &Options{PageSize: 123, token: tok}
 	got, err := NewOptionsFromToken(s, 123)
 
