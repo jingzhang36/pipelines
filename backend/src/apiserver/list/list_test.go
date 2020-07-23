@@ -8,7 +8,6 @@ import (
 
 	"github.com/kubeflow/pipelines/backend/src/apiserver/common"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/filter"
-	"github.com/kubeflow/pipelines/backend/src/apiserver/list"
 	"github.com/kubeflow/pipelines/backend/src/common/util"
 	"github.com/stretchr/testify/assert"
 
@@ -98,16 +97,6 @@ func TestNextPageToken_ValidTokens(t *testing.T) {
 			Value: 2.0,
 		},
 	}}
-	// ll := fakeListable{PrimaryKey: "uuid123", FakeName: "Fake", CreatedTimestamp: 1234, Metrics: []*fakeMetric{
-	// 	{
-	// 		Name:  "m1",
-	// 		Value: 1.0,
-	// 	},
-	// 	{
-	// 		Name:  "m2",
-	// 		Value: 2.0,
-	// 	},
-	// }}
 
 	test := (*Listable)(unsafe.Pointer(l))
 
@@ -126,59 +115,59 @@ func TestNextPageToken_ValidTokens(t *testing.T) {
 		inOpts *Options
 		want   *token
 	}{
-		{
-			inOpts: &Options{
-				PageSize: 10, token: &token{SortByFieldName: "CreatedTimestamp", IsDesc: true},
-			},
-			want: &token{
-				SortByFieldName:  "CreatedTimestamp",
-				SortByFieldValue: int64(1234),
-				KeyFieldName:     "PrimaryKey",
-				KeyFieldValue:    "uuid123",
-				IsDesc:           true,
-			},
-		},
-		{
-			inOpts: &Options{
-				PageSize: 10, token: &token{SortByFieldName: "PrimaryKey", IsDesc: true},
-			},
-			want: &token{
-				SortByFieldName:  "PrimaryKey",
-				SortByFieldValue: "uuid123",
-				KeyFieldName:     "PrimaryKey",
-				KeyFieldValue:    "uuid123",
-				IsDesc:           true,
-			},
-		},
-		{
-			inOpts: &Options{
-				PageSize: 10, token: &token{SortByFieldName: "FakeName", IsDesc: false},
-			},
-			want: &token{
-				SortByFieldName:  "FakeName",
-				SortByFieldValue: "Fake",
-				KeyFieldName:     "PrimaryKey",
-				KeyFieldValue:    "uuid123",
-				IsDesc:           false,
-			},
-		},
-		{
-			inOpts: &Options{
-				PageSize: 10,
-				token: &token{
-					SortByFieldName: "FakeName", IsDesc: false,
-					Filter: testFilter,
-				},
-			},
-			want: &token{
-				SortByFieldName:  "FakeName",
-				SortByFieldValue: "Fake",
-				KeyFieldName:     "PrimaryKey",
-				KeyFieldValue:    "uuid123",
-				IsDesc:           false,
-				Filter:           testFilter,
-			},
-		},
+		// {
+		// 	inOpts: &Options{
+		// 		PageSize: 10, token: &token{SortByFieldName: "CreatedTimestamp", IsDesc: true},
+		// 	},
+		// 	want: &token{
+		// 		SortByFieldName:  "CreatedTimestamp",
+		// 		SortByFieldValue: int64(1234),
+		// 		KeyFieldName:     "PrimaryKey",
+		// 		KeyFieldValue:    "uuid123",
+		// 		IsDesc:           true,
+		// 	},
+		// },
+		// {
+		// 	inOpts: &Options{
+		// 		PageSize: 10, token: &token{SortByFieldName: "PrimaryKey", IsDesc: true},
+		// 	},
+		// 	want: &token{
+		// 		SortByFieldName:  "PrimaryKey",
+		// 		SortByFieldValue: "uuid123",
+		// 		KeyFieldName:     "PrimaryKey",
+		// 		KeyFieldValue:    "uuid123",
+		// 		IsDesc:           true,
+		// 	},
+		// },
+		// {
+		// 	inOpts: &Options{
+		// 		PageSize: 10, token: &token{SortByFieldName: "FakeName", IsDesc: false},
+		// 	},
+		// 	want: &token{
+		// 		SortByFieldName:  "FakeName",
+		// 		SortByFieldValue: "Fake",
+		// 		KeyFieldName:     "PrimaryKey",
+		// 		KeyFieldValue:    "uuid123",
+		// 		IsDesc:           false,
+		// 	},
+		// },
+		// {
+		// 	inOpts: &Options{
+		// 		PageSize: 10,
+		// 		token: &token{
+		// 			SortByFieldName: "FakeName", IsDesc: false,
+		// 			Filter: testFilter,
+		// 		},
+		// 	},
+		// 	want: &token{
+		// 		SortByFieldName:  "FakeName",
+		// 		SortByFieldValue: "Fake",
+		// 		KeyFieldName:     "PrimaryKey",
+		// 		KeyFieldValue:    "uuid123",
+		// 		IsDesc:           false,
+		// 		Filter:           testFilter,
+		// 	},
+		// },
 		{
 			inOpts: &Options{
 				PageSize: 10,
@@ -674,7 +663,7 @@ func TestTokenSerialization(t *testing.T) {
 
 		got := &token{}
 		got.unmarshal(s)
-		if !cmp.Equal(got, test.want, cmp.AllowUnexported(filter.Filter{}), cmp.AllowUnexported(list.Listable)) {
+		if !cmp.Equal(got, test.want, cmp.AllowUnexported(filter.Filter{})) {
 			t.Errorf("token.unmarshal(%q) =\nGot: %+v\nWant: %+v\nDiff:\n%s",
 				s, got, test.want, cmp.Diff(test.want, got, cmp.AllowUnexported(filter.Filter{})))
 		}
