@@ -92,12 +92,14 @@ func (t *token) unmarshal(pageToken string) error {
 }
 
 func (t *token) marshal() (string, error) {
-	t.ModelType = reflect.ValueOf(t.Model).Elem().Type().Name()
-	modelMessage, err := json.Marshal(t.Model)
-	if err != nil {
-		return "", util.NewInternalServerError(err, "Failed to serialize the listable object in page token.")
+	if t.Model != nil {
+		t.ModelType = reflect.ValueOf(t.Model).Elem().Type().Name()
+		modelMessage, err := json.Marshal(t.Model)
+		if err != nil {
+			return "", util.NewInternalServerError(err, "Failed to serialize the listable object in page token.")
+		}
+		t.ModelMessage = modelMessage
 	}
-	t.ModelMessage = modelMessage
 	b, err := json.Marshal(t)
 	if err != nil {
 		return "", util.NewInternalServerError(err, "Failed to serialize page token.")

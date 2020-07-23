@@ -622,13 +622,15 @@ func TestTokenSerialization(t *testing.T) {
 				SortByFieldValue: "string_field_value",
 				KeyFieldName:     "KeyField",
 				KeyFieldValue:    "string_key_value",
-				IsDesc:           true},
+				IsDesc:           true,
+				Model:            &fakeListable{}},
 			want: &token{
 				SortByFieldName:  "SortField",
 				SortByFieldValue: "string_field_value",
 				KeyFieldName:     "KeyField",
 				KeyFieldValue:    "string_key_value",
-				IsDesc:           true},
+				IsDesc:           true,
+				Model:            &fakeListable{}},
 		},
 		// int values get deserialized as floats by JSON unmarshal.
 		{
@@ -637,13 +639,15 @@ func TestTokenSerialization(t *testing.T) {
 				SortByFieldValue: 100,
 				KeyFieldName:     "KeyField",
 				KeyFieldValue:    200,
-				IsDesc:           true},
+				IsDesc:           true,
+				Model:            &fakeListable{}},
 			want: &token{
 				SortByFieldName:  "SortField",
 				SortByFieldValue: float64(100),
 				KeyFieldName:     "KeyField",
 				KeyFieldValue:    float64(200),
-				IsDesc:           true},
+				IsDesc:           true,
+				Model:            &fakeListable{}},
 		},
 		// has a filter.
 		{
@@ -654,6 +658,7 @@ func TestTokenSerialization(t *testing.T) {
 				KeyFieldValue:    200,
 				IsDesc:           true,
 				Filter:           testFilter,
+				Model:            &fakeListable{},
 			},
 			want: &token{
 				SortByFieldName:  "SortField",
@@ -662,6 +667,7 @@ func TestTokenSerialization(t *testing.T) {
 				KeyFieldValue:    float64(200),
 				IsDesc:           true,
 				Filter:           testFilter,
+				Model:            &fakeListable{},
 			},
 		},
 	}
