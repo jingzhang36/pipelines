@@ -8,6 +8,7 @@ import (
 
 	"github.com/kubeflow/pipelines/backend/src/apiserver/common"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/filter"
+	"github.com/kubeflow/pipelines/backend/src/apiserver/model"
 	"github.com/kubeflow/pipelines/backend/src/common/util"
 	"github.com/stretchr/testify/assert"
 
@@ -926,13 +927,13 @@ func TestFilterOnNamesapce(t *testing.T) {
 }
 
 func TestAddSortingToSelectWithPipelineVersionModel(t *testing.T) {
-	listable := &PipelineVersion{
+	listable := &model.PipelineVersion{
 		UUID:           "version_id_1",
 		CreatedAtInSec: 1,
 		Name:           "version_name_1",
 		Parameters:     "",
 		PipelineId:     "pipeline_id_1",
-		Status:         PipelineVersionReady,
+		Status:         model.PipelineVersionReady,
 		CodeSourceUrl:  "",
 	}
 	protoFilter := &api.Filter{}
@@ -947,7 +948,7 @@ func TestAddSortingToSelectWithPipelineVersionModel(t *testing.T) {
 }
 
 func TestAddStatusFilterToSelectWithRunModel(t *testing.T) {
-	listable := &Run{
+	listable := &model.Run{
 		UUID:           "run_id_1",
 		CreatedAtInSec: 1,
 		Name:           "run_name_1",
