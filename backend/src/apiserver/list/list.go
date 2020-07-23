@@ -57,17 +57,18 @@ type token struct {
 
 	// ModelName is the table where ***FieldName belongs to.
 	// TODO(jingzhang36): we probably can deprecate this since we now have
-	// Model *Listable field
+	// Model field.
 	ModelName string
 
 	// Filter represents the filtering that should be applied in the query.
 	Filter *filter.Filter
 
-	// The model or listable interface this token is applied to
+	// The listable model this token is applied to. Not used in json marshal/unmarshal.
 	Model Listable `json:"-"`
-	// ModelType and the ModelData are needed to unmarshal data correctly to
-	// a specific underlying model of Listable, and this specific model is to be
-	// stored in the above Model field
+	// ModelType and the ModelMessage are helper fields to unmarshal data correctly to
+	// the underlying listable model, and this underlying listable model will be stored
+	// in the above Model field. Those two fields are only used in token's marshal and
+	// unmarshal methods.
 	ModelType    string
 	ModelMessage json.RawMessage
 }
@@ -379,7 +380,7 @@ type Listable interface {
 	GetSortByFieldPrefix(string) string
 	// Get the prefix of key field.
 	GetKeyFieldPrefix() string
-	// Get a valid field for sorting/filter in a listable object from the given string.
+	// Get a valid field for sorting/filtering in a listable model from the given string.
 	GetField(name string) (string, bool)
 	// Find the value of a given field in a listable object.
 	GetFieldValue(name string) interface{}
@@ -393,9 +394,6 @@ func (o *Options) NextPageToken(listable Listable) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	res, err := t.marshal()
-	var inverseToken token
-	err = inverseToken.unmarshal(res)
 	return t.marshal()
 }
 

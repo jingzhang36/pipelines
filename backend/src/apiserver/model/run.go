@@ -102,7 +102,6 @@ func (r *Run) GetField(name string) (string, bool) {
 	}
 	if strings.HasPrefix(name, "metric:") {
 		return name[7:], true
-		// token.SortByFieldIsRunMetric = true
 	}
 	return "", false
 }
@@ -136,6 +135,9 @@ func (r *Run) GetFieldValue(name string) interface{} {
 	return nil
 }
 
+// Regular fields are the fields that are mapped to columns in Run table.
+// Non-regular fields are the run metrics for now. Could have other non-regular
+// sorting fields later.
 func (r *Run) IsRegularField(name string) bool {
 	_, ok := runAPIToModelFieldMap[name]
 	return ok
