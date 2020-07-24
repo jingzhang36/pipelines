@@ -86,63 +86,65 @@ func (t *token) unmarshal(pageToken string) error {
 		return errorF(err)
 	}
 
-	if t.ModelMessage != nil {
-		switch t.ModelType {
-		case "Run":
-			model := &model.Run{}
-			err = json.Unmarshal(t.ModelMessage, model)
-			if err != nil {
-				return errorF(err)
-			}
-			t.Model = model
-			break
-		case "Job":
-			model := &model.Job{}
-			err = json.Unmarshal(t.ModelMessage, model)
-			if err != nil {
-				return errorF(err)
-			}
-			t.Model = model
-			break
-		case "Experiment":
-			model := &model.Experiment{}
-			err = json.Unmarshal(t.ModelMessage, model)
-			if err != nil {
-				return errorF(err)
-			}
-			t.Model = model
-			break
-		case "Pipeline":
-			model := &model.Pipeline{}
-			err = json.Unmarshal(t.ModelMessage, model)
-			if err != nil {
-				return errorF(err)
-			}
-			t.Model = model
-			break
-		case "PipelineVersion":
-			model := &model.PipelineVersion{}
-			err = json.Unmarshal(t.ModelMessage, model)
-			if err != nil {
-				return errorF(err)
-			}
-			t.Model = model
-			break
+	switch t.ModelType {
+	case "Run":
+		model := &model.Run{}
+		err = json.Unmarshal(t.ModelMessage, model)
+		if err != nil {
+			return errorF(err)
 		}
+		t.Model = model
+		break
+	case "Job":
+		model := &model.Job{}
+		err = json.Unmarshal(t.ModelMessage, model)
+		if err != nil {
+			return errorF(err)
+		}
+		t.Model = model
+		break
+	case "Experiment":
+		model := &model.Experiment{}
+		err = json.Unmarshal(t.ModelMessage, model)
+		if err != nil {
+			return errorF(err)
+		}
+		t.Model = model
+		break
+	case "Pipeline":
+		model := &model.Pipeline{}
+		err = json.Unmarshal(t.ModelMessage, model)
+		if err != nil {
+			return errorF(err)
+		}
+		t.Model = model
+		break
+	case "PipelineVersion":
+		model := &model.PipelineVersion{}
+		err = json.Unmarshal(t.ModelMessage, model)
+		if err != nil {
+			return errorF(err)
+		}
+		t.Model = model
+		break
 	}
 
 	return nil
 }
 
 func (t *token) marshal() (string, error) {
-	if t.Model != nil {
+	if t.Model == nil {
+		t.ModelType = ""
+	} else {
 		t.ModelType = reflect.ValueOf(t.Model).Elem().Type().Name()
-		modelMessage, err := json.Marshal(t.Model)
-		if err != nil {
-			return "", util.NewInternalServerError(err, "Failed to serialize the listable object in page token.")
-		}
-		t.ModelMessage = modelMessage
-	} // can we set empty raw message explicitly in case of nil model
+	}
+	// No need of special treatment on t.Model == nil for json.Marshal. It handles
+	// it perfectly, and unmarshals back to nil.
+	modelMessage, err := json.Marshal(t.Model)
+	if err != nil {
+		return "", util.NewInternalServerError(err, "Failed to serialize the listable object in page token.")
+	}
+	t.ModelMessage = modelMessage
 
 	b, err := json.Marshal(t)
 	if err != nil {
