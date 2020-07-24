@@ -612,6 +612,17 @@ func TestTokenSerialization(t *testing.T) {
 		t.Fatalf("failed to parse filter proto %+v: %v", protoFilter, err)
 	}
 
+	l := &fakeListable{PrimaryKey: "uuid123", FakeName: "Fake", CreatedTimestamp: 1234, Metrics: []*fakeMetric{
+		{
+			Name:  "m1",
+			Value: 1.0,
+		},
+		{
+			Name:  "m2",
+			Value: 2.0,
+		},
+	}}
+
 	tests := []struct {
 		in   *token
 		want *token
@@ -664,6 +675,25 @@ func TestTokenSerialization(t *testing.T) {
 				KeyFieldValue:    float64(200),
 				IsDesc:           true,
 				Filter:           testFilter,
+			},
+		},
+		// has a non-nil model.
+		{
+			in: &token{
+				SortByFieldName:  "SortField",
+				SortByFieldValue: 100,
+				KeyFieldName:     "KeyField",
+				KeyFieldValue:    200,
+				IsDesc:           true,
+				Model:            l,
+			},
+			want: &token{
+				SortByFieldName:  "SortField",
+				SortByFieldValue: float64(100),
+				KeyFieldName:     "KeyField",
+				KeyFieldValue:    float64(200),
+				IsDesc:           true,
+				Model:            l,
 			},
 		},
 	}
