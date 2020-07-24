@@ -86,6 +86,7 @@ func (t *token) unmarshal(pageToken string) error {
 		return errorF(err)
 	}
 
+	// Properly acquire t.Model using the raw message.
 	switch t.ModelType {
 	case "Run":
 		model := &model.Run{}
@@ -135,6 +136,7 @@ func (t *token) unmarshal(pageToken string) error {
 }
 
 func (t *token) marshal() (string, error) {
+	// Populate t.ModelType and t.ModelMessage for marshalling.
 	if t.Model == nil {
 		t.ModelType = ""
 	} else {
@@ -148,10 +150,16 @@ func (t *token) marshal() (string, error) {
 	}
 	t.ModelMessage = modelMessage
 
+	// Serialize the token.
 	b, err := json.Marshal(t)
 	if err != nil {
 		return "", util.NewInternalServerError(err, "Failed to serialize page token.")
 	}
+
+	// Restore t.ModelType and t.ModelMessage to avoid the token mutated by this method.
+	t.ModelType = ""
+	t.ModelMessage = nil
+
 	// return string(b), nil
 	return base64.StdEncoding.EncodeToString(b), nil
 }
