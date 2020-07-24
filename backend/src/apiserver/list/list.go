@@ -128,6 +128,8 @@ func (t *token) unmarshal(pageToken string) error {
 		t.Model = model
 		break
 	}
+	t.ModelType = ""
+	t.ModelMessage = nil
 
 	return nil
 }

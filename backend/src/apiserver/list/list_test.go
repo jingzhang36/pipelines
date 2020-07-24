@@ -1,7 +1,6 @@
 package list
 
 import (
-	"encoding/json"
 	"reflect"
 	"strings"
 	"testing"
@@ -247,7 +246,6 @@ func TestNewOptions_FromValidSerializedToken(t *testing.T) {
 		KeyFieldName:     "KeyField",
 		KeyFieldValue:    "string_key_value",
 		IsDesc:           true,
-		Model:            &fakeListable{},
 	}
 
 	s, err := tok.marshal()
@@ -255,9 +253,6 @@ func TestNewOptions_FromValidSerializedToken(t *testing.T) {
 		t.Fatalf("failed to marshal token %+v: %v", tok, err)
 	}
 
-	tok.Model = nil
-	tok.ModelType = "fakeListable"
-	tok.ModelMessage, _ = json.Marshal(&fakeListable{})
 	want := &Options{PageSize: 123, token: tok}
 	got, err := NewOptionsFromToken(s, 123)
 
@@ -617,8 +612,6 @@ func TestTokenSerialization(t *testing.T) {
 		t.Fatalf("failed to parse filter proto %+v: %v", protoFilter, err)
 	}
 
-	modelMessage, _ := json.Marshal(&fakeListable{})
-
 	tests := []struct {
 		in   *token
 		want *token
@@ -637,9 +630,7 @@ func TestTokenSerialization(t *testing.T) {
 				SortByFieldValue: "string_field_value",
 				KeyFieldName:     "KeyField",
 				KeyFieldValue:    "string_key_value",
-				IsDesc:           true,
-				ModelType:        "fakeListable",
-				ModelMessage:     modelMessage},
+				IsDesc:           true},
 		},
 		// int values get deserialized as floats by JSON unmarshal.
 		{
@@ -648,16 +639,13 @@ func TestTokenSerialization(t *testing.T) {
 				SortByFieldValue: 100,
 				KeyFieldName:     "KeyField",
 				KeyFieldValue:    200,
-				IsDesc:           true,
-				Model:            &fakeListable{}},
+				IsDesc:           true},
 			want: &token{
 				SortByFieldName:  "SortField",
 				SortByFieldValue: float64(100),
 				KeyFieldName:     "KeyField",
 				KeyFieldValue:    float64(200),
-				IsDesc:           true,
-				ModelType:        "fakeListable",
-				ModelMessage:     modelMessage},
+				IsDesc:           true},
 		},
 		// has a filter.
 		{
@@ -668,7 +656,6 @@ func TestTokenSerialization(t *testing.T) {
 				KeyFieldValue:    200,
 				IsDesc:           true,
 				Filter:           testFilter,
-				Model:            &fakeListable{},
 			},
 			want: &token{
 				SortByFieldName:  "SortField",
@@ -677,8 +664,6 @@ func TestTokenSerialization(t *testing.T) {
 				KeyFieldValue:    float64(200),
 				IsDesc:           true,
 				Filter:           testFilter,
-				ModelType:        "fakeListable",
-				ModelMessage:     modelMessage,
 			},
 		},
 	}
