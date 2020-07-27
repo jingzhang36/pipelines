@@ -86,6 +86,8 @@ func (s *RunStore) ListRuns(
 	if err != nil {
 		return errorF(err)
 	}
+	glog.Infof("List Runs query: %+v\n", rowsSql)
+	glog.Infof("List Runs args: %+v\n", rowsArgs)
 
 	sizeSql, sizeArgs, err := s.buildSelectRunsQuery(true, opts, filterContext)
 	if err != nil {

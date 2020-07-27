@@ -75,6 +75,7 @@ func (s *ExperimentApiTest) TestExperimentAPI() {
 
 	/* ---------- Verify no experiment exist ---------- */
 	experiments, totalSize, _, err := s.experimentClient.List(&params.ListExperimentParams{})
+	glog.Infof("exp 1: %+v\n", err)
 	assert.Nil(t, err)
 	assert.Equal(t, 0, totalSize)
 	assert.True(t, len(experiments) == 0)
@@ -111,6 +112,7 @@ func (s *ExperimentApiTest) TestExperimentAPI() {
 
 	/* ---------- Verify list experiments works ---------- */
 	experiments, totalSize, nextPageToken, err := s.experimentClient.List(&params.ListExperimentParams{})
+	glog.Infof("exp 2: %+v\n", err)
 	assert.Nil(t, err)
 	assert.Equal(t, 3, totalSize)
 	assert.Equal(t, 3, len(experiments))
@@ -124,6 +126,7 @@ func (s *ExperimentApiTest) TestExperimentAPI() {
 	/* ---------- Verify list experiments sorted by names ---------- */
 	experiments, totalSize, nextPageToken, err = s.experimentClient.List(&params.ListExperimentParams{
 		PageSize: util.Int32Pointer(2), SortBy: util.StringPointer("name")})
+	glog.Infof("exp 3: %+v\n", err)
 	assert.Nil(t, err)
 	assert.Equal(t, 3, totalSize)
 	assert.Equal(t, 2, len(experiments))
@@ -133,6 +136,7 @@ func (s *ExperimentApiTest) TestExperimentAPI() {
 
 	experiments, totalSize, nextPageToken, err = s.experimentClient.List(&params.ListExperimentParams{
 		PageToken: util.StringPointer(nextPageToken), PageSize: util.Int32Pointer(2), SortBy: util.StringPointer("name")})
+	glog.Infof("exp 4: %+v\n", err)
 	assert.Nil(t, err)
 	assert.Equal(t, 3, totalSize)
 	assert.Equal(t, 1, len(experiments))
@@ -142,6 +146,7 @@ func (s *ExperimentApiTest) TestExperimentAPI() {
 	/* ---------- Verify list experiments sorted by creation time ---------- */
 	experiments, totalSize, nextPageToken, err = s.experimentClient.List(&params.ListExperimentParams{
 		PageSize: util.Int32Pointer(2), SortBy: util.StringPointer("created_at")})
+	glog.Infof("exp 5: %+v\n", err)
 	assert.Nil(t, err)
 	assert.Equal(t, 3, totalSize)
 	assert.Equal(t, 2, len(experiments))
@@ -151,6 +156,7 @@ func (s *ExperimentApiTest) TestExperimentAPI() {
 
 	experiments, totalSize, nextPageToken, err = s.experimentClient.List(&params.ListExperimentParams{
 		PageToken: util.StringPointer(nextPageToken), PageSize: util.Int32Pointer(2), SortBy: util.StringPointer("created_at")})
+	glog.Infof("exp 6: %+v\n", err)
 	assert.Nil(t, err)
 	assert.Equal(t, 3, totalSize)
 	assert.Equal(t, 1, len(experiments))
@@ -160,11 +166,13 @@ func (s *ExperimentApiTest) TestExperimentAPI() {
 	/* ---------- List experiments sort by unsupported field. Should fail. ---------- */
 	_, _, _, err = s.experimentClient.List(&params.ListExperimentParams{
 		PageSize: util.Int32Pointer(2), SortBy: util.StringPointer("unknownfield")})
+	glog.Infof("exp 7: %+v\n", err)
 	assert.NotNil(t, err)
 
 	/* ---------- List experiments sorted by names descend order ---------- */
 	experiments, totalSize, nextPageToken, err = s.experimentClient.List(&params.ListExperimentParams{
 		PageSize: util.Int32Pointer(2), SortBy: util.StringPointer("name desc")})
+	glog.Infof("exp 8: %+v\n", err)
 	assert.Nil(t, err)
 	assert.Equal(t, 3, totalSize)
 	assert.Equal(t, 2, len(experiments))
@@ -174,6 +182,7 @@ func (s *ExperimentApiTest) TestExperimentAPI() {
 
 	experiments, totalSize, nextPageToken, err = s.experimentClient.List(&params.ListExperimentParams{
 		PageToken: util.StringPointer(nextPageToken), PageSize: util.Int32Pointer(2), SortBy: util.StringPointer("name desc")})
+	glog.Infof("exp 9: %+v\n", err)
 	assert.Nil(t, err)
 	assert.Equal(t, 3, totalSize)
 	assert.Equal(t, 1, len(experiments))
@@ -281,6 +290,7 @@ func (s *ExperimentApiTest) TearDownSuite() {
 }
 
 func (s *ExperimentApiTest) cleanUp() {
+	glog.Infof("exp 10: clean up starts\n")
 	test.DeleteAllExperiments(s.experimentClient, s.T())
 	test.DeleteAllPipelines(s.pipelineClient, s.T())
 	test.DeleteAllRuns(s.runClient, s.T())
