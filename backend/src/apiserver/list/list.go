@@ -135,7 +135,7 @@ func (t *token) unmarshal(pageToken string) error {
 }
 
 func (t *token) marshal() (string, error) {
-	// Model in a token should not be nil.
+	// Model in a token should not be nil, because this token is created when listing a model (i.e., run, job, experiment, pipeline and pipeline version).
 	t.ModelType = reflect.ValueOf(t.Model).Elem().Type().Name()
 	modelMessage, err := json.Marshal(t.Model)
 	if err != nil {
