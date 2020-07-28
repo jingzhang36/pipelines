@@ -1081,6 +1081,6 @@ go_repository(
 )
 
 go_repository(
-    name = "come_github_prometheus_client_golang",
-    importpath = "github.com/prometheus/client_golang/prometheus",
+    name = "com_github_prometheus_client_golang",
+    importpath = "github.com/prometheus/client_golang",
 )

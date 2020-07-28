@@ -26,7 +26,7 @@ go_library(
         "@com_github_jinzhu_gorm//dialects/sqlite:go_default_library",
         "@com_github_minio_minio_go//:go_default_library",
         "@com_github_spf13_viper//:go_default_library",
-        # "@come_github_prometheus_client_golang//:github.com/prometheus/client_golang/prometheus",
+        "@com_github_prometheus_client_golang//:go_default_library",
         "@org_golang_google_grpc//:go_default_library",
         "@org_golang_google_grpc//reflection:go_default_library",
     ],
