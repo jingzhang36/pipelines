@@ -1,13 +1,12 @@
-import json
 import unittest
+import os
+import signal
 
-from unittest.mock import patch, call, Mock, MagicMock, mock_open
+from unittest.mock import patch, call, Mock, MagicMock, mock_open, ANY
 from botocore.exceptions import ClientError
-from datetime import datetime
 
 from batch_transform.src import batch_transform
 from common import _utils
-from . import test_utils
 
 
 # TODO : Errors out if model_name doesn't contain '-'
@@ -19,7 +18,7 @@ required_args = [
   '--input_location', 's3://fake-bucket/data',
   '--output_location', 's3://fake-bucket/output',
   '--instance_type', 'ml.c5.18xlarge',
-  '--output_location_file', 'tmp/output.txt'
+  '--output_location_output_path', '/tmp/output'
 ]
 
 class BatchTransformTestCase(unittest.TestCase):
@@ -41,20 +40,17 @@ class BatchTransformTestCase(unittest.TestCase):
     # Set some static returns
     batch_transform._utils.create_transform_job.return_value = 'test-batch-job'
 
-    with patch('builtins.open', mock_open()) as file_open:
-      batch_transform.main(required_args)
+    batch_transform.main(required_args)
 
     # Check if correct requests were created and triggered
     batch_transform._utils.create_transform_job.assert_called()
     batch_transform._utils.wait_for_transform_job.assert_called()
+    batch_transform._utils.print_logs_for_job.assert_called()
+
 
     # Check the file outputs
-    file_open.assert_has_calls([
-      call('tmp/output.txt', 'w')
-    ])
-
-    file_open().write.assert_has_calls([
-      call('s3://fake-bucket/output')
+    batch_transform._utils.write_output.assert_has_calls([
+      call('/tmp/output', 's3://fake-bucket/output')
     ])
 
 
@@ -123,6 +119,26 @@ class BatchTransformTestCase(unittest.TestCase):
                           'InstanceCount': None, 'VolumeKmsKeyId': ''}
     )
 
+  def test_main_stop_tranform_job(self):
+    batch_transform._utils = MagicMock()
+    batch_transform._utils.create_transform_job.return_value = 'test-batch-job'
+
+    try:
+      os.kill(os.getpid(), signal.SIGTERM)
+    finally:
+      batch_transform._utils.stop_transform_job.assert_called_once_with(ANY, 'test-batch-job')
+      batch_transform._utils.print_logs_for_job.assert_not_called()
+
+  def test_utils_stop_transform_job(self):
+    mock_sm_client = MagicMock()
+    mock_sm_client.stop_transform_job.return_value = None
+
+    response = _utils.stop_transform_job(mock_sm_client, 'FakeJobName')
+
+    mock_sm_client.stop_transform_job.assert_called_once_with(
+        TransformJobName='FakeJobName'
+    )
+    self.assertEqual(response, None)
 
   def test_sagemaker_exception_in_batch_transform(self):
     mock_client = MagicMock()

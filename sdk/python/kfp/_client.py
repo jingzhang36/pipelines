@@ -23,7 +23,7 @@ import warnings
 import yaml
 import zipfile
 import datetime
-from typing import Mapping, Callable
+from typing import Mapping, Callable, Optional
 
 import kfp
 import kfp_server_api
@@ -39,7 +39,15 @@ from kfp._auth import get_auth_token, get_gcp_access_token
 # initialized with host=<inverse proxy endpoint>.
 # Set to 55 mins to provide some safe margin.
 _GCP_ACCESS_TOKEN_TIMEOUT = datetime.timedelta(minutes=55)
-
+# Operators on scalar values. Only applies to one of |int_value|,
+# |long_value|, |string_value| or |timestamp_value|.
+_FILTER_OPERATIONS = {"UNKNOWN": 0,
+    "EQUALS" : 1,
+    "NOT_EQUALS" : 2,
+    "GREATER_THAN": 3,
+    "GREATER_THAN_EQUALS": 5,
+    "LESS_THAN": 6,
+    "LESS_THAN_EQUALS": 7}
 
 def _add_generated_apis(target_struct, api_module, api_client):
   '''Initializes a hierarchical API object based on the generated API module.
@@ -90,7 +98,7 @@ class Client(object):
   LOCAL_KFP_CONTEXT = os.path.expanduser('~/.config/kfp/context.json')
 
   # TODO: Wrap the configurations for different authentication methods.
-  def __init__(self, host=None, client_id=None, namespace='kubeflow', other_client_id=None, other_client_secret=None, existing_token=None):
+  def __init__(self, host=None, client_id=None, namespace='kubeflow', other_client_id=None, other_client_secret=None, existing_token=None, cookies=None):
     """Create a new instance of kfp client.
 
     Args:
@@ -108,6 +116,7 @@ class Client(object):
       other_client_secret: The client secret used to obtain the auth codes and refresh tokens.
       existing_token: pass in token directly, it's used for cases better get token outside of SDK, e.x. GCP Cloud Functions
           or caller already has a token
+      cookies: CookieJar object containing cookies that will be passed to the pipelines API.
     """
     host = host or os.environ.get(KF_PIPELINES_ENDPOINT_ENV)
     self._uihost = os.environ.get(KF_PIPELINES_UI_ENDPOINT_ENV, host)
@@ -115,7 +124,7 @@ class Client(object):
     # Save the loaded API client configuration, as a reference if update is
     # needed.
     self._existing_config = config
-    api_client = kfp_server_api.api_client.ApiClient(config)
+    api_client = kfp_server_api.api_client.ApiClient(config, cookie=cookies)
     _add_generated_apis(self, kfp_server_api, api_client)
     self._job_api = kfp_server_api.api.job_service_api.JobServiceApi(api_client)
     self._run_api = kfp_server_api.api.run_service_api.RunServiceApi(api_client)
@@ -239,7 +248,7 @@ class Client(object):
       
   def _refresh_api_client_token(self):
     """Refreshes the existing token associated with the kfp_api_client."""
-    if getattr(self, '_is_refresh_token'):
+    if getattr(self, '_is_refresh_token', None):
       return
 
     new_token = get_gcp_access_token()
@@ -304,6 +313,29 @@ class Client(object):
       IPython.display.display(IPython.display.HTML(html))
     return experiment
 
+  def get_pipeline_id(self, name):
+    """Returns the pipeline id if a pipeline with the name exsists.
+    Args:
+      name: pipeline name
+    Returns:
+      A response object including a list of experiments and next page token.
+    """
+    pipeline_filter = json.dumps({
+      "predicates": [
+        {
+          "op":  _FILTER_OPERATIONS["EQUALS"],
+          "key": "name",
+          "stringValue": name,
+        }
+      ]
+    })
+    result = self._pipelines_api.list_pipelines(filter=pipeline_filter)
+    if len(result.pipelines)==1:
+      return result.pipelines[0].id
+    elif len(result.pipelines)>1:
+      raise ValueError("Multiple pipelines with the name: {} found, the name needs to be unique".format(name))
+    return None
+
   def list_experiments(self, page_token='', page_size=10, sort_by='', namespace=None):
     """List experiments.
     Args:
@@ -348,7 +380,7 @@ class Client(object):
     while next_page_token is not None:
       list_experiments_response = self.list_experiments(page_size=100, page_token=next_page_token, namespace=namespace)
       next_page_token = list_experiments_response.next_page_token
-      for experiment in list_experiments_response.experiments:
+      for experiment in list_experiments_response.experiments or []:
         if experiment.name == experiment_name:
           return self._experiment_api.get_experiment(id=experiment.id)
     raise ValueError('No experiment is found with name {}.'.format(experiment_name))
@@ -381,7 +413,7 @@ class Client(object):
       with open(package_file, 'r') as f:
         return yaml.safe_load(f)
     else:
-      raise ValueError('The package_file '+ package_file + ' should ends with one of the following formats: [.tar.gz, .tgz, .zip, .yaml, .yml]')
+      raise ValueError('The package_file '+ package_file + ' should end with one of the following formats: [.tar.gz, .tgz, .zip, .yaml, .yml]')
 
   def list_pipelines(self, page_token='', page_size=10, sort_by=''):
     """List pipelines.
@@ -741,6 +773,44 @@ class Client(object):
       IPython.display.display(IPython.display.HTML(html))
     return response
 
+  def upload_pipeline_version(
+    self,
+    pipeline_package_path,
+    pipeline_version_name: str,
+    pipeline_id: Optional[str] = None,
+    pipeline_name: Optional[str] = None
+  ):
+    """Uploads a new version of the pipeline to the Kubeflow Pipelines cluster.
+    Args:
+      pipeline_package_path: Local path to the pipeline package.
+      pipeline_version_name:  Name of the pipeline version to be shown in the UI.
+      pipeline_id: Optional. Id of the pipeline.
+      pipeline_name: Optional. Name of the pipeline.
+    Returns:
+      Server response object containing pipleine id and other information.
+    Throws:
+      ValueError when none or both of pipeline_id or pipeline_name are specified
+      Exception if pipeline id is not found.
+    """
+
+    if all([pipeline_id, pipeline_name]) or not any([pipeline_id, pipeline_name]):
+      raise ValueError('Either pipeline_id or pipeline_name is required')
+
+    if pipeline_name:
+      pipeline_id = self.get_pipeline_id(pipeline_name)
+
+    response = self._upload_api.upload_pipeline_version(
+      pipeline_package_path, 
+      name=pipeline_version_name, 
+      pipelineid=pipeline_id
+    )
+
+    if self._is_ipython():
+      import IPython
+      html = 'Pipeline link <a href=%s/#/pipelines/details/%s>here</a>' % (self._get_url_prefix(), response.id)
+      IPython.display.display(IPython.display.HTML(html))
+    return response
+
   def get_pipeline(self, pipeline_id):
     """Get pipeline details.
     Args:
@@ -763,3 +833,16 @@ class Client(object):
       Exception if pipeline is not found.
     """
     return self._pipelines_api.delete_pipeline(id=pipeline_id)
+
+  def list_pipeline_versions(self, pipeline_id, page_token='', page_size=10, sort_by=''):
+    """Lists pipeline versions.
+    Args:
+      pipeline_id: id of the pipeline to list versions
+      page_token: token for starting of the page.
+      page_size: size of the page.
+      sort_by: one of 'field_name', 'field_name des'. For example, 'name des'.
+    Returns:
+      A response object including a list of versions and next page token.
+    """
+
+    return self._pipelines_api.list_pipeline_versions(page_token=page_token, page_size=page_size, sort_by=sort_by, resource_key_type=kfp_server_api.models.api_resource_type.ApiResourceType.PIPELINE, resource_key_id=pipeline_id)

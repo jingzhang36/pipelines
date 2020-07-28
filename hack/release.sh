@@ -31,13 +31,13 @@ git clone "git@github.com:${REPO}.git" "$clone_dir"
 cd "$clone_dir"
 git checkout "$BRANCH"
 
-echo "$TAG_NAME" > ./VERSION
+echo -n "$TAG_NAME" > ./VERSION
 # Run the release script in cloned repo
 "hack/release-imp.sh" $TAG_NAME
 
 # Checking-in the component changes
 git add --all
-git commit --message "Updated version to $TAG_NAME"
+git commit --message "chore(release): bumped version to $TAG_NAME"
 git tag -a "$TAG_NAME" -m "Kubeflow Pipelines $TAG_NAME release"
 
 # Pushing the changes upstream

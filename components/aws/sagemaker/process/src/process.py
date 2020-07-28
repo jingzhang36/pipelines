@@ -13,7 +13,7 @@
 import sys
 import argparse
 import logging
-import json
+import signal
 
 from common import _utils
 
@@ -40,6 +40,8 @@ def create_parser():
   parser.add_argument('--network_isolation', type=_utils.str_to_bool, required=False, help='Isolates the processing container.', default=True)
   parser.add_argument('--traffic_encryption', type=_utils.str_to_bool, required=False, help='Encrypts all communications between ML compute instances in distributed training.', default=False)
   parser.add_argument('--tags', type=_utils.yaml_or_json_str, required=False, help='An array of key-value pairs, to categorize AWS resources.', default={})
+  parser.add_argument('--job_name_output_path', type=str, default='/tmp/job-name', help='Local output path for the file containing the name of the processing job.')
+  parser.add_argument('--output_artifacts_output_path', type=str, default='/tmp/output-artifacts', help='Local output path for the file containing the dictionary describing the output S3 artifacts.')
 
   return parser
 
@@ -52,16 +54,27 @@ def main(argv=None):
 
   logging.info('Submitting Processing Job to SageMaker...')
   job_name = _utils.create_processing_job(client, vars(args))
+
+  def signal_term_handler(signalNumber, frame):
+    logging.info(f"Stopping Processing Job: {job_name}")
+    _utils.stop_processing_job(client, job_name)
+    logging.info(f"Processing Job: {job_name} request submitted to Stop")
+  signal.signal(signal.SIGTERM, signal_term_handler)
+
   logging.info('Job request submitted. Waiting for completion...')
-  _utils.wait_for_processing_job(client, job_name)
+
+  try:
+    _utils.wait_for_processing_job(client, job_name)
+  except:
+    raise
+  finally:
+    cw_client = _utils.get_cloudwatch_client(args.region)
+    _utils.print_logs_for_job(cw_client, '/aws/sagemaker/ProcessingJobs', job_name)
 
   outputs = _utils.get_processing_job_outputs(client, job_name)
 
-  with open('/tmp/job_name.txt', 'w') as f:
-    f.write(job_name)
-
-  with open('/tmp/output_artifacts.txt', 'w') as f:
-    f.write(json.dumps(outputs))
+  _utils.write_output(args.job_name_output_path, job_name)
+  _utils.write_output(args.output_artifacts_output_path, outputs, json_encode=True)
 
   logging.info('Job completed.')
 
