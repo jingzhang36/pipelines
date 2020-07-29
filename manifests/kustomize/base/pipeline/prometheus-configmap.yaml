@@ -20,6 +20,10 @@ data:
 
         static_configs:
           - targets: ['localhost:9090']
+      - job_name: 'ml-pipeline'
+        scrape_interval: 60s
+        static_configs:
+          - targets: ['ml-pipeline:8888']
 kind: ConfigMap
 metadata:
   name: prometheus-example-cm
