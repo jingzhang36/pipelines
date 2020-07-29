@@ -78,7 +78,7 @@ func (s *PipelineServer) CreatePipeline(ctx context.Context, request *api.Create
 		return nil, util.Wrap(err, "Create pipeline failed.")
 	}
 	creationRequests.Inc()
-	currentPipelineCount.Add(1)
+	currentPipelineCount.Inc()
 
 	return ToApiPipeline(pipeline), nil
 }
@@ -111,7 +111,7 @@ func (s *PipelineServer) DeletePipeline(ctx context.Context, request *api.Delete
 	if err != nil {
 		return nil, util.Wrap(err, "Delete pipelines failed.")
 	}
-	currentPipelineCount.Dec(1)
+	currentPipelineCount.Dec()
 
 	return &empty.Empty{}, nil
 }
