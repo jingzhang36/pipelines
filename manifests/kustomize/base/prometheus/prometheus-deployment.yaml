@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: prometheus-deployment
+  name: prometheus
   labels:
     app: prometheus
-    purpose: example
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: prometheus
-      purpose: example
   template:
     metadata:
       labels:
         app: prometheus
-        purpose: example
     spec:
       containers:
-      - name: prometheus-example
+      - name: prometheus
         image: prom/prometheus
+        args: ["--storage.tsdb.retention.time=7d",
+               "--storage.tsdb.retention.size=1GB",
+               ]
         volumeMounts:
           - name: config-volume
             mountPath: /etc/prometheus/prometheus.yml
@@ -29,4 +29,5 @@ spec:
       volumes:
         - name: config-volume
           configMap:
-           name: prometheus-example-cm
+           name: prometheus-configmap
+      serviceAccountName: prometheus

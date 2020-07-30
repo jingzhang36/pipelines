@@ -7,7 +7,7 @@ data:
       # Attach these labels to any time series or alerts when communicating with
       # external systems (federation, remote storage, Alertmanager).
       external_labels:
-        monitor: 'codelab-monitor'
+        monitor: 'kubeflow-pipelines-monitor'
 
     # A scrape configuration containing exactly one endpoint to scrape:
     # Here it's Prometheus itself.
@@ -20,6 +20,12 @@ data:
 
         static_configs:
           - targets: ['localhost:9090']
+
+      # Monitoring ml-pipeline (aka Kubeflow Pipelines API server)
+      - job_name: 'ml-pipeline'
+        scrape_interval: 60s
+        static_configs:
+          - targets: ['ml-pipeline:8888']
 kind: ConfigMap
 metadata:
-  name: prometheus-example-cm
+  name: prometheus-configmap

@@ -1,11 +1,12 @@
-kind: Service
 apiVersion: v1
+kind: Service
 metadata:
-  name: prometheus-example-service
+  labels:
+    app: prometheus
+  name: prometheus
 spec:
   selector:
     app: prometheus
-    purpose: example
   ports:
   - name: promui
     protocol: TCP
