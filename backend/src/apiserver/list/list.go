@@ -29,7 +29,6 @@ import (
 	api "github.com/kubeflow/pipelines/backend/api/go_client"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/common"
 	"github.com/kubeflow/pipelines/backend/src/apiserver/filter"
-	"github.com/kubeflow/pipelines/backend/src/apiserver/model"
 	"github.com/kubeflow/pipelines/backend/src/common/util"
 )
 
@@ -58,22 +57,10 @@ type token struct {
 	IsDesc bool
 
 	// ModelName is the table where ***FieldName belongs to.
-	// TODO(jingzhang36): we probably can deprecate this since we now have
-	// Model field.
 	ModelName string
 
 	// Filter represents the filtering that should be applied in the query.
 	Filter *filter.Filter
-
-	// The listable model this token is applied to. Not used in json marshal/unmarshal.
-	// The types that implement the listable interface and hence can be used in this field are at backend/src/apiserver/model.
-	// Model Listable `json:"-"`
-	// ModelType and the ModelMessage are helper fields to unmarshal data correctly to
-	// the underlying listable model, and this underlying listable model will be stored
-	// in the above Model field. Those two fields are only used in token's marshal and
-	// unmarshal methods.
-	// ModelType string
-	// ModelMessage json.RawMessage
 }
 
 func (t *token) unmarshal(pageToken string) error {
@@ -88,51 +75,6 @@ func (t *token) unmarshal(pageToken string) error {
 	if err = json.Unmarshal(b, t); err != nil {
 		return errorF(err)
 	}
-
-	// if t.ModelMessage != nil {
-	// 	switch t.ModelType {
-	// 	case "Run":
-	// 		model := &model.Run{}
-	// 		err = json.Unmarshal(t.ModelMessage, model)
-	// 		if err != nil {
-	// 			return errorF(err)
-	// 		}
-	// 		t.Model = model
-	// 		break
-	// 	case "Job":
-	// 		model := &model.Job{}
-	// 		err = json.Unmarshal(t.ModelMessage, model)
-	// 		if err != nil {
-	// 			return errorF(err)
-	// 		}
-	// 		t.Model = model
-	// 		break
-	// 	case "Experiment":
-	// 		model := &model.Experiment{}
-	// 		err = json.Unmarshal(t.ModelMessage, model)
-	// 		if err != nil {
-	// 			return errorF(err)
-	// 		}
-	// 		t.Model = model
-	// 		break
-	// 	case "Pipeline":
-	// 		model := &model.Pipeline{}
-	// 		err = json.Unmarshal(t.ModelMessage, model)
-	// 		if err != nil {
-	// 			return errorF(err)
-	// 		}
-	// 		t.Model = model
-	// 		break
-	// 	case "PipelineVersion":
-	// 		model := &model.PipelineVersion{}
-	// 		err = json.Unmarshal(t.ModelMessage, model)
-	// 		if err != nil {
-	// 			return errorF(err)
-	// 		}
-	// 		t.Model = model
-	// 		break
-	// 	}
-	// }
 
 	return nil
 }
@@ -201,10 +143,7 @@ func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api
 
 	token := &token{
 		KeyFieldName: listable.PrimaryKeyColumnName(),
-		ModelName:    listable.GetModelName(),
-		// Model:        listable,
-		// ModelType:         reflect.ValueOf(listable).Elem().Type().Name(),
-	}
+		ModelName:    listable.GetModelName()}
 
 	// Ignore the case of the letter. Split query string by space.
 	queryList := strings.Fields(strings.ToLower(sortBy))
@@ -251,22 +190,6 @@ func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBu
 	sqlBuilder = sqlBuilder.Limit(uint64(o.PageSize + 1))
 
 	return sqlBuilder
-}
-
-func (o *Options) GetListableFromType(modelType string) Listable {
-	switch modelType {
-	case "Run":
-		return &model.Run{}
-	case "Job":
-		return &model.Job{}
-	case "Experiment":
-		return &model.Experiment{}
-	case "Pipeline":
-		return &model.Pipeline{}
-	case "PipelineVersion":
-		return &model.PipelineVersion{}
-	}
-	return nil
 }
 
 // AddSortingToSelect adds Order By clause.
