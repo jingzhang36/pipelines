@@ -21,7 +21,7 @@ spec:
           - name: config-volume
             mountPath: /etc/prometheus/prometheus.yml
             subPath: prometheus.yml
-        args: ["--storage.tsdb.retention.time=7d",
+        args: ["--storage.tsdb.retention.time=7d",  # Adjust retention policy if necessary
                "--storage.tsdb.retention.size=1GB",
                "--config.file=/etc/prometheus/prometheus.yml",
                ]
