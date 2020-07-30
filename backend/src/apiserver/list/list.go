@@ -65,13 +65,13 @@ type token struct {
 
 	// The listable model this token is applied to. Not used in json marshal/unmarshal.
 	// The types that implement the listable interface and hence can be used in this field are at backend/src/apiserver/model.
-	Model Listable `json:"-"`
+	// Model Listable `json:"-"`
 	// ModelType and the ModelMessage are helper fields to unmarshal data correctly to
 	// the underlying listable model, and this underlying listable model will be stored
 	// in the above Model field. Those two fields are only used in token's marshal and
 	// unmarshal methods.
-	ModelType    string
-	ModelMessage json.RawMessage
+	ModelType string
+	// ModelMessage json.RawMessage
 }
 
 func (t *token) unmarshal(pageToken string) error {
@@ -87,62 +87,62 @@ func (t *token) unmarshal(pageToken string) error {
 		return errorF(err)
 	}
 
-	if t.ModelMessage != nil {
-		switch t.ModelType {
-		case "Run":
-			model := &model.Run{}
-			err = json.Unmarshal(t.ModelMessage, model)
-			if err != nil {
-				return errorF(err)
-			}
-			t.Model = model
-			break
-		case "Job":
-			model := &model.Job{}
-			err = json.Unmarshal(t.ModelMessage, model)
-			if err != nil {
-				return errorF(err)
-			}
-			t.Model = model
-			break
-		case "Experiment":
-			model := &model.Experiment{}
-			err = json.Unmarshal(t.ModelMessage, model)
-			if err != nil {
-				return errorF(err)
-			}
-			t.Model = model
-			break
-		case "Pipeline":
-			model := &model.Pipeline{}
-			err = json.Unmarshal(t.ModelMessage, model)
-			if err != nil {
-				return errorF(err)
-			}
-			t.Model = model
-			break
-		case "PipelineVersion":
-			model := &model.PipelineVersion{}
-			err = json.Unmarshal(t.ModelMessage, model)
-			if err != nil {
-				return errorF(err)
-			}
-			t.Model = model
-			break
-		}
-	}
+	// if t.ModelMessage != nil {
+	// 	switch t.ModelType {
+	// 	case "Run":
+	// 		model := &model.Run{}
+	// 		err = json.Unmarshal(t.ModelMessage, model)
+	// 		if err != nil {
+	// 			return errorF(err)
+	// 		}
+	// 		t.Model = model
+	// 		break
+	// 	case "Job":
+	// 		model := &model.Job{}
+	// 		err = json.Unmarshal(t.ModelMessage, model)
+	// 		if err != nil {
+	// 			return errorF(err)
+	// 		}
+	// 		t.Model = model
+	// 		break
+	// 	case "Experiment":
+	// 		model := &model.Experiment{}
+	// 		err = json.Unmarshal(t.ModelMessage, model)
+	// 		if err != nil {
+	// 			return errorF(err)
+	// 		}
+	// 		t.Model = model
+	// 		break
+	// 	case "Pipeline":
+	// 		model := &model.Pipeline{}
+	// 		err = json.Unmarshal(t.ModelMessage, model)
+	// 		if err != nil {
+	// 			return errorF(err)
+	// 		}
+	// 		t.Model = model
+	// 		break
+	// 	case "PipelineVersion":
+	// 		model := &model.PipelineVersion{}
+	// 		err = json.Unmarshal(t.ModelMessage, model)
+	// 		if err != nil {
+	// 			return errorF(err)
+	// 		}
+	// 		t.Model = model
+	// 		break
+	// 	}
+	// }
 
 	return nil
 }
 
 func (t *token) marshal() (string, error) {
 	// Model in a token should not be nil, because this token is created when listing a model (i.e., run, job, experiment, pipeline and pipeline version).
-	t.ModelType = reflect.ValueOf(t.Model).Elem().Type().Name()
-	modelMessage, err := json.Marshal(t.Model)
-	if err != nil {
-		return "", util.NewInternalServerError(err, "Failed to serialize the listable object in page token.")
-	}
-	t.ModelMessage = modelMessage
+	// t.ModelType = reflect.ValueOf(t.Model).Elem().Type().Name()
+	// modelMessage, err := json.Marshal(t.Model)
+	// if err != nil {
+	// 	return "", util.NewInternalServerError(err, "Failed to serialize the listable object in page token.")
+	// }
+	// t.ModelMessage = modelMessage
 
 	b, err := json.Marshal(t)
 	if err != nil {
@@ -200,7 +200,8 @@ func NewOptions(listable Listable, pageSize int, sortBy string, filterProto *api
 	token := &token{
 		KeyFieldName: listable.PrimaryKeyColumnName(),
 		ModelName:    listable.GetModelName(),
-		Model:        listable}
+		// Model:        listable}
+		ModelType: reflect.ValueOf(listable).Elem().Type().Name()}
 
 	// Ignore the case of the letter. Split query string by space.
 	queryList := strings.Fields(strings.ToLower(sortBy))
@@ -250,8 +251,27 @@ func (o *Options) AddPaginationToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBu
 // AddSortingToSelect adds Order By clause.
 func (o *Options) AddSortingToSelect(sqlBuilder sq.SelectBuilder) sq.SelectBuilder {
 	// When sorting by a direct field in the listable model (i.e., name in Run or uuid in Pipeline), a sortByFieldPrefix can be specified; when sorting by a field in an array-typed dictionary (i.e., a run metric inside the metrics in Run), a sortByFieldPrefix is not needed.
-	keyFieldPrefix := o.Model.GetKeyFieldPrefix()
-	sortByFieldPrefix := o.Model.GetSortByFieldPrefix(o.SortByFieldName)
+	var listable Listable
+	switch o.ModelType {
+	case "Run":
+		listable = &model.Run{}
+		break
+	case "Job":
+		listable = &model.Job{}
+		break
+	case "Experiment":
+		listable = &model.Experiment{}
+		break
+	case "Pipeline":
+		listable = &model.Pipeline{}
+		break
+	case "PipelineVersion":
+		listable = &model.PipelineVersion{}
+		break
+	}
+
+	keyFieldPrefix := listable.GetKeyFieldPrefix()
+	sortByFieldPrefix := listable.GetSortByFieldPrefix(o.SortByFieldName)
 
 	// If next row's value is specified, set those values in the clause.
 	if o.SortByFieldValue != nil && o.KeyFieldValue != nil {
@@ -419,7 +439,7 @@ func (o *Options) nextPageToken(listable Listable) (*token, error) {
 		IsDesc:           o.IsDesc,
 		Filter:           o.Filter,
 		ModelName:        o.ModelName,
-		Model:            listable,
+		ModelType:        elemName,
 	}, nil
 }
 

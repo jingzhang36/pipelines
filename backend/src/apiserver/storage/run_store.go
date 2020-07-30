@@ -82,10 +82,13 @@ func (s *RunStore) ListRuns(
 		return nil, 0, "", util.NewInternalServerError(err, "Failed to list runs: %v", err)
 	}
 
+	glog.Infof("sort field: %+v\n", opts.SortByFieldName)
+	glog.Infof("sort value: %+v\n", opts.SortByFieldValue)
 	rowsSql, rowsArgs, err := s.buildSelectRunsQuery(false, opts, filterContext)
 	if err != nil {
 		return errorF(err)
 	}
+	glog.Infof("sql: %+v\n", rowsSql)
 
 	sizeSql, sizeArgs, err := s.buildSelectRunsQuery(true, opts, filterContext)
 	if err != nil {
