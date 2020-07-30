@@ -1,7 +1,6 @@
 import kfp
 from kfp import components
 from kfp import dsl
-from kfp.aws import use_aws_secret
 
 sagemaker_train_op = components.load_component_from_file("../../train/component.yaml")
 
@@ -11,6 +10,7 @@ def training_pipeline(
     region="",
     endpoint_url="",
     image="",
+    job_name="",
     training_input_mode="",
     hyperparameters="",
     channels="",
@@ -33,6 +33,7 @@ def training_pipeline(
         region=region,
         endpoint_url=endpoint_url,
         image=image,
+        job_name=job_name,
         training_input_mode=training_input_mode,
         hyperparameters=hyperparameters,
         channels=channels,

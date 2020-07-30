@@ -1,14 +1,12 @@
-import json
 import unittest
+import os
+import signal
 
-from unittest.mock import patch, call, Mock, MagicMock, mock_open
+from unittest.mock import patch, call, Mock, MagicMock, mock_open, ANY
 from botocore.exceptions import ClientError
-from datetime import datetime
 
 from hyperparameter_tuning.src import hyperparameter_tuning as hpo
-from train.src import train
 from common import _utils
-from . import test_utils
 
 
 required_args = [
@@ -20,7 +18,12 @@ required_args = [
   '--channels', '[{"ChannelName": "train", "DataSource": {"S3DataSource":{"S3Uri": "s3://fake-bucket/data","S3DataType":"S3Prefix","S3DataDistributionType": "FullyReplicated"}},"ContentType":"","CompressionType": "None","RecordWrapperType":"None","InputMode": "File"}]',
   '--output_location', 'test-output-location',
   '--max_num_jobs', '5',
-  '--max_parallel_jobs', '2'
+  '--max_parallel_jobs', '2',
+  '--hpo_job_name_output_path', '/tmp/hpo_job_name_output_path',
+  '--model_artifact_url_output_path', '/tmp/model_artifact_url_output_path',
+  '--best_job_name_output_path', '/tmp/best_job_name_output_path',
+  '--best_hyperparameters_output_path', '/tmp/best_hyperparameters_output_path',
+  '--training_image_output_path', '/tmp/training_image_output_path'
 ]
 
 class HyperparameterTestCase(unittest.TestCase):
@@ -59,13 +62,6 @@ class HyperparameterTestCase(unittest.TestCase):
     self.assertEqual(response['TrainingJobDefinition']['CheckpointConfig']['S3Uri'], 's3://fake-uri/')
     self.assertEqual(response['TrainingJobDefinition']['CheckpointConfig']['LocalPath'], 'local-path')
 
-  def test_empty_string(self):
-    good_args = self.parser.parse_args(
-      required_args + ['--spot_instance', 'True', '--max_wait_time', '86400', '--checkpoint_config',
-                       '{"S3Uri": "s3://fake-uri/"}'])
-    response = _utils.create_hyperparameter_tuning_job_request(vars(good_args))
-    test_utils.check_empty_string_values(response)
-
   def test_main(self):
     # Mock out all of utils except parser
     hpo._utils = MagicMock()
@@ -73,33 +69,24 @@ class HyperparameterTestCase(unittest.TestCase):
 
     # Set some static returns
     hpo._utils.create_hyperparameter_tuning_job.return_value = 'job-name'
-    hpo._utils.get_best_training_job_and_hyperparameters.return_value = 'best_job', 'best_hyperparameters'
+    hpo._utils.get_best_training_job_and_hyperparameters.return_value = 'best_job', {"key_1": "best_hp_1"}
     hpo._utils.get_image_from_job.return_value = 'training-image'
     hpo._utils.get_model_artifacts_from_job.return_value = 'model-artifacts'
 
-    with patch('builtins.open', mock_open()) as file_open:
-      hpo.main(required_args)
+    hpo.main(required_args)
 
     # Check if correct requests were created and triggered
     hpo._utils.create_hyperparameter_tuning_job.assert_called()
     hpo._utils.wait_for_hyperparameter_training_job.assert_called()
 
     # Check the file outputs
-    file_open.assert_has_calls([
-      call('/tmp/hpo_job_name.txt', 'w'),
-      call('/tmp/best_job_name.txt', 'w'),
-      call('/tmp/best_hyperparameters.txt', 'w'),
-      call('/tmp/model_artifact_url.txt', 'w'),
-      call('/tmp/training_image.txt', 'w')
-    ], any_order=True)
-
-    file_open().write.assert_has_calls([
-      call('job-name'),
-      call('best_job'),
-      call('"best_hyperparameters"'),
-      call('model-artifacts'),
-      call('training-image'),
-    ], any_order=False) 
+    hpo._utils.write_output.assert_has_calls([
+      call('/tmp/hpo_job_name_output_path', 'job-name'),
+      call('/tmp/model_artifact_url_output_path', 'model-artifacts'),
+      call('/tmp/best_job_name_output_path', 'best_job'),
+      call('/tmp/best_hyperparameters_output_path', {"key_1": "best_hp_1"}, json_encode=True),
+      call('/tmp/training_image_output_path', 'training-image')
+    ])
   
   def test_create_hyperparameter_tuning_job(self):
     mock_client = MagicMock()
@@ -135,7 +122,27 @@ class HyperparameterTestCase(unittest.TestCase):
     )
 
     self.assertEqual(response, 'test-job')
-  
+
+  def test_main_stop_hyperparameter_tuning_job(self):
+    hpo._utils = MagicMock()
+    hpo._utils.create_processing_job.return_value = 'job-name'
+
+    try:
+      os.kill(os.getpid(), signal.SIGTERM)
+    finally:
+      hpo._utils.stop_hyperparameter_tuning_job.assert_called_once_with(ANY, 'job-name')
+      hpo._utils.get_best_training_job_and_hyperparameters.assert_not_called()
+
+  def test_utils_stop_hyper_parameter_tuning_job(self):
+    mock_sm_client = MagicMock()
+    mock_sm_client.stop_hyper_parameter_tuning_job.return_value = None
+
+    response = _utils.stop_hyperparameter_tuning_job(mock_sm_client, 'FakeJobName')
+
+    mock_sm_client.stop_hyper_parameter_tuning_job.assert_called_once_with(
+        HyperParameterTuningJobName='FakeJobName'
+    )
+    self.assertEqual(response, None)
 
   def test_sagemaker_exception_in_create_hyperparameter_tuning_job(self):
     mock_client = MagicMock()

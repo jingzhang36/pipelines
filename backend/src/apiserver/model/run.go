@@ -77,6 +77,7 @@ var runAPIToModelFieldMap = map[string]string{
 	"description":   "Description",
 	"scheduled_at":  "ScheduledAtInSec",
 	"storage_state": "StorageState",
+	"status":        "Conditions",
 }
 
 // APIToModelFieldMap returns a map from API names to field names for model Run.
@@ -89,4 +90,33 @@ func (r *Run) GetModelName() string {
 	// TODO(jingzhang36): return run_details here, and use model name as alias
 	// and thus as prefix in sorting fields.
 	return ""
+}
+
+func (r *Run) GetFieldValue(name string) interface{} {
+	// "name" could be a field in Run type or a name inside an array typed field
+	// in Run type
+	// First, try to find the value if "name" is a field in Run type
+	switch name {
+	case "UUID":
+		return r.UUID
+	case "DisplayName":
+		return r.DisplayName
+	case "CreatedAtInSec":
+		return r.CreatedAtInSec
+	case "Description":
+		return r.Description
+	case "ScheduledAtInSec":
+		return r.ScheduledAtInSec
+	case "StorageState":
+		return r.StorageState
+	case "Conditions":
+		return r.Conditions
+	}
+	// Second, try to find the match of "name" inside an array typed field
+	for _, metric := range r.Metrics {
+		if metric.Name == name {
+			return metric.NumberValue
+		}
+	}
+	return nil
 }

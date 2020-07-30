@@ -2,7 +2,7 @@ import os
 import subprocess
 import pytest
 import tarfile
-import yaml
+from ruamel.yaml import YAML
 import random
 import string
 import shutil
@@ -58,7 +58,15 @@ def run_command(cmd, *popenargs, **kwargs):
         pytest.fail(f"Command failed. Error code: {e.returncode}, Log: {e.output}")
 
 
-def read_from_file_in_tar(file_path, file_name, decode=True):
+def read_from_file_in_tar(file_path, file_name="data", decode=True):
+    """Opens a local tarball and reads the contents of the file as specified.
+    Arguments:
+    - file_path: The local path of the tarball file.
+    - file_name: The name of the file inside the tarball to be read. (Default `"data"`)
+    - decode: Ensures the contents of the file is decoded to type `str`. (Default `True`)
+
+    See: https://github.com/kubeflow/pipelines/blob/2e14fe732b3f878a710b16d1a63beece6c19330a/sdk/python/kfp/components/_components.py#L182
+    """
     with tarfile.open(file_path).extractfile(file_name) as f:
         if decode:
             return f.read().decode()
@@ -93,7 +101,8 @@ def replace_placeholders(input_filename, output_filename):
 
 def load_params(file_name):
     with open(file_name, "r") as f:
-        return yaml.safe_load(f)
+        yaml = YAML(typ="safe")
+        return yaml.load(f)
 
 
 def generate_random_string(length):

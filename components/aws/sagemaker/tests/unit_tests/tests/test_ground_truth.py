@@ -1,13 +1,12 @@
-import json
 import unittest
+import os
+import signal
 
-from unittest.mock import patch, call, Mock, MagicMock, mock_open
+from unittest.mock import patch, call, Mock, MagicMock, mock_open, ANY
 from botocore.exceptions import ClientError
-from datetime import datetime
 
 from ground_truth.src import ground_truth
 from common import _utils
-from . import test_utils
 
 
 required_args = [
@@ -23,6 +22,8 @@ required_args = [
   '--description', 'fake job',
   '--num_workers_per_object', '1',
   '--time_limit', '180',
+  '--output_manifest_location_output_path', '/tmp/manifest-output',
+  '--active_learning_model_arn_output_path', '/tmp/model-output'
 ]
 
 class GroundTruthTestCase(unittest.TestCase):
@@ -42,8 +43,7 @@ class GroundTruthTestCase(unittest.TestCase):
     # Set some static returns
     ground_truth._utils.get_labeling_job_outputs.return_value = ('s3://fake-bucket/output', 'arn:aws:sagemaker:us-east-1:999999999999:labeling-job')
 
-    with patch('builtins.open', mock_open()) as file_open:
-      ground_truth.main(required_args)
+    ground_truth.main(required_args)
 
     # Check if correct requests were created and triggered
     ground_truth._utils.create_labeling_job.assert_called()
@@ -51,15 +51,10 @@ class GroundTruthTestCase(unittest.TestCase):
     ground_truth._utils.get_labeling_job_outputs.assert_called()
 
     # Check the file outputs
-    file_open.assert_has_calls([
-      call('/tmp/output_manifest_location.txt', 'w'),
-      call('/tmp/active_learning_model_arn.txt', 'w')
-    ], any_order=True)
-
-    file_open().write.assert_has_calls([
-      call('s3://fake-bucket/output'),
-      call('arn:aws:sagemaker:us-east-1:999999999999:labeling-job')
-    ], any_order=False)
+    ground_truth._utils.write_output.assert_has_calls([
+      call('/tmp/manifest-output', 's3://fake-bucket/output'),
+      call('/tmp/model-output', 'arn:aws:sagemaker:us-east-1:999999999999:labeling-job')
+    ])
 
   def test_ground_truth(self):
     mock_client = MagicMock()
@@ -73,12 +68,32 @@ class GroundTruthTestCase(unittest.TestCase):
                        'TaskTimeLimitInSeconds': 180,
                        'AnnotationConsolidationConfig': {'AnnotationConsolidationLambdaArn': ''}},
       InputConfig={'DataSource': {'S3DataSource': {'ManifestS3Uri': 's3://fake-bucket/manifest'}}},
-      LabelAttributeName='test_job', LabelCategoryConfigS3Uri='', LabelingJobName='test_job',
+      LabelAttributeName='test_job', LabelingJobName='test_job',
       OutputConfig={'S3OutputPath': 's3://fake-bucket/output', 'KmsKeyId': ''},
       RoleArn='arn:aws:iam::123456789012:user/Development/product_1234/*', Tags=[]
     )
 
     self.assertEqual(response, 'test_job')
+
+  def test_main_stop_labelling_job(self):
+    ground_truth._utils = MagicMock()
+
+    try:
+      os.kill(os.getpid(), signal.SIGTERM)
+    finally:
+      ground_truth._utils.stop_labeling_job.assert_called_once_with(ANY, 'test_job')
+      ground_truth._utils.get_labeling_job_outputs.assert_not_called()
+
+  def test_utils_stop_labeling_job(self):
+    mock_sm_client = MagicMock()
+    mock_sm_client.stop_labeling_job.return_value = None
+
+    response = _utils.stop_labeling_job(mock_sm_client, 'FakeJobName')
+
+    mock_sm_client.stop_labeling_job.assert_called_once_with(
+        LabelingJobName='FakeJobName'
+    )
+    self.assertEqual(response, None)
 
   def test_sagemaker_exception_in_ground_truth(self):
     mock_client = MagicMock()
@@ -159,7 +174,6 @@ class GroundTruthTestCase(unittest.TestCase):
                                                 'DataAttributes': {'ContentClassifiers': ['FreeOfAdultContent', 'FreeOfPersonallyIdentifiableInformation']}},
                                 'OutputConfig': {'S3OutputPath': 's3://fake-bucket/output', 'KmsKeyId': ''},
                                 'RoleArn': 'arn:aws:iam::123456789012:user/Development/product_1234/*',
-                                'LabelCategoryConfigS3Uri': '',
                                 'StoppingConditions': {'MaxHumanLabeledObjectCount': 10, 'MaxPercentageOfInputDatasetLabeled': 50},
                                 'LabelingJobAlgorithmsConfig': {'LabelingJobAlgorithmSpecificationArn': 'arn:aws:sagemaker:us-west-2:027400017018:labeling-job-algorithm-specification/image-classification',
                                                                 'InitialActiveLearningModelArn': 'fake-model-arn',
