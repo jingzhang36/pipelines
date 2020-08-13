@@ -1,12 +1,11 @@
 # 1. Build api server binary
 FROM golang:1.14.3 as builder
-RUN apt-get update && \
-  apt-get install -y cmake clang musl-dev openssl
+RUN apt-get update && apt-get install -y cmake clang musl-dev openssl
 WORKDIR /go/src/github.com/kubeflow/pipelines
 COPY . .
 RUN GO111MODULE=on go build -o /bin/apiserver ./backend/src/apiserver
 
-# 2. Compile pipeline samples
+# 2. Compile preloaded pipeline samples
 FROM python:3.5 as compiler
 RUN apt-get update -y && \
     apt-get install --no-install-recommends -y -q default-jdk python3-setuptools python3-dev jq
@@ -52,12 +51,11 @@ COPY third_party/license.txt /bin/license.txt
 # COPY --from=builder /go/src/github.com/kubeflow/pipelines/bazel-bin/backend/src/apiserver/  /usr/local/apiserver
 # RUN cp /usr/local/apiserver/linux_$(dpkg --print-architecture)_stripped/apiserver /bin/apiserver && \
     # rm -rf /usr/local/apiserver
-# COPY --from=builder /bin/ /bin/
 COPY backend/src/apiserver/config/ /config
 
+COPY --from=builder /bin/apiserver bin/apiserver
 COPY --from=compiler /samples/ /samples/
 
-# RUN apt-get clean
 # Adding CA certificate so API server can download pipeline through URL
 RUN apt-get update && apt-get install -y ca-certificates \
     # wget is used for liveness/readiness probe command
@@ -71,4 +69,4 @@ RUN sed -E "s#/(blob|tree)/master/#/\1/${COMMIT_SHA}/#g" -i /config/sample_confi
 EXPOSE 8888
 
 # Start the apiserver
-CMD apiserver --config=/config --sampleconfig=/config/sample_config.json -logtostderr=true
+CMD /bin/apiserver --config=/config --sampleconfig=/config/sample_config.json -logtostderr=true
