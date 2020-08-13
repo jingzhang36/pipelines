@@ -19,8 +19,6 @@ RUN python3 -m pip install -r requirements.txt
 ADD  https://github.com/argoproj/argo/releases/download/v2.4.3/argo-linux-amd64 /usr/local/bin/argo
 RUN chmod +x /usr/local/bin/argo
 
-WORKDIR /go/src/github.com/kubeflow/pipelines
-COPY sdk sdk
 WORKDIR /go/src/github.com/kubeflow/pipelines/sdk/python
 RUN python3 setup.py install
 
@@ -38,6 +36,7 @@ RUN set -e; \
         python3 "$pipeline_py"; \
     done
 
+# 3.
 FROM debian:stretch
 
 ARG COMMIT_SHA=unknown
@@ -51,11 +50,12 @@ COPY third_party/license.txt /bin/license.txt
 # COPY --from=builder /go/src/github.com/kubeflow/pipelines/bazel-bin/backend/src/apiserver/  /usr/local/apiserver
 # RUN cp /usr/local/apiserver/linux_$(dpkg --print-architecture)_stripped/apiserver /bin/apiserver && \
     # rm -rf /usr/local/apiserver
+# COPY --from=builder /bin/ /bin/
 COPY backend/src/apiserver/config/ /config
 
-COPY --from=builder /bin/ /bin/
 COPY --from=compiler /samples/ /samples/
 
+# RUN apt-get clean
 # Adding CA certificate so API server can download pipeline through URL
 RUN apt-get update && apt-get install -y ca-certificates \
     # wget is used for liveness/readiness probe command
