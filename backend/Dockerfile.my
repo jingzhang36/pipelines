@@ -3,7 +3,8 @@ FROM golang:1.14.3 as builder
 RUN apt-get update && apt-get install -y cmake clang musl-dev openssl
 WORKDIR /go/src/github.com/kubeflow/pipelines
 COPY . .
-RUN GO111MODULE=on go build -o /bin/apiserver ./backend/src/apiserver
+RUN go mod vendor
+RUN GO111MODULE=on go build -o /bin/apiserver ./backend/src/apiserver/*.go
 
 # 2. Compile preloaded pipeline samples
 FROM python:3.5 as compiler
@@ -53,8 +54,9 @@ COPY third_party/license.txt /bin/license.txt
     # rm -rf /usr/local/apiserver
 COPY backend/src/apiserver/config/ /config
 
-COPY --from=builder /bin/apiserver bin/apiserver
+COPY --from=builder /bin/apiserver /bin/apiserver
 COPY --from=compiler /samples/ /samples/
+RUN chmod +x /bin/apiserver
 
 # Adding CA certificate so API server can download pipeline through URL
 RUN apt-get update && apt-get install -y ca-certificates \
