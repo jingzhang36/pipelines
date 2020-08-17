@@ -13,7 +13,7 @@ ENV PROTOCINCLUDE /usr/include/google/protobuf
 WORKDIR /go/src/github.com/kubeflow/pipelines
 COPY . .
 RUN echo $(ls ../../)
-RUN GO111MODULE=on go mod vendor
+# RUN GO111MODULE=on go mod vendor
 RUN ${PROTOCCOMPILER} -I. \
     -I/go/src/github.com/protocolbuffers/protobuf/src \
     -I/go/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
