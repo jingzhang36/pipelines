@@ -1,21 +1,22 @@
 # 0. Generate client code from API protocol buffers
 FROM golang:1.13.1-stretch as generator
-RUN apt-get update -y && apt-get install -y protobuf-compiler
+#RUN apt-get update -y && apt-get install -y protobuf-compiler
 WORKDIR /go/src/github.com
-RUN git clone --depth 1 --branch v0.18.0 https://github.com/go-swagger/go-swagger.git
-RUN git clone --depth 1 --branch v1.9.0 https://github.com/grpc-ecosystem/grpc-gateway.git
-RUN git clone --depth 1 --branch v1.4.2 https://github.com/golang/protobuf
-RUN GOBIN=/go/bin go install ./golang/protobuf/protoc-gen-go
-ENV PROTOCCOMPILER /usr/bin/protoc
-ENV PROTOCINCLUDE /usr/include/google/protobuf
-WORKDIR /go/src/github.com/kubeflow/pipelines/backend/api
-COPY . .
-RUN ${PROTOCCOMPILER} -IPROTOCINCLUDE -I. \
-		-I$/go/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
-		-I$/go/src/github.com/grpc-ecosystem/grpc-gateway/ \
-		--plugin=protoc-gen-go=/go/bin/protoc-gen-go \
-		--go_out=plugins=grpc:go_client \
-		*.proto
+RUN mkdir grpc-ecosystem && cd grpc-ecosystem && git clone --depth 1 --branch v1.9.0 https://github.com/grpc-ecosystem/grpc-gateway.git
+RUN echo $(ls)
+RUN mkdir go-swagger && cd go-swagger && git clone --depth 1 --branch v0.18.0 https://github.com/go-swagger/go-swagger.git
+RUN mkdir golang && cd golang && git clone --depth 1 --branch v1.4.2 https://github.com/golang/protobuf
+#RUN GOBIN=/go/bin go install ./protobuf/protoc-gen-go
+#ENV PROTOCCOMPILER /usr/bin/protoc
+#ENV PROTOCINCLUDE /usr/include/google/protobuf
+#WORKDIR /go/src/github.com/kubeflow/pipelines/backend/api
+#COPY . .
+#RUN ${PROTOCCOMPILER} -IPROTOCINCLUDE -I. \
+#		-I$/go/src/github.com/grpc-gateway/third_party/googleapis \
+#		-I$/go/src/github.com/grpc-gateway/ \
+#		--plugin=protoc-gen-go=/go/bin/protoc-gen-go \
+#		--go_out=plugins=grpc:go_client \
+#		*.proto
 
 # 1. Build api server application
 # Use golang:1.13.1-stretch to keep GLIBC at 2.24 https://github.com/gotify/server/issues/225
