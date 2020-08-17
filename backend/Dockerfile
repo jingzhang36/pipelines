@@ -9,14 +9,15 @@ RUN cd golang/protobuf && go mod vendor
 RUN GOBIN=/go/bin go install github.com/golang/protobuf/protoc-gen-go
 ENV PROTOCCOMPILER /usr/bin/protoc
 ENV PROTOCINCLUDE /usr/include/google/protobuf
-WORKDIR /go/src/github.com/kubeflow/pipelines/backend/api
+WORKDIR /go/src/github.com/kubeflow/pipelines
 COPY . .
-RUN ${PROTOCCOMPILER} -IPROTOCINCLUDE -I. \
+RUN ${PROTOCCOMPILER} -I. \
+    -I/go/src/github.com/golang/protobuf/ \
 		-I/go/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
 		-I/go/src/github.com/grpc-ecosystem/grpc-gateway/ \
 		--plugin=protoc-gen-go=/go/bin/protoc-gen-go \
 		--go_out=plugins=grpc:go_client \
-		*.proto
+		backend/api/*.proto
 
 # 1. Build api server application
 # Use golang:1.13.1-stretch to keep GLIBC at 2.24 https://github.com/gotify/server/issues/225
