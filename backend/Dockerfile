@@ -12,9 +12,10 @@ ENV PROTOCCOMPILER /usr/bin/protoc
 ENV PROTOCINCLUDE /usr/include/google/protobuf
 WORKDIR /go/src/github.com/kubeflow/pipelines
 COPY . .
-RUN mkdir backend/api/go_client
-# RUN GO111MODULE=on go mod vendor
-RUN ${PROTOCCOMPILER} -Ibackend/api \
+# RUN mkdir backend/api/go_client MUST create if not exist; clear if exists
+RUN rm -r -f backend/api/go_http_client/*
+RUN rm -f -f backend/api/go_client/*
+RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
     -I/go/src/github.com/protocolbuffers/protobuf/src \
     -I/go/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
 		-I/go/src/github.com/grpc-ecosystem/grpc-gateway/ \
