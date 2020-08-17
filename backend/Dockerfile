@@ -2,18 +2,18 @@
 FROM golang:1.13.1-stretch as generator
 RUN apt-get update -y && apt-get install -y protobuf-compiler
 WORKDIR /go/src/github.com
-RUN git clone --depth 1 --branch v1.9.0 https://github.com/grpc-ecosystem/grpc-gateway.git
-RUN git clone --depth 1 --branch v0.18.0 https://github.com/go-swagger/go-swagger.git
-RUN git clone --depth 1 --branch v1.4.2 https://github.com/golang/protobuf.git
-RUN cd protobuf && go mod vendor
-RUN GOBIN=/go/bin go install github.com/protobuf/protoc-gen-go
+RUN mkdir grpc-ecosystem && cd grpc-ecosystem && git clone --depth 1 --branch v1.9.0 https://github.com/grpc-ecosystem/grpc-gateway.git
+RUN mkdir go-swagger && cd go-swagger && git clone --depth 1 --branch v0.18.0 https://github.com/go-swagger/go-swagger.git
+RUN mkdir golang && cd golang && git clone --depth 1 --branch v1.4.2 https://github.com/golang/protobuf.git
+RUN cd golang/protobuf && go mod vendor
+RUN GOBIN=/go/bin go install github.com/golang/protobuf/protoc-gen-go
 ENV PROTOCCOMPILER /usr/bin/protoc
 ENV PROTOCINCLUDE /usr/include/google/protobuf
 WORKDIR /go/src/github.com/kubeflow/pipelines/backend/api
 COPY . .
 RUN ${PROTOCCOMPILER} -IPROTOCINCLUDE -I. \
-		-I/go/src/github.com/grpc-gateway/third_party/googleapis \
-		-I/go/src/github.com/grpc-gateway/ \
+		-I/go/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+		-I/go/src/github.com/grpc-ecosystem/grpc-gateway/ \
 		--plugin=protoc-gen-go=/go/bin/protoc-gen-go \
 		--go_out=plugins=grpc:go_client \
 		*.proto
