@@ -12,14 +12,14 @@ ENV PROTOCCOMPILER /usr/bin/protoc
 ENV PROTOCINCLUDE /usr/include/google/protobuf
 WORKDIR /go/src/github.com/kubeflow/pipelines
 COPY . .
-RUN echo $(ls ../../)
+RUN mkdir backend/api/go_client
 # RUN GO111MODULE=on go mod vendor
-RUN ${PROTOCCOMPILER} -I. \
+RUN ${PROTOCCOMPILER} -Ibackend/api \
     -I/go/src/github.com/protocolbuffers/protobuf/src \
     -I/go/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
 		-I/go/src/github.com/grpc-ecosystem/grpc-gateway/ \
 		--plugin=protoc-gen-go=/go/bin/protoc-gen-go \
-		--go_out=plugins=grpc:go_client \
+		--go_out=plugins=grpc:backend/api/go_client \
 		backend/api/*.proto
 
 # 1. Build api server application
