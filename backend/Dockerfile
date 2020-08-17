@@ -1,3 +1,27 @@
+# 0. Generate client code from API protocol buffers
+FROM golang:1.13.1-stretch as generator
+RUN apt-get update -y && apt-get install -y protobuf-compiler
+WORKDIR /go/src/github.com/kubeflow/pipelines
+COPY . .
+ENV PROTOCCOMPILER /usr/bin/protoc
+ENV PROTOCINCLUDE /usr/include/google/protobuf
+RUN go get github.com/go-swagger/go-swagger
+RUN go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+RUN go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+RUN go get github.com/golang/protobuf/protoc-gen-go
+WORKDIR $(go env GOMODCACHE)
+RUN GOBIN=/go/bin go install ./github.com/go-swagger/go-swagger
+RUN GOBIN=/go/bin go install ./github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+RUN GOBIN=/go/bin go install ./github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+RUN GOBIN=/go/bin go install ./github.com/golang/protobuf/protoc-gen-go
+WORKDIR /go/src/github.com/kubeflow/pipelines
+RUN ${PROTOCCOMPILER} -IPROTOCINCLUDE -I. \
+		-I$(go env GOMODCACHE)/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+		-I$(go env GOMODCACHE)/github.com/grpc-ecosystem/grpc-gateway/ \
+		--plugin=protoc-gen-go=/go/bin/protoc-gen-go \
+		--go_out=plugins=grpc:go_client \
+		*.proto
+
 # 1. Build api server application
 # Use golang:1.13.1-stretch to keep GLIBC at 2.24 https://github.com/gotify/server/issues/225
 FROM golang:1.13.1-stretch as builder
