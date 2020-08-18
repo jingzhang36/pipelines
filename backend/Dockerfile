@@ -33,7 +33,6 @@ WORKDIR /go/src/github.com/kubeflow/pipelines
 COPY . .
 RUN rm -r -f backend/api/go_http_client/*
 RUN rm -f -f backend/api/go_client/*
-RUN rm -r -f backend/api/swagger/*
 ENV TMP_OUTPUT /tmp
 # Generate *.pb.go (grpc api client) from *.proto into go_client folder.
 RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
@@ -98,6 +97,13 @@ RUN /go/bin/swagger generate client \
     --principal models.Principal \
     -c pipeline_upload_client \
     -m pipeline_upload_model \
+    -t backend/api/go_http_client
+RUN /go/bin/swagger generate client \
+    -f backend/api/swagger/visualization.swagger.json \
+    -A visualization \
+    --principal models.Principal \
+    -c visualization_client \
+    -m visualization_model \
     -t backend/api/go_http_client
 RUN echo $(ls -R ./backend/api/go_http_client)
 
