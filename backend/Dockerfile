@@ -7,9 +7,10 @@ ENV PROTOCINCLUDE /usr/include/google/protobuf
 # Need grpc-gateway source code for -I in protoc command.
 WORKDIR /go/src/github.com
 RUN mkdir grpc-ecosystem && cd grpc-ecosystem && git clone --depth 1 --branch v1.9.0 https://github.com/grpc-ecosystem/grpc-gateway.git
-# Install protoc-gen-rpc-gateway.
+# Install protoc-gen-rpc-gateway && protoc-gen-swagger.
 RUN cd grpc-ecosystem/grpc-gateway && GO111MODULE=on go mod vendor
 RUN GOBIN=/go/bin go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+RUN GOBIN=/go/bin go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
 # Need go-swagger source code for -I in protoc command.
 RUN mkdir go-swagger && cd go-swagger && git clone --depth 1 --branch v0.18.0 https://github.com/go-swagger/go-swagger.git
 # Need protobuf source code for -I in protoc command.
@@ -24,7 +25,7 @@ WORKDIR /go/src/github.com/kubeflow/pipelines
 COPY . .
 RUN rm -r -f backend/api/go_http_client/*
 RUN rm -f -f backend/api/go_client/*
-# Generate *.pb.go (grpc api client) from *.proto into backend/api folder
+# Generate *.pb.go (grpc api client) from *.proto into go_client folder.
 RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
     -I/go/src/github.com/protocolbuffers/protobuf/src \
     -I/go/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
@@ -33,7 +34,7 @@ RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
     --go_out=plugins=grpc:../../.. \
     backend/api/*.proto
 RUN echo $(ls -R ./backend/api/go_client)
-# Generate *.pb.gw.go (grpc api rest client) from *.proto into backend/api folder
+# Generate *.pb.gw.go (grpc api rest client) from *.proto into go_client folder.
 RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
     -I/go/src/github.com/protocolbuffers/protobuf/src \
     -I/go/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
@@ -42,6 +43,16 @@ RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
     --grpc-gateway_out=logtostderr=true:../../.. \
     backend/api/*.proto
 RUN echo $(ls -R ./backend/api/go_client)
+# Generate *.swagger.json from *.proto into swagger folder.
+RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
+    -I/go/src/github.com/protocolbuffers/protobuf/src \
+    -I/go/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+    -I/go/src/github.com/grpc-ecosystem/grpc-gateway/ \
+    --plugin=protoc-gen-swagger=/go/bin/protoc-gen-swagger \
+    --swagger_out=logtostderr=true:../../.. \
+    backend/api/*.proto
+RUN echo $(ls ./backend/api)
+RUN echo $(ls -R ./backend/api/swagger)
 
 # 1. Build api server application
 # Use golang:1.13.1-stretch to keep GLIBC at 2.24 https://github.com/gotify/server/issues/225
