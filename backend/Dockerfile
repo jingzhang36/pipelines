@@ -7,15 +7,18 @@ ENV PROTOCINCLUDE /usr/include/google/protobuf
 # Need grpc-gateway source code for -I in protoc command.
 WORKDIR /go/src/github.com
 RUN mkdir grpc-ecosystem && cd grpc-ecosystem && git clone --depth 1 --branch v1.9.0 https://github.com/grpc-ecosystem/grpc-gateway.git
+# Install protoc-gen-rpc-gateway.
+RUN cd grpc-ecosystem && GO111MODULE=on go mod vendor
+RUN GOBIN=/go/bin go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 # Need go-swagger source code for -I in protoc command.
 RUN mkdir go-swagger && cd go-swagger && git clone --depth 1 --branch v0.18.0 https://github.com/go-swagger/go-swagger.git
 # Need protobuf source code for -I in protoc command.
 RUN mkdir golang && cd golang && git clone --depth 1 --branch v1.4.2 https://github.com/golang/protobuf.git
-# Install protoc-gen-go & protoc-gen-rpc-gateway.
+# Install protoc-gen-go.
 RUN cd golang/protobuf && GO111MODULE=on go mod vendor
-RUN mkdir protocolbuffers && cd protocolbuffers && git clone --depth 1 --branch v3.11.3 https://github.com/protocolbuffers/protobuf.git
 RUN GOBIN=/go/bin go install github.com/golang/protobuf/protoc-gen-go
-RUN GOBIN=/go/bin go install github.com/golang/protobuf/protoc-gen-grpc-gateway
+# Need protobuffers/protobuf source code for -I in proto command.
+RUN mkdir protocolbuffers && cd protocolbuffers && git clone --depth 1 --branch v3.11.3 https://github.com/protocolbuffers/protobuf.git
 # RUN mkdir backend/api/go_client MUST create if not exist; clear if exists
 WORKDIR /go/src/github.com/kubeflow/pipelines
 COPY . .
