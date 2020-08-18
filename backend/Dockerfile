@@ -8,7 +8,7 @@ ENV PROTOCINCLUDE /usr/include/google/protobuf
 WORKDIR /go/src/github.com
 RUN mkdir grpc-ecosystem && cd grpc-ecosystem && git clone --depth 1 --branch v1.9.0 https://github.com/grpc-ecosystem/grpc-gateway.git
 # Install protoc-gen-rpc-gateway.
-RUN cd grpc-ecosystem && GO111MODULE=on go mod vendor
+RUN cd grpc-ecosystem/grpc-gateway && GO111MODULE=on go mod vendor
 RUN GOBIN=/go/bin go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 # Need go-swagger source code for -I in protoc command.
 RUN mkdir go-swagger && cd go-swagger && git clone --depth 1 --branch v0.18.0 https://github.com/go-swagger/go-swagger.git
@@ -32,6 +32,7 @@ RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
     --plugin=protoc-gen-go=/go/bin/protoc-gen-go \
     --go_out=plugins=grpc:../../.. \
     backend/api/*.proto
+RUN echo $(ls -R ./backend/api/go_client)
 # Generate *.pb.gw.go (grpc api rest client) from *.proto into backend/api folder
 RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
     -I/go/src/github.com/protocolbuffers/protobuf/src \
@@ -40,6 +41,7 @@ RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
     --plugin=protoc-gen-grpc-gateway=/go/bin/protoc-gen-grpc-gateway \
     --grpc-gateway_out=logtostderr=true:../../.. \
     backend/api/*.proto
+RUN echo $(ls -R ./backend/api/go_client)
 
 # 1. Build api server application
 # Use golang:1.13.1-stretch to keep GLIBC at 2.24 https://github.com/gotify/server/issues/225
