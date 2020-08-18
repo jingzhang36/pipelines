@@ -17,9 +17,9 @@ RUN cd grpc-ecosystem/grpc-gateway && GO111MODULE=on go mod vendor
 RUN GOBIN=/go/bin go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 RUN GOBIN=/go/bin go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
 # Need go-swagger source code for -I in protoc command.
-RUN mkdir go-swagger && cd go-swagger && git clone --depth 1 --branch v0.18.0 https://github.com/go-swagger/go-swagger.git
+RUN mkdir go-swagger && cd go-swagger && git clone --depth 1 --branch v0.21.0 https://github.com/go-swagger/go-swagger.git
 # Install swagger.
-RUN cd go-swagger/go-swagger
+RUN cd go-swagger/go-swagger && go mod vendor
 RUN GOBIN=/go/bin go install github.com/go-swagger/go-swagger/cmd/swagger
 # Need protobuf source code for -I in protoc command.
 RUN mkdir golang && cd golang && git clone --depth 1 --branch v1.4.2 https://github.com/golang/protobuf.git
@@ -61,7 +61,7 @@ RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
     --plugin=protoc-gen-swagger=/go/bin/protoc-gen-swagger \
     --swagger_out=logtostderr=true:${TMP_OUTPUT} \
     backend/api/*.proto
-COPY ${TMP_OUTPUT}/*.swagger.json backdend/api/swagger/
+RUN cp ${TMP_OUTPUT}/backend/api/*.swagger.json ./backend/api/swagger
 RUN echo $(ls -R ./backend/api/swagger)
 # Generate go_http_client from swagger.
 RUN /go/bin/swagger generate client \
@@ -70,6 +70,34 @@ RUN /go/bin/swagger generate client \
     --principal models.Principal \
     -c job_client \
     -m job_model \
+    -t backend/api/go_http_client
+RUN /go/bin/swagger generate client \
+    -f backend/api/swagger/run.swagger.json \
+    -A run \
+    --principal models.Principal \
+    -c run_client \
+    -m run_model \
+    -t backend/api/go_http_client
+RUN /go/bin/swagger generate client \
+    -f backend/api/swagger/experiment.swagger.json \
+    -A experiment \
+    --principal models.Principal \
+    -c experiment_client \
+    -m experiment_model \
+    -t backend/api/go_http_client
+RUN /go/bin/swagger generate client \
+    -f backend/api/swagger/pipeline.swagger.json \
+    -A pipeline \
+    --principal models.Principal \
+    -c pipeline_client \
+    -m pipeline_model \
+    -t backend/api/go_http_client
+RUN /go/bin/swagger generate client \
+    -f backend/api/swagger/pipeline.upload.swagger.json \
+    -A pipeline_upload \
+    --principal models.Principal \
+    -c pipeline_upload_client \
+    -m pipeline_upload_model \
     -t backend/api/go_http_client
 RUN echo $(ls -R ./backend/api/go_http_client)
 
