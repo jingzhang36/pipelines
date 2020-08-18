@@ -18,6 +18,9 @@ RUN GOBIN=/go/bin go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-g
 RUN GOBIN=/go/bin go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
 # Need go-swagger source code for -I in protoc command.
 RUN mkdir go-swagger && cd go-swagger && git clone --depth 1 --branch v0.18.0 https://github.com/go-swagger/go-swagger.git
+# Install swagger.
+RUN cd go-swagger/go-swagger && GO111MODULE=on go mod vendor
+RUN GOBIN=/go/bin go install github.com/go-swagger/go-swagger/cmd/swagger
 # Need protobuf source code for -I in protoc command.
 RUN mkdir golang && cd golang && git clone --depth 1 --branch v1.4.2 https://github.com/golang/protobuf.git
 # Install protoc-gen-go.
