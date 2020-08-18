@@ -59,6 +59,15 @@ RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
     backend/api/*.proto
 RUN echo $(ls ./backend/api)
 RUN echo $(ls -R ./backend/api/swagger)
+# Generate go_http_client from swagger.
+RUN /go/bin/swagger generate client \
+    -f swagger/job.swagger.json \
+    -A job \
+    --principal models.Principal \
+    -c job_client \
+    -m job_model \
+    -t go_http_client
+RUN echo $(ls -R ./backend/api/go_http_client)
 
 # 1. Build api server application
 # Use golang:1.13.1-stretch to keep GLIBC at 2.24 https://github.com/gotify/server/issues/225
