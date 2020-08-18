@@ -34,6 +34,7 @@ COPY . .
 RUN rm -r -f backend/api/go_http_client/*
 RUN rm -f -f backend/api/go_client/*
 RUN rm -r -f backend/api/swagger/*
+ENV TMP_OUTPUT /tmp
 # Generate *.pb.go (grpc api client) from *.proto into go_client folder.
 RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
     -I/go/src/github.com/protocolbuffers/protobuf/src \
@@ -58,9 +59,9 @@ RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
     -I/go/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
     -I/go/src/github.com/grpc-ecosystem/grpc-gateway/ \
     --plugin=protoc-gen-swagger=/go/bin/protoc-gen-swagger \
-    --swagger_out=logtostderr=true:../../.. \
+    --swagger_out=logtostderr=true:${TMP_OUTPUT} \
     backend/api/*.proto
-RUN echo $(ls ./backend/api)
+COPY ${TMP_OUTPUT}/*.swagger.json backdend/api/swagger/
 RUN echo $(ls -R ./backend/api/swagger)
 # Generate go_http_client from swagger.
 RUN /go/bin/swagger generate client \
