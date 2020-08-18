@@ -1,27 +1,42 @@
 # 0. Generate client code from API protocol buffers
 FROM golang:1.13.1-stretch as generator
+# Install protoc.
 RUN apt-get update -y && apt-get install -y protobuf-compiler
+ENV PROTOCCOMPILER /usr/bin/protoc
+ENV PROTOCINCLUDE /usr/include/google/protobuf
+# Need grpc-gateway source code for -I in protoc command.
 WORKDIR /go/src/github.com
 RUN mkdir grpc-ecosystem && cd grpc-ecosystem && git clone --depth 1 --branch v1.9.0 https://github.com/grpc-ecosystem/grpc-gateway.git
+# Need go-swagger source code for -I in protoc command.
 RUN mkdir go-swagger && cd go-swagger && git clone --depth 1 --branch v0.18.0 https://github.com/go-swagger/go-swagger.git
+# Need protobuf source code for -I in protoc command.
 RUN mkdir golang && cd golang && git clone --depth 1 --branch v1.4.2 https://github.com/golang/protobuf.git
+# Install protoc-gen-go & protoc-gen-rpc-gateway.
 RUN cd golang/protobuf && GO111MODULE=on go mod vendor
 RUN mkdir protocolbuffers && cd protocolbuffers && git clone --depth 1 --branch v3.11.3 https://github.com/protocolbuffers/protobuf.git
 RUN GOBIN=/go/bin go install github.com/golang/protobuf/protoc-gen-go
-ENV PROTOCCOMPILER /usr/bin/protoc
-ENV PROTOCINCLUDE /usr/include/google/protobuf
+RUN GOBIN=/go/bin go install github.com/golang/protobuf/protoc-gen-grpc-gateway
+# RUN mkdir backend/api/go_client MUST create if not exist; clear if exists
 WORKDIR /go/src/github.com/kubeflow/pipelines
 COPY . .
-# RUN mkdir backend/api/go_client MUST create if not exist; clear if exists
 RUN rm -r -f backend/api/go_http_client/*
 RUN rm -f -f backend/api/go_client/*
+# Generate *.pb.go (grpc api client) from *.proto into backend/api folder
 RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
     -I/go/src/github.com/protocolbuffers/protobuf/src \
     -I/go/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
-		-I/go/src/github.com/grpc-ecosystem/grpc-gateway/ \
-		--plugin=protoc-gen-go=/go/bin/protoc-gen-go \
-		--go_out=plugins=grpc:backend/api/go_client \
-		backend/api/*.proto
+    -I/go/src/github.com/grpc-ecosystem/grpc-gateway/ \
+    --plugin=protoc-gen-go=/go/bin/protoc-gen-go \
+    --go_out=plugins=grpc:../../.. \
+    backend/api/*.proto
+# Generate *.pb.gw.go (grpc api rest client) from *.proto into backend/api folder
+RUN ${PROTOCCOMPILER} -I. -Ibackend/api \
+    -I/go/src/github.com/protocolbuffers/protobuf/src \
+    -I/go/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+    -I/go/src/github.com/grpc-ecosystem/grpc-gateway/ \
+    --plugin=protoc-gen-grpc-gateway=/go/bin/protoc-gen-grpc-gateway \
+    --grpc-gateway_out=logtostderr=true:../../.. \
+    backend/api/*.proto
 
 # 1. Build api server application
 # Use golang:1.13.1-stretch to keep GLIBC at 2.24 https://github.com/gotify/server/issues/225
