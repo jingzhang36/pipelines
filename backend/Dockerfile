@@ -107,6 +107,7 @@ RUN /go/bin/swagger generate client \
     -m visualization_model \
     -t backend/api/go_http_client
 RUN echo $(ls -R ./backend/api/go_http_client)
+RUN cd backend/api && go generate ./...
 
 # 1. Build api server application
 # Use golang:1.13.1-stretch to keep GLIBC at 2.24 https://github.com/gotify/server/issues/225
@@ -114,6 +115,10 @@ FROM golang:1.13.1-stretch as builder
 RUN apt-get update && apt-get install -y cmake clang musl-dev openssl
 WORKDIR /go/src/github.com/kubeflow/pipelines
 COPY . .
+COPY --from=generator /go/src/github.com/kubeflow/pipelines/backend/api/go_client/* ./backend/api/go_client
+COPY --from=generator /go/src/github.com/kubeflow/pipelines/backend/api/go_http_client/* ./backend/api/go_http_client
+COPY --from=generator /go/src/github.com/kubeflow/pipelines/backend/api/swagger/* ./backend/api/swagger
+# license?
 RUN go mod vendor
 RUN GO111MODULE=on go build -o /bin/apiserver backend/src/apiserver/*.go
 
