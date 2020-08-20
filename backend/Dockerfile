@@ -123,9 +123,9 @@ FROM golang:1.13.1-stretch as builder
 RUN apt-get update && apt-get install -y cmake clang musl-dev openssl
 WORKDIR /go/src/github.com/kubeflow/pipelines
 COPY . .
-COPY --from=generator /go/src/github.com/kubeflow/pipelines/backend/api/go_client/* ./backend/api/go_client
-COPY --from=generator /go/src/github.com/kubeflow/pipelines/backend/api/go_http_client/* ./backend/api/go_http_client
-COPY --from=generator /go/src/github.com/kubeflow/pipelines/backend/api/swagger/* ./backend/api/swagger
+COPY --from=generator /go/src/github.com/kubeflow/pipelines/backend/api/go_client/* ./backend/api/go_client/
+COPY --from=generator /go/src/github.com/kubeflow/pipelines/backend/api/go_http_client/* ./backend/api/go_http_client/
+COPY --from=generator /go/src/github.com/kubeflow/pipelines/backend/api/swagger/* ./backend/api/swagger/
 RUN go mod vendor
 RUN GO111MODULE=on go build -o /bin/apiserver backend/src/apiserver/*.go
 
