@@ -45,7 +45,7 @@ jinja2,https://raw.githubusercontent.com/pallets/jinja/master/LICENSE.rst,BSD
 html5lib,https://raw.githubusercontent.com/html5lib/html5lib-python/master/LICENSE,MIT
 opencv-python,https://raw.githubusercontent.com/skvark/opencv-python/master/LICENSE.txt,MIT
 httplib2,https://raw.githubusercontent.com/httplib2/httplib2/master/LICENSE,MIT
-pygments,https://bitbucket.org/birkenfeld/pygments-main/raw/7941677dc77d4f2bf0bbd6140ade85a9454b8b80/LICENSE,BSD
+pygments,https://raw.githubusercontent.com/pygments/pygments/master/LICENSE,BSD-2
 pyasn1-modules,https://raw.githubusercontent.com/etingof/pyasn1-modules/master/LICENSE.txt,BSD
 rsa,https://raw.githubusercontent.com/sybrenstuvel/python-rsa/master/LICENSE,Apache Software License (ASL 2)
 pyasn1,https://raw.githubusercontent.com/etingof/pyasn1/master/LICENSE.rst,BSD

@@ -238,7 +238,7 @@ steps:
 
 # Tag for Hosted - Tag to hosted folder with MKP friendly name
 - id:   'tagForHosted'
-  waitFor: ['parseMajorMinorVersion', 'buildFrontend', 'buildApiServer', 'buildScheduledWorkflow',            
+  waitFor: ['parseMajorMinorVersion', 'buildFrontend', 'buildApiServer', 'buildScheduledWorkflow',
             'buildViewerCrdController', 'buildPersistenceAgent', 'buildInverseProxyAgent', 'buildVisualizationServer',
             'buildMetadataWriter', 'buildCacheServer', 'buildCacheDeployer', 'buildMetadataEnvoy',
             'buildMarketplaceDeployer', 'pullMetadataServer', 'pullMinio', 'pullMysql', 'pullCloudsqlProxy',
